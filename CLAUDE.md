@@ -26,3 +26,17 @@ Take-home challenge for the role of AI Solution Engineer (Zug). Not an official 
 - No real places, utilities, facilities or people. Keep the disclaimer in the UI footer and in docs.
 - All tunable numbers live in `config/*.yaml`, not in code.
 - Small commits; `make test` green before each one.
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown: issues and specs live as files under `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five default labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), recorded as a `Status:` line. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
