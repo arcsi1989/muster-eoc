@@ -17,7 +17,7 @@ Take-home challenge for the role of AI Solution Engineer (Zug). Not an official 
 - `make dev`: backend on :8000, frontend on :5173
 - `make test`: ruff, mypy, pytest, vitest
 - `make demo-reset`: reset to before advisory 1
-- `docker compose up`: full stack
+- `docker compose up`: cut for the time box (see `docs/decisions.md`); `make dev` is the one-command run
 
 ## Hard rules
 - The LLM never decides whether a playbook rule is met, never changes scores, never writes operational state. Humans approve; the decision log records it.

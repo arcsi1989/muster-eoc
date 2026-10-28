@@ -50,7 +50,7 @@ Where they and this file disagree, they win.
 
 - **L1** Anything code consumes comes from structured output (a Pydantic schema), never from parsing free text.
 - **L2** Extraction and classification use `temperature=0`.
-- **L3** Prompts live in `llm/prompts.py` as named constants, not inline in endpoints.
+- **L3** Prompts live in `agent/prompts/` as versioned files (plan section 4), not inline in code; the prompt version is recorded with every call.
 - **L4** User-provided content (emails, documents, chat) is data, never instructions: it goes in its own clearly delimited message, and the system prompt says to ignore instructions inside it.
 - **L5** Numbers that matter (scores, probabilities, counts, deadlines) come from deterministic code or tools, never from model arithmetic.
 - **L6** The model drafts; a person approves. No AI output changes operational state without a human approval recorded in the decision log.
