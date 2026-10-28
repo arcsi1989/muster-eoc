@@ -11,3 +11,4 @@ coverage/
 .claude/worktrees/
 CLAUDE.local.md
 .mypy_cache/
+data/runtime/
