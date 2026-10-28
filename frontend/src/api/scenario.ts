@@ -2,6 +2,7 @@ import type {
   AdvisoryChanges,
   Asset,
   Coastline,
+  Exposure,
   Facility,
   LineageEntry,
   RiskList,
@@ -20,3 +21,4 @@ export const getChanges = (advisoryNo: number) => api<AdvisoryChanges>(`/advisor
 export const getFacilities = () => api<Facility[]>('/facilities')
 export const getStagingAreas = () => api<StagingArea[]>('/staging-areas')
 export const getLineage = () => api<LineageEntry[]>('/lineage')
+export const getExposure = (advisoryNo: number) => api<Exposure[]>(`/exposure?advisory=${advisoryNo}`)

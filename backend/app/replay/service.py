@@ -2,11 +2,13 @@
 
 from sqlmodel import Session, col, delete, select
 
-from app.errors import ConflictError, NotFound
-from app.models import Advisory, Asset, ScenarioState, Score
+from app.errors import ConflictError, DataNotLoaded, NotFound
+from app.hazard.service import store_exposure
+from app.models import Advisory, Asset, Exposure, ScenarioState, Score
 from app.playbook.activation import ActivationLevel, activation_level
 from app.replay.diff import AdvisoryChanges, AdvisorySnapshot, diff
 from app.risk.score import placeholder_score
+from app.scoring_config import ScoringConfig
 
 
 class ScenarioComplete(ConflictError):
@@ -16,7 +18,7 @@ class ScenarioComplete(ConflictError):
 def _state(session: Session) -> ScenarioState:
     state = session.get(ScenarioState, 1)
     if state is None:
-        raise RuntimeError("scenario state missing; the gold data was not loaded")
+        raise DataNotLoaded("scenario state missing; the gold data was not loaded")
     return state
 
 
@@ -40,12 +42,13 @@ def max_wind_mph(advisory: Advisory) -> float:
     return max(float(point["vmax_mph"]) for point in advisory.track)
 
 
-def advance(session: Session) -> None:
-    """Issues the next advisory and scores every asset against it."""
+def advance(session: Session, config: ScoringConfig) -> None:
+    """Issues the next advisory: computes hazard exposure, then scores every asset."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
         raise ScenarioComplete(f"all {state.current_advisory} advisories have been issued")
+    store_exposure(session, advisory, config.hazard)
 
     assets = session.exec(select(Asset)).all()
     scored = sorted(
@@ -70,6 +73,7 @@ def advance(session: Session) -> None:
 def reset(session: Session) -> None:
     """Returns to before advisory 1."""
     session.exec(delete(Score))
+    session.exec(delete(Exposure))
     state = _state(session)
     state.current_advisory = 0
     session.add(state)
@@ -112,3 +116,11 @@ def changes(session: Session, advisory_no: int, levels: list[ActivationLevel]) -
     current = _require_issued(session, advisory_no)
     previous = session.get(Advisory, advisory_no - 1)
     return diff(snapshot(current), snapshot(previous) if previous else None)
+
+
+def exposures(session: Session, advisory_no: int) -> list[Exposure]:
+    _require_issued(session, advisory_no)
+    query = (
+        select(Exposure).where(Exposure.advisory_no == advisory_no).order_by(col(Exposure.site_id))
+    )
+    return list(session.exec(query))

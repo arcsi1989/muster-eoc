@@ -24,6 +24,8 @@ export interface Advisory {
   peak_surge_m: number
   landfall: Point
   track: TrackPoint[]
+  /** outline of the forecast cone */
+  cone: Point[]
 }
 
 /** One advisory in the replay schedule; its forecast stays hidden until issued. */
@@ -122,4 +124,16 @@ export interface RiskItem {
 export interface RiskList {
   advisory_no: number
   items: RiskItem[]
+}
+
+export interface Exposure {
+  site_id: string
+  site_kind: 'asset' | 'staging_area'
+  wind_p50_mph: number
+  wind_p90_mph: number
+  flood_depth_p50_m: number
+  flood_depth_p90_m: number
+  /** median hours until tropical-storm-force wind; null if never */
+  tsforce_arrival_h: number | null
+  elevation_imputed: boolean
 }

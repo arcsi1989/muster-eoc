@@ -14,6 +14,12 @@ class NotFound(AppError):
     code = "not_found"
 
 
+class DataNotLoaded(AppError):
+    """Reference data the app needs is missing from the database (startup load failed)."""
+
+    code = "data_not_loaded"
+
+
 class ConflictError(AppError):
     status = 409
     code = "conflict"

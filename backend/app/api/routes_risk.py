@@ -1,10 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
-from sqlmodel import Session
+from fastapi import APIRouter, Query
 
 from app.api.schemas import RiskItemOut, RiskListOut
-from app.deps import get_session
+from app.deps import SessionDep
 from app.replay import service
 
 router = APIRouter()
@@ -12,7 +11,7 @@ router = APIRouter()
 
 @router.get("/risk", response_model=RiskListOut)
 def get_risk(
-    session: Annotated[Session, Depends(get_session)],
+    session: SessionDep,
     advisory: Annotated[int, Query(ge=1)],
 ) -> RiskListOut:
     scores = service.ranked_scores(session, advisory)

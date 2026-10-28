@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
+from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 
 
@@ -29,6 +30,7 @@ class AdvisoryOut(BaseModel):
     peak_surge_m: float
     landfall: PointOut
     track: list[TrackPointOut]
+    cone: list[PointOut]  # outline of the forecast cone
 
 
 class TimelineSlotOut(BaseModel):
@@ -132,3 +134,14 @@ class RiskItemOut(BaseModel):
 class RiskListOut(BaseModel):
     advisory_no: int
     items: list[RiskItemOut]
+
+
+class ExposureOut(BaseModel):
+    site_id: str
+    site_kind: SiteKind
+    wind_p50_mph: float
+    wind_p90_mph: float
+    flood_depth_p50_m: float
+    flood_depth_p90_m: float
+    tsforce_arrival_h: float | None  # median hours until tropical-storm-force wind; None if never
+    elevation_imputed: bool

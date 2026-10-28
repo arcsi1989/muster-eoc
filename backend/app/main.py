@@ -4,12 +4,19 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlmodel import Session
 
-from app.api import routes_advisories, routes_health, routes_risk, routes_territory
+from app.api import (
+    routes_advisories,
+    routes_exposure,
+    routes_health,
+    routes_risk,
+    routes_territory,
+)
 from app.config import Settings, get_settings
 from app.db import create_fresh_engine
 from app.errors import register_error_handlers
 from app.ingest.loader import load_gold
 from app.playbook.activation import load_activation_levels
+from app.scoring_config import load_scoring_config
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -22,12 +29,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             load_gold(session, settings.data_dir)
         app.state.engine = engine
         app.state.activation_levels = load_activation_levels(settings.playbook_rules_path)
+        app.state.scoring_config = load_scoring_config(settings.scoring_config_path)
         yield
         engine.dispose()
 
     app = FastAPI(title="SGW storm preparation prototype", lifespan=lifespan)
     register_error_handlers(app)
-    for router in (routes_health, routes_advisories, routes_territory, routes_risk):
+    for router in (
+        routes_health,
+        routes_advisories,
+        routes_territory,
+        routes_exposure,
+        routes_risk,
+    ):
         app.include_router(router.router)
     return app
 

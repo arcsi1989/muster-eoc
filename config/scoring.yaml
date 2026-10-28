@@ -1,0 +1,19 @@
+# Tunable numbers for hazard and risk (docs/IMPLEMENTATION_PLAN.md section 3).
+# Values that differ from the plan are explained in docs/decisions.md.
+
+hazard:
+  wind:
+    # Modified Rankine vortex: V = Vmax * r / Rmax inside Rmax, Vmax * (Rmax / r)^alpha outside.
+    # The plan's 0.5 puts tropical-storm-force wind ~510 km out; 0.7 gives ~240 km (decisions.md).
+    alpha: 0.7
+    inland_decay_factor: 0.85   # wind multiplier while the storm centre is far inland
+    inland_decay_km: 10.0       # ... more than this far from the coast
+    tropical_storm_force_mph: 39.0
+  surge:
+    decay_inland_km: 3.0        # L in exp(-d / L)
+    imputation_neighbours: 5    # null elevation: median of this many nearest assets
+  ensemble:
+    members: 50
+    sigma_cone_factor: 1.0      # sideways track shift ~ N(0, factor x cone radius at landfall)
+    seed: 42                    # each advisory uses seed + advisory_no
+  interpolation_step_hours: 1.0

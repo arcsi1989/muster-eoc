@@ -1,5 +1,13 @@
 import { useCallback, useMemo } from 'react'
-import { getAssets, getChanges, getCoastline, getFacilities, getRisk, getStagingAreas } from './api/scenario'
+import {
+  getAssets,
+  getChanges,
+  getCoastline,
+  getExposure,
+  getFacilities,
+  getRisk,
+  getStagingAreas,
+} from './api/scenario'
 import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { TerritoryMap } from './features/map/TerritoryMap'
@@ -51,6 +59,8 @@ function OperationsScreen() {
 
   const riskLoader = useCallback(() => getRisk(currentNo), [currentNo])
   const changesLoader = useCallback(() => getChanges(currentNo), [currentNo])
+  const exposureLoader = useCallback(() => getExposure(currentNo), [currentNo])
+  const exposure = useLoad(currentNo > 0 ? exposureLoader : null)
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
 
@@ -59,6 +69,11 @@ function OperationsScreen() {
   const scores = useMemo(
     () => new Map(risk.state.status === 'ok' ? risk.state.data.items.map((i) => [i.asset_id, i.score]) : []),
     [risk.state],
+  )
+
+  const exposureBySite = useMemo(
+    () => new Map(exposure.state.status === 'ok' ? exposure.state.data.map((e) => [e.site_id, e]) : []),
+    [exposure.state],
   )
 
   return (
@@ -97,9 +112,18 @@ function OperationsScreen() {
               facilities={territory.state.data.facilities}
               stagingAreas={territory.state.data.stagingAreas}
               scores={scores}
+              exposure={exposureBySite}
               advisory={current}
               previous={previous}
             />
+          )}
+          {exposure.state.status === 'error' && (
+            <div role="alert" className="map-alert">
+              <span className="error-text">Exposure unavailable: {exposure.state.error.message}</span>{' '}
+              <button type="button" onClick={exposure.retry}>
+                Retry
+              </button>
+            </div>
           )}
           {territory.state.status === 'loading' && <p className="hint pad">Loading the map…</p>}
           {territory.state.status === 'error' && (

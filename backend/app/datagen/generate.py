@@ -180,7 +180,7 @@ SEED_NAMES = {"SUB-07": "Medical District Substation", "PS-14": "Seawall Pumping
 HOSPITAL_SEEDS = {"HOSP-01": ("Bayport General Hospital", 128.0, 9.0)}
 STAGING_SEEDS = {
     "STG-01": ("Northfield Depot", 60.0, 70.0, None),
-    "STG-02": ("Harborfront Yard", 168.0, 1.0, 1.4),  # the only coastal one; floods from advisory 4
+    "STG-02": ("Harborfront Yard", 168.0, 1.0, 2.3),  # the only coastal one; floods from advisory 4
     "STG-03": ("Ridgeline Depot", 130.0, 100.0, None),
     "STG-04": ("Eastern Plains Depot", 205.0, 80.0, None),
     "STG-05": ("Upland Fairground", 90.0, 130.0, None),

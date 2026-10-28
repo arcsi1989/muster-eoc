@@ -1,8 +1,7 @@
 from dataclasses import asdict
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from sqlmodel import Session, col, select
+from fastapi import APIRouter
+from sqlmodel import col, select
 
 from app.api.schemas import (
     AssetOut,
@@ -12,14 +11,12 @@ from app.api.schemas import (
     PointOut,
     StagingAreaOut,
 )
-from app.deps import get_session
+from app.deps import SessionDep
 from app.errors import NotFound
 from app.ingest.lineage import lineage_report
 from app.models import Asset, Coastline, Facility, StagingArea
 
 router = APIRouter()
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 @router.get("/assets", response_model=list[AssetOut])

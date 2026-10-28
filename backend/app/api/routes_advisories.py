@@ -12,14 +12,16 @@ from app.api.schemas import (
     TimelineSlotOut,
     TrackPointOut,
 )
-from app.deps import get_activation_levels, get_session
+from app.deps import SessionDep, get_activation_levels, get_scoring_config
+from app.hazard.track import cone_polygon
 from app.playbook.activation import ActivationLevel, activation_level
 from app.replay import service
+from app.scoring_config import ScoringConfig
 
 router = APIRouter(prefix="/advisories")
 
-SessionDep = Annotated[Session, Depends(get_session)]
 LevelsDep = Annotated[list[ActivationLevel], Depends(get_activation_levels)]
+ConfigDep = Annotated[ScoringConfig, Depends(get_scoring_config)]
 
 
 def _scenario(session: Session, levels: list[ActivationLevel]) -> ScenarioOut:
@@ -48,6 +50,7 @@ def _scenario(session: Session, levels: list[ActivationLevel]) -> ScenarioOut:
                 peak_surge_m=a.peak_surge_m,
                 landfall=PointOut(x_km=a.landfall_x_km, y_km=a.landfall_y_km),
                 track=[TrackPointOut.model_validate(p) for p in a.track],
+                cone=[PointOut(x_km=x, y_km=y) for x, y in cone_polygon(a.track, a.cone_radius_km)],
             )
             for a in issued
         ],
@@ -60,8 +63,8 @@ def get_scenario(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
 
 
 @router.post("/next", response_model=ScenarioOut)
-def next_advisory(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
-    service.advance(session)
+def next_advisory(session: SessionDep, levels: LevelsDep, config: ConfigDep) -> ScenarioOut:
+    service.advance(session, config)
     return _scenario(session, levels)
 
 

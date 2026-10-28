@@ -2,7 +2,7 @@ import { CRS, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Polygon, Polyline, Tooltip } from 'react-leaflet'
 import { riskColor } from '../../lib/riskColor'
-import type { Advisory, Asset, Coastline, Facility, Point, StagingArea } from '../../types/scenario'
+import type { Advisory, Asset, Coastline, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
 
 // Planar km grid with Leaflet's simple CRS: lat = y_km, lng = x_km. No tiles, no real geography.
 const toLatLng = (p: Point): LatLngExpression => [p.y_km, p.x_km]
@@ -17,11 +17,28 @@ interface Props {
   facilities: Facility[]
   stagingAreas: StagingArea[]
   scores: Map<string, number>
+  exposure: Map<string, Exposure>
   advisory: Advisory | undefined
   previous: Advisory | undefined
 }
 
-export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scores, advisory, previous }: Props) {
+function exposureText(e: Exposure | undefined): string {
+  if (!e) return ''
+  const arrival = e.tsforce_arrival_h === null ? 'no TS-force wind' : `TS-force wind in ${e.tsforce_arrival_h} h`
+  const imputed = e.elevation_imputed ? ' (elevation imputed)' : ''
+  return ` · wind ${e.wind_p50_mph}/${e.wind_p90_mph} mph · flood ${e.flood_depth_p50_m}/${e.flood_depth_p90_m} m${imputed} (P50/P90) · ${arrival}`
+}
+
+export function TerritoryMap({
+  coastline,
+  assets,
+  facilities,
+  stagingAreas,
+  scores,
+  exposure,
+  advisory,
+  previous,
+}: Props) {
   return (
     <div className="map-wrap">
       <MapContainer crs={CRS.Simple} bounds={BOUNDS} minZoom={-2} className="territory-map">
@@ -34,6 +51,9 @@ export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scor
         )}
         {advisory && (
           <>
+            <Polygon positions={advisory.cone.map(toLatLng)} pathOptions={{ className: 'cone' }}>
+              <Tooltip sticky>Forecast cone, advisory {advisory.advisory_no}</Tooltip>
+            </Polygon>
             <Polyline positions={advisory.track.map(toLatLng)} pathOptions={{ className: 'track' }}>
               <Tooltip sticky>Forecast track, advisory {advisory.advisory_no}</Tooltip>
             </Polyline>
@@ -60,6 +80,7 @@ export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scor
           <CircleMarker key={area.id} center={toLatLng(area)} radius={7} pathOptions={{ className: 'staging' }}>
             <Tooltip>
               {area.id} {area.name} (staging area)
+              {exposureText(exposure.get(area.id))}
             </Tooltip>
           </CircleMarker>
         ))}
@@ -80,6 +101,7 @@ export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scor
               <Tooltip>
                 {asset.id} {asset.name}
                 {score !== undefined && ` · score ${score.toFixed(2)}`}
+                {exposureText(exposure.get(asset.id))}
               </Tooltip>
             </CircleMarker>
           )
@@ -87,7 +109,7 @@ export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scor
       </MapContainer>
       <div className="map-legend">
         <p>
-          <span className="legend-line track" aria-hidden /> Current forecast track
+          <span className="legend-line track" aria-hidden /> Current forecast track and cone
         </p>
         {previous && (
           <p>

@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { ApiError } from './client'
-import { getLineage, getRisk, nextAdvisory } from './scenario'
+import { getExposure, getLineage, getRisk, nextAdvisory } from './scenario'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -42,4 +42,12 @@ test('getLineage reads the data quality report', async () => {
 
   expect(await getLineage()).toEqual([])
   expect(fetchMock).toHaveBeenCalledWith('/api/lineage', expect.anything())
+})
+
+test('getExposure asks for the given advisory', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json([]))
+
+  await getExposure(3)
+
+  expect(fetchMock).toHaveBeenCalledWith('/api/exposure?advisory=3', expect.anything())
 })

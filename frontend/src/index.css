@@ -484,6 +484,14 @@ button:focus-visible {
   stroke-width: 2;
 }
 
+.territory-map .cone {
+  fill: var(--track);
+  fill-opacity: 0.12;
+  stroke: var(--track);
+  stroke-opacity: 0.4;
+  stroke-width: 1;
+}
+
 .territory-map .track {
   stroke: var(--track);
   stroke-width: 3;
@@ -531,6 +539,17 @@ button:focus-visible {
 .staging-swatch {
   background: #f2cc60;
   border: 1px solid #000;
+}
+
+.map-alert {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 600;
+  padding: 0.4rem 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
 }
 
 .map-legend {

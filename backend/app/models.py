@@ -105,6 +105,20 @@ class ScenarioState(SQLModel, table=True):
     current_advisory: int = 0
 
 
+class Exposure(SQLModel, table=True):
+    """Hazard exposure per site (asset or staging area) and advisory: ensemble P50 / P90."""
+
+    site_id: str = Field(primary_key=True)
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    site_kind: str
+    wind_p50_mph: float
+    wind_p90_mph: float
+    flood_depth_p50_m: float
+    flood_depth_p90_m: float
+    tsforce_arrival_h: float | None  # median hours from issue until wind >= 39 mph
+    elevation_imputed: bool
+
+
 class Score(SQLModel, table=True):
     """Placeholder score per asset and advisory, replaced by the risk score in ticket 04."""
 
