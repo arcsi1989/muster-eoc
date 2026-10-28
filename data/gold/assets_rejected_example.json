@@ -1,0 +1,28 @@
+[
+  {
+    "condition_score": 2,
+    "customers_served": -350,
+    "distance_to_coast_km": 30.2,
+    "elevation_m": 4.1,
+    "id": "SUB-121",
+    "install_year": 1990,
+    "last_inspection_date": "2025-11-02",
+    "name": "Saltmeadow Spur Substation",
+    "type": "substation",
+    "x_km": 101.0,
+    "y_km": 80.0
+  },
+  {
+    "condition_score": 1,
+    "customers_served": 0,
+    "distance_to_coast_km": 75.5,
+    "elevation_m": 11.0,
+    "id": "SUB-122",
+    "install_year": 2019,
+    "last_inspection_date": "2026-03-14",
+    "name": "Heron Lake Array",
+    "type": "solar_farm",
+    "x_km": 150.0,
+    "y_km": 120.0
+  }
+]

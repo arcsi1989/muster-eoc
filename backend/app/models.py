@@ -1,6 +1,6 @@
 """SQLite tables (SQLModel). The schema grows per ticket; see the plan, section 2.3."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import JSON, Column
@@ -13,7 +13,72 @@ class Asset(SQLModel, table=True):
     type: str
     x_km: float
     y_km: float
+    elevation_m: float | None
+    distance_to_coast_km: float
+    install_year: int
+    condition_score: int
+    last_inspection_date: date
     customers_served: int
+
+
+class Dependency(SQLModel, table=True):
+    from_id: str = Field(primary_key=True)
+    to_id: str = Field(primary_key=True)
+    to_kind: str
+
+
+class Facility(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+    type: str
+    x_km: float
+    y_km: float
+
+
+class StagingArea(SQLModel, table=True):
+    id: str = Field(primary_key=True)
+    name: str
+    x_km: float
+    y_km: float
+    elevation_m: float
+    distance_to_coast_km: float
+
+
+class FragilityCurve(SQLModel, table=True):
+    asset_type: str = Field(primary_key=True)
+    hazard: str = Field(primary_key=True)
+    theta: float
+    beta: float
+
+
+class OpState(SQLModel, table=True):
+    """Operational state per entity (asset, staging area, or "event") and key."""
+
+    entity: str = Field(primary_key=True)
+    key: str = Field(primary_key=True)
+    value: Any = Field(sa_column=Column(JSON, nullable=False))
+    set_by: str
+    set_at: datetime
+
+
+class Lineage(SQLModel, table=True):
+    """One row per loaded gold file."""
+
+    file: str = Field(primary_key=True)
+    sha256: str
+    loaded_at: datetime
+    rows_ok: int
+    rows_rejected: int
+
+
+class QualityIssue(SQLModel, table=True):
+    """A row the loader rejected, and why."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    file: str = Field(foreign_key="lineage.file")
+    row: int
+    record_id: str | None
+    reason: str
 
 
 class Advisory(SQLModel, table=True):

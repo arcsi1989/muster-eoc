@@ -1,0 +1,1787 @@
+{
+  "entities": {
+    "PS-01": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-02": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-03": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-04": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-05": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-06": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-07": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-08": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-09": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-10": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-11": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-12": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-13": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-14": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-15": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-16": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-17": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-18": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-19": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-20": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-21": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-22": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-23": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-24": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-25": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-26": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-27": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-28": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-29": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-30": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-31": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-32": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-33": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-34": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-35": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-36": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-37": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-38": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-39": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-40": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-41": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-42": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-43": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-44": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-45": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-46": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-47": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-48": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-49": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-50": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-51": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-52": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-53": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-54": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-55": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-56": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-57": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-58": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-59": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-60": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-61": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-62": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-63": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-64": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-65": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-66": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-67": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-68": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-69": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-70": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-71": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-72": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-73": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-74": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "PS-75": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "STG-01": {
+      "relocated": false
+    },
+    "STG-02": {
+      "relocated": false
+    },
+    "STG-03": {
+      "relocated": false
+    },
+    "STG-04": {
+      "relocated": false
+    },
+    "STG-05": {
+      "relocated": false
+    },
+    "SUB-01": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-02": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-03": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-04": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-05": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-06": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-07": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-08": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-09": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-10": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-100": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-101": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-102": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-103": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-104": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-105": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-106": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-107": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-108": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-109": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-11": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-110": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-111": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-112": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-113": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-114": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-115": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-116": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-117": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-118": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-119": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-12": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-120": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-13": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-14": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-15": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-16": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-17": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-18": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-19": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-20": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-21": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-22": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-23": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-24": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-25": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-26": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-27": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-28": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-29": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-30": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-31": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-32": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-33": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-34": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-35": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-36": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-37": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-38": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-39": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-40": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-41": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-42": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-43": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-44": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-45": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-46": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-47": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-48": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-49": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-50": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-51": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-52": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-53": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-54": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-55": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-56": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-57": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-58": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-59": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-60": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-61": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-62": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-63": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-64": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-65": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-66": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-67": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-68": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-69": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-70": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-71": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-72": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-73": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-74": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-75": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-76": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-77": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-78": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-79": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-80": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-81": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-82": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-83": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-84": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-85": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-86": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-87": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-88": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-89": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-90": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-91": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-92": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-93": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-94": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-95": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-96": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-97": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-98": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "SUB-99": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    },
+    "WTP-01": {
+      "backup_power_confirmed": false,
+      "barrier_installed": false,
+      "boil_water_notice_ready": false,
+      "chem_stock_confirmed": false,
+      "critical_customer_contacted": false,
+      "generator_assigned": false,
+      "inspection_completed": false
+    }
+  },
+  "event": {
+    "generators_fuelled": 6,
+    "regulator_notified": false
+  }
+}

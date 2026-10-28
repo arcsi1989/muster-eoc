@@ -1,0 +1,42 @@
+[
+  {
+    "distance_to_coast_km": 69.99,
+    "elevation_m": 8.8,
+    "id": "STG-01",
+    "name": "Northfield Depot",
+    "x_km": 60.0,
+    "y_km": 129.9
+  },
+  {
+    "distance_to_coast_km": 0.98,
+    "elevation_m": 1.4,
+    "id": "STG-02",
+    "name": "Harborfront Yard",
+    "x_km": 168.0,
+    "y_km": 41.04
+  },
+  {
+    "distance_to_coast_km": 96.46,
+    "elevation_m": 12.3,
+    "id": "STG-03",
+    "name": "Ridgeline Depot",
+    "x_km": 130.0,
+    "y_km": 144.58
+  },
+  {
+    "distance_to_coast_km": 77.06,
+    "elevation_m": 9.7,
+    "id": "STG-04",
+    "name": "Eastern Plains Depot",
+    "x_km": 205.0,
+    "y_km": 125.87
+  },
+  {
+    "distance_to_coast_km": 127.85,
+    "elevation_m": 16.3,
+    "id": "STG-05",
+    "name": "Upland Fairground",
+    "x_km": 90.0,
+    "y_km": 185.4
+  }
+]

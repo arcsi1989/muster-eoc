@@ -1,0 +1,137 @@
+{
+  "$defs": {
+    "CoastlineFeature": {
+      "additionalProperties": false,
+      "properties": {
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "LineString": "#/$defs/LineStringGeometry",
+              "Polygon": "#/$defs/PolygonGeometry"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LineStringGeometry"
+            },
+            {
+              "$ref": "#/$defs/PolygonGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "properties": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Properties",
+          "type": "object"
+        },
+        "type": {
+          "const": "Feature",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "properties",
+        "geometry"
+      ],
+      "title": "CoastlineFeature",
+      "type": "object"
+    },
+    "LineStringGeometry": {
+      "additionalProperties": false,
+      "properties": {
+        "coordinates": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "type": {
+          "const": "LineString",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "LineStringGeometry",
+      "type": "object"
+    },
+    "PolygonGeometry": {
+      "additionalProperties": false,
+      "properties": {
+        "coordinates": {
+          "items": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "type": {
+          "const": "Polygon",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "coordinates"
+      ],
+      "title": "PolygonGeometry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "GeoJSON with planar km coordinates ([x_km, y_km]) instead of longitude/latitude.",
+  "properties": {
+    "features": {
+      "items": {
+        "$ref": "#/$defs/CoastlineFeature"
+      },
+      "title": "Features",
+      "type": "array"
+    },
+    "type": {
+      "const": "FeatureCollection",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "type",
+    "features"
+  ],
+  "title": "CoastlineFile",
+  "type": "object"
+}

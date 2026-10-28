@@ -1,7 +1,8 @@
-// Mirrors the backend response models (backend app/api/schemas.py).
+// Mirrors the backend API response models (backend app/api/schemas.py), field for field.
 
 export type ActivationLevel = 'monitor' | 'prepare' | 'full'
 export type AssetType = 'substation' | 'pump_station' | 'treatment_plant'
+export type FacilityType = 'hospital' | 'shelter'
 
 export interface Point {
   x_km: number
@@ -67,7 +68,42 @@ export interface Asset extends Point {
   id: string
   name: string
   type: AssetType
+  /** null for a few assets on purpose: imputed later, lowers confidence */
+  elevation_m: number | null
+  distance_to_coast_km: number
+  install_year: number
+  /** 1 good ... 5 very poor */
+  condition_score: number
+  last_inspection_date: string
   customers_served: number
+}
+
+export interface Facility extends Point {
+  id: string
+  name: string
+  type: FacilityType
+}
+
+export interface StagingArea extends Point {
+  id: string
+  name: string
+  elevation_m: number
+  distance_to_coast_km: number
+}
+
+export interface QualityIssue {
+  row: number
+  record_id: string | null
+  reason: string
+}
+
+export interface LineageEntry {
+  file: string
+  sha256: string
+  loaded_at: string
+  rows_ok: number
+  rows_rejected: number
+  issues: QualityIssue[]
 }
 
 export interface Coastline {

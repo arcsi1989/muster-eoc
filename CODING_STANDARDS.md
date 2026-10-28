@@ -65,7 +65,7 @@ Where they and this file disagree, they win.
 - **F3** Every async view handles loading, error (with retry) and empty states.
 - **F4** AI-generated content is labelled as such, shows a reason or confidence when available, and can be edited before use.
 - **F5** TypeScript strict; no `any`, no `@ts-ignore` without a comment explaining why. **[gate]** typecheck passes.
-- **F6** Types in `src/types/` mirror backend schemas (`contracts/`) field for field.
+- **F6** Types in `src/types/` mirror the backend's API response models field for field. (The gold-file contracts in `contracts/` describe data the frontend never reads directly.)
 - **F7** Interactive elements are real buttons and labelled inputs; focus is visible.
 
 ## T: Testing

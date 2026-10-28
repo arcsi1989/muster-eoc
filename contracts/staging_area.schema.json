@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "distance_to_coast_km": {
+      "minimum": 0,
+      "title": "Distance To Coast Km",
+      "type": "number"
+    },
+    "elevation_m": {
+      "title": "Elevation M",
+      "type": "number"
+    },
+    "id": {
+      "pattern": "^STG-\\d{2}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "x_km": {
+      "title": "X Km",
+      "type": "number"
+    },
+    "y_km": {
+      "title": "Y Km",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "x_km",
+    "y_km",
+    "elevation_m",
+    "distance_to_coast_km"
+  ],
+  "title": "StagingAreaRecord",
+  "type": "object"
+}

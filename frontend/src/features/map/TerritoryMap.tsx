@@ -2,7 +2,7 @@ import { CRS, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Polygon, Polyline, Tooltip } from 'react-leaflet'
 import { riskColor } from '../../lib/riskColor'
-import type { Advisory, Asset, Coastline, Point } from '../../types/scenario'
+import type { Advisory, Asset, Coastline, Facility, Point, StagingArea } from '../../types/scenario'
 
 // Planar km grid with Leaflet's simple CRS: lat = y_km, lng = x_km. No tiles, no real geography.
 const toLatLng = (p: Point): LatLngExpression => [p.y_km, p.x_km]
@@ -14,12 +14,14 @@ const BOUNDS: [[number, number], [number, number]] = [
 interface Props {
   coastline: Coastline
   assets: Asset[]
+  facilities: Facility[]
+  stagingAreas: StagingArea[]
   scores: Map<string, number>
   advisory: Advisory | undefined
   previous: Advisory | undefined
 }
 
-export function TerritoryMap({ coastline, assets, scores, advisory, previous }: Props) {
+export function TerritoryMap({ coastline, assets, facilities, stagingAreas, scores, advisory, previous }: Props) {
   return (
     <div className="map-wrap">
       <MapContainer crs={CRS.Simple} bounds={BOUNDS} minZoom={-2} className="territory-map">
@@ -42,13 +44,32 @@ export function TerritoryMap({ coastline, assets, scores, advisory, previous }: 
             </CircleMarker>
           </>
         )}
+        {facilities.map((facility) => (
+          <CircleMarker
+            key={facility.id}
+            center={toLatLng(facility)}
+            radius={facility.type === 'hospital' ? 6 : 4}
+            pathOptions={{ className: `facility facility-${facility.type}` }}
+          >
+            <Tooltip>
+              {facility.id} {facility.name}
+            </Tooltip>
+          </CircleMarker>
+        ))}
+        {stagingAreas.map((area) => (
+          <CircleMarker key={area.id} center={toLatLng(area)} radius={7} pathOptions={{ className: 'staging' }}>
+            <Tooltip>
+              {area.id} {area.name} (staging area)
+            </Tooltip>
+          </CircleMarker>
+        ))}
         {assets.map((asset) => {
           const score = scores.get(asset.id)
           return (
             <CircleMarker
               key={asset.id}
               center={toLatLng(asset)}
-              radius={asset.type === 'treatment_plant' ? 9 : 6}
+              radius={asset.type === 'treatment_plant' ? 8 : asset.type === 'pump_station' ? 3.5 : 4.5}
               pathOptions={{
                 color: '#222',
                 weight: 1,
@@ -73,6 +94,11 @@ export function TerritoryMap({ coastline, assets, scores, advisory, previous }: 
             <span className="legend-line track-previous" aria-hidden /> Previous forecast
           </p>
         )}
+        <p>
+          <span className="legend-dot facility-hospital-swatch" aria-hidden /> hospital
+          <span className="legend-dot facility-shelter-swatch" aria-hidden /> shelter
+          <span className="legend-dot staging-swatch" aria-hidden /> staging area
+        </p>
         <p className="legend-scale">
           <span className="legend-dot" style={{ background: riskColor(0) }} aria-hidden /> low
           <span className="legend-dot" style={{ background: riskColor(0.5) }} aria-hidden /> medium

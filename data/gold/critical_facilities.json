@@ -1,0 +1,212 @@
+[
+  {
+    "id": "HOSP-01",
+    "name": "Bayport General Hospital",
+    "type": "hospital",
+    "x_km": 128.0,
+    "y_km": 54.07
+  },
+  {
+    "id": "HOSP-02",
+    "name": "Marsh End Hospital",
+    "type": "hospital",
+    "x_km": 84.68,
+    "y_km": 123.8
+  },
+  {
+    "id": "HOSP-03",
+    "name": "Dune Crest North Hospital",
+    "type": "hospital",
+    "x_km": 107.52,
+    "y_km": 129.22
+  },
+  {
+    "id": "HOSP-04",
+    "name": "Dune Crest East Hospital",
+    "type": "hospital",
+    "x_km": 54.1,
+    "y_km": 78.93
+  },
+  {
+    "id": "HOSP-05",
+    "name": "Copperleaf North Hospital",
+    "type": "hospital",
+    "x_km": 233.69,
+    "y_km": 144.25
+  },
+  {
+    "id": "HOSP-06",
+    "name": "Sandy Flats South Hospital",
+    "type": "hospital",
+    "x_km": 144.32,
+    "y_km": 64.01
+  },
+  {
+    "id": "HOSP-07",
+    "name": "Harbor West Hospital",
+    "type": "hospital",
+    "x_km": 57.65,
+    "y_km": 72.1
+  },
+  {
+    "id": "HOSP-08",
+    "name": "Briar Patch East Hospital",
+    "type": "hospital",
+    "x_km": 211.11,
+    "y_km": 60.8
+  },
+  {
+    "id": "SHEL-01",
+    "name": "Elm Park West Shelter",
+    "type": "shelter",
+    "x_km": 55.72,
+    "y_km": 111.24
+  },
+  {
+    "id": "SHEL-02",
+    "name": "Copperleaf East Shelter",
+    "type": "shelter",
+    "x_km": 171.68,
+    "y_km": 136.58
+  },
+  {
+    "id": "SHEL-03",
+    "name": "Copperleaf South Shelter",
+    "type": "shelter",
+    "x_km": 219.67,
+    "y_km": 90.33
+  },
+  {
+    "id": "SHEL-04",
+    "name": "Magnolia West Shelter",
+    "type": "shelter",
+    "x_km": 192.81,
+    "y_km": 155.79
+  },
+  {
+    "id": "SHEL-05",
+    "name": "Stone Gate Shelter",
+    "type": "shelter",
+    "x_km": 144.12,
+    "y_km": 121.43
+  },
+  {
+    "id": "SHEL-06",
+    "name": "Westmoor South Shelter",
+    "type": "shelter",
+    "x_km": 218.67,
+    "y_km": 109.6
+  },
+  {
+    "id": "SHEL-07",
+    "name": "Briar Patch North Shelter",
+    "type": "shelter",
+    "x_km": 239.68,
+    "y_km": 72.42
+  },
+  {
+    "id": "SHEL-08",
+    "name": "Mill Creek West Shelter",
+    "type": "shelter",
+    "x_km": 234.92,
+    "y_km": 199.04
+  },
+  {
+    "id": "SHEL-09",
+    "name": "Brinemoor Run Shelter",
+    "type": "shelter",
+    "x_km": 38.16,
+    "y_km": 208.81
+  },
+  {
+    "id": "SHEL-10",
+    "name": "Seabreeze South Shelter",
+    "type": "shelter",
+    "x_km": 124.94,
+    "y_km": 93.6
+  },
+  {
+    "id": "SHEL-11",
+    "name": "Brookside North Shelter",
+    "type": "shelter",
+    "x_km": 155.06,
+    "y_km": 83.0
+  },
+  {
+    "id": "SHEL-12",
+    "name": "Driftwood West Shelter",
+    "type": "shelter",
+    "x_km": 229.63,
+    "y_km": 142.27
+  },
+  {
+    "id": "SHEL-13",
+    "name": "Northwood Shelter",
+    "type": "shelter",
+    "x_km": 196.12,
+    "y_km": 110.1
+  },
+  {
+    "id": "SHEL-14",
+    "name": "Kingfisher South Shelter",
+    "type": "shelter",
+    "x_km": 138.08,
+    "y_km": 106.3
+  },
+  {
+    "id": "SHEL-15",
+    "name": "Fox Run West Shelter",
+    "type": "shelter",
+    "x_km": 72.77,
+    "y_km": 142.97
+  },
+  {
+    "id": "SHEL-16",
+    "name": "Tidewater North Shelter",
+    "type": "shelter",
+    "x_km": 129.35,
+    "y_km": 73.05
+  },
+  {
+    "id": "SHEL-17",
+    "name": "Heron Lake West Shelter",
+    "type": "shelter",
+    "x_km": 245.52,
+    "y_km": 135.06
+  },
+  {
+    "id": "SHEL-18",
+    "name": "Sandy Flats North Shelter",
+    "type": "shelter",
+    "x_km": 211.54,
+    "y_km": 186.06
+  },
+  {
+    "id": "SHEL-19",
+    "name": "Cedar Point East Shelter",
+    "type": "shelter",
+    "x_km": 98.97,
+    "y_km": 123.97
+  },
+  {
+    "id": "SHEL-20",
+    "name": "Shell Beach West Shelter",
+    "type": "shelter",
+    "x_km": 145.01,
+    "y_km": 86.45
+  },
+  {
+    "id": "SHEL-21",
+    "name": "Brookside Shelter",
+    "type": "shelter",
+    "x_km": 45.02,
+    "y_km": 109.8
+  },
+  {
+    "id": "SHEL-22",
+    "name": "Tarrowfield Shelter",
+    "type": "shelter",
+    "x_km": 234.34,
+    "y_km": 147.19
+  }
+]

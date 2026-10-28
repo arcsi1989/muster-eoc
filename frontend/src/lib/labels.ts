@@ -14,6 +14,7 @@ const issuedFormat = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'UTC',
 })
 
+/** "2 Sept, 03:00 UTC" */
 export const formatIssuedAt = (iso: string) => `${issuedFormat.format(new Date(iso))} UTC`
 
 /** "+5", "−0.5", "±0" with a unit; null when there is nothing to compare with. */

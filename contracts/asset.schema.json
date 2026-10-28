@@ -1,0 +1,85 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "condition_score": {
+      "maximum": 5,
+      "minimum": 1,
+      "title": "Condition Score",
+      "type": "integer"
+    },
+    "customers_served": {
+      "minimum": 0,
+      "title": "Customers Served",
+      "type": "integer"
+    },
+    "distance_to_coast_km": {
+      "minimum": 0,
+      "title": "Distance To Coast Km",
+      "type": "number"
+    },
+    "elevation_m": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Elevation M"
+    },
+    "id": {
+      "pattern": "^(SUB|PS|WTP)-\\d{2,3}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "install_year": {
+      "maximum": 2026,
+      "minimum": 1900,
+      "title": "Install Year",
+      "type": "integer"
+    },
+    "last_inspection_date": {
+      "format": "date",
+      "title": "Last Inspection Date",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "substation",
+        "pump_station",
+        "treatment_plant"
+      ],
+      "title": "Type",
+      "type": "string"
+    },
+    "x_km": {
+      "title": "X Km",
+      "type": "number"
+    },
+    "y_km": {
+      "title": "Y Km",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "type",
+    "x_km",
+    "y_km",
+    "elevation_m",
+    "distance_to_coast_km",
+    "install_year",
+    "condition_score",
+    "last_inspection_date",
+    "customers_served"
+  ],
+  "title": "AssetRecord",
+  "type": "object"
+}

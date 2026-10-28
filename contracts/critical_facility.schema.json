@@ -1,0 +1,40 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^(HOSP|SHEL)-\\d{2}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "hospital",
+        "shelter"
+      ],
+      "title": "Type",
+      "type": "string"
+    },
+    "x_km": {
+      "title": "X Km",
+      "type": "number"
+    },
+    "y_km": {
+      "title": "Y Km",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "type",
+    "x_km",
+    "y_km"
+  ],
+  "title": "FacilityRecord",
+  "type": "object"
+}

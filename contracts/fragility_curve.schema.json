@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "description": "Published lognormal fragility curve: P(fail | x) = Phi(ln(x / theta) / beta).",
+  "properties": {
+    "asset_type": {
+      "enum": [
+        "substation",
+        "pump_station",
+        "treatment_plant"
+      ],
+      "title": "Asset Type",
+      "type": "string"
+    },
+    "beta": {
+      "exclusiveMinimum": 0,
+      "title": "Beta",
+      "type": "number"
+    },
+    "hazard": {
+      "enum": [
+        "wind",
+        "flood"
+      ],
+      "title": "Hazard",
+      "type": "string"
+    },
+    "theta": {
+      "exclusiveMinimum": 0,
+      "title": "Theta",
+      "type": "number"
+    }
+  },
+  "required": [
+    "asset_type",
+    "hazard",
+    "theta",
+    "beta"
+  ],
+  "title": "FragilityCurveRecord",
+  "type": "object"
+}

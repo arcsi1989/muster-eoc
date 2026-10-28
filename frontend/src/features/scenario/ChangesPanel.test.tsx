@@ -2,11 +2,12 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
 import { ApiError } from '../../api/client'
+import { makeAsset } from '../../test/fixtures'
 import type { AdvisoryChanges, Asset } from '../../types/scenario'
 import { ChangesPanel } from './ChangesPanel'
 
 const assetsById = new Map<string, Asset>([
-  ['SUB-07', { id: 'SUB-07', name: 'Medical District Substation', type: 'substation', x_km: 1, y_km: 2, customers_served: 10 }],
+  ['SUB-07', makeAsset({ id: 'SUB-07', name: 'Medical District Substation', type: 'substation' })],
 ])
 
 const changes = (overrides: Partial<AdvisoryChanges>): AdvisoryChanges => ({

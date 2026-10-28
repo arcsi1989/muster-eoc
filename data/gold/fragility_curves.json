@@ -1,0 +1,38 @@
+[
+  {
+    "asset_type": "substation",
+    "beta": 0.25,
+    "hazard": "wind",
+    "theta": 140.0
+  },
+  {
+    "asset_type": "substation",
+    "beta": 0.5,
+    "hazard": "flood",
+    "theta": 0.8
+  },
+  {
+    "asset_type": "pump_station",
+    "beta": 0.25,
+    "hazard": "wind",
+    "theta": 150.0
+  },
+  {
+    "asset_type": "pump_station",
+    "beta": 0.45,
+    "hazard": "flood",
+    "theta": 1.0
+  },
+  {
+    "asset_type": "treatment_plant",
+    "beta": 0.2,
+    "hazard": "wind",
+    "theta": 160.0
+  },
+  {
+    "asset_type": "treatment_plant",
+    "beta": 0.4,
+    "hazard": "flood",
+    "theta": 1.5
+  }
+]

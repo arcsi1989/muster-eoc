@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react'
-import { getAssets, getChanges, getCoastline, getRisk } from './api/scenario'
+import { getAssets, getChanges, getCoastline, getFacilities, getRisk, getStagingAreas } from './api/scenario'
 import { DisclaimerFooter } from './components/DisclaimerFooter'
+import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { TerritoryMap } from './features/map/TerritoryMap'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
@@ -8,11 +9,38 @@ import { ChangesPanel } from './features/scenario/ChangesPanel'
 import { IntroPanel } from './features/scenario/IntroPanel'
 import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
+import { useHashRoute } from './lib/useHashRoute'
 import { useLoad } from './lib/useLoad'
 
-const loadTerritory = () => Promise.all([getAssets(), getCoastline()])
+const loadTerritory = async () => {
+  const [assets, coastline, facilities, stagingAreas] = await Promise.all([
+    getAssets(),
+    getCoastline(),
+    getFacilities(),
+    getStagingAreas(),
+  ])
+  return { assets, coastline, facilities, stagingAreas }
+}
 
 export default function App() {
+  const route = useHashRoute()
+  return (
+    <div className="app">
+      <nav className="app-nav" aria-label="Pages">
+        <a href="#/" aria-current={route === 'operations' ? 'page' : undefined}>
+          Operations
+        </a>
+        <a href="#/data-quality" aria-current={route === 'data-quality' ? 'page' : undefined}>
+          Data quality
+        </a>
+      </nav>
+      {route === 'operations' ? <OperationsScreen /> : <DataQualityPage />}
+      <DisclaimerFooter />
+    </div>
+  )
+}
+
+function OperationsScreen() {
   const scenario = useScenario()
   const territory = useLoad(loadTerritory)
 
@@ -26,7 +54,7 @@ export default function App() {
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
 
-  const assets = useMemo(() => (territory.state.status === 'ok' ? territory.state.data[0] : []), [territory.state])
+  const assets = useMemo(() => (territory.state.status === 'ok' ? territory.state.data.assets : []), [territory.state])
   const assetsById = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets])
   const scores = useMemo(
     () => new Map(risk.state.status === 'ok' ? risk.state.data.items.map((i) => [i.asset_id, i.score]) : []),
@@ -34,7 +62,7 @@ export default function App() {
   )
 
   return (
-    <div className="app">
+    <div className="operations">
       <header className="app-header">
         <div className="title">
           <h1>SGW Storm Preparation</h1>
@@ -64,8 +92,10 @@ export default function App() {
         <section className="map-pane" aria-label="Territory map">
           {territory.state.status === 'ok' && (
             <TerritoryMap
-              coastline={territory.state.data[1]}
+              coastline={territory.state.data.coastline}
               assets={assets}
+              facilities={territory.state.data.facilities}
+              stagingAreas={territory.state.data.stagingAreas}
               scores={scores}
               advisory={current}
               previous={previous}
@@ -95,8 +125,6 @@ export default function App() {
           </section>
         </aside>
       </main>
-
-      <DisclaimerFooter />
     </div>
   )
 }

@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "PointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "x_km": {
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x_km",
+        "y_km"
+      ],
+      "title": "PointRecord",
+      "type": "object"
+    },
+    "TrackPointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "rmax_km": {
+          "exclusiveMinimum": 0,
+          "title": "Rmax Km",
+          "type": "number"
+        },
+        "t_hours": {
+          "minimum": 0,
+          "title": "T Hours",
+          "type": "number"
+        },
+        "vmax_mph": {
+          "exclusiveMinimum": 0,
+          "title": "Vmax Mph",
+          "type": "number"
+        },
+        "x_km": {
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t_hours",
+        "x_km",
+        "y_km",
+        "vmax_mph",
+        "rmax_km"
+      ],
+      "title": "TrackPointRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "advisory_no": {
+      "minimum": 1,
+      "title": "Advisory No",
+      "type": "integer"
+    },
+    "cone_radius_km": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Cone Radius Km",
+      "type": "object"
+    },
+    "hours_to_landfall": {
+      "minimum": 0,
+      "title": "Hours To Landfall",
+      "type": "integer"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "landfall": {
+      "$ref": "#/$defs/PointRecord"
+    },
+    "peak_surge_m": {
+      "minimum": 0,
+      "title": "Peak Surge M",
+      "type": "number"
+    },
+    "track": {
+      "items": {
+        "$ref": "#/$defs/TrackPointRecord"
+      },
+      "minItems": 2,
+      "title": "Track",
+      "type": "array"
+    }
+  },
+  "required": [
+    "advisory_no",
+    "issued_at",
+    "hours_to_landfall",
+    "track",
+    "cone_radius_km",
+    "landfall",
+    "peak_surge_m"
+  ],
+  "title": "AdvisoryRecord",
+  "type": "object"
+}

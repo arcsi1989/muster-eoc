@@ -2,12 +2,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
 import { ApiError } from '../../api/client'
+import { makeAsset } from '../../test/fixtures'
 import type { Asset } from '../../types/scenario'
 import { RiskPanel } from './RiskPanel'
 
 const assetsById = new Map<string, Asset>([
-  ['SUB-07', { id: 'SUB-07', name: 'Medical District Substation', type: 'substation', x_km: 1, y_km: 2, customers_served: 10 }],
-  ['PS-14', { id: 'PS-14', name: 'Seawall Pumping Station', type: 'pump_station', x_km: 3, y_km: 4, customers_served: 5 }],
+  ['SUB-07', makeAsset({ id: 'SUB-07', name: 'Medical District Substation', type: 'substation' })],
+  ['PS-14', makeAsset({ id: 'PS-14', name: 'Seawall Pumping Station', type: 'pump_station' })],
 ])
 
 test('before advisory 1 it tells the operator to advance', () => {

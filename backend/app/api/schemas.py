@@ -1,10 +1,10 @@
 """Response models for the HTTP API."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
-from app.ingest.contracts import AssetType
+from app.ingest.contracts import AssetType, FacilityType
 
 
 class PointOut(BaseModel):
@@ -77,7 +77,44 @@ class AssetOut(BaseModel):
     type: AssetType
     x_km: float
     y_km: float
+    elevation_m: float | None
+    distance_to_coast_km: float
+    install_year: int
+    condition_score: int
+    last_inspection_date: date
     customers_served: int
+
+
+class FacilityOut(BaseModel):
+    id: str
+    name: str
+    type: FacilityType
+    x_km: float
+    y_km: float
+
+
+class StagingAreaOut(BaseModel):
+    id: str
+    name: str
+    x_km: float
+    y_km: float
+    elevation_m: float
+    distance_to_coast_km: float
+
+
+class QualityIssueOut(BaseModel):
+    row: int
+    record_id: str | None
+    reason: str
+
+
+class LineageOut(BaseModel):
+    file: str
+    sha256: str
+    loaded_at: datetime
+    rows_ok: int
+    rows_rejected: int
+    issues: list[QualityIssueOut]
 
 
 class CoastlineOut(BaseModel):
