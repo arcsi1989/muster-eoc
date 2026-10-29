@@ -4,11 +4,15 @@
 
 **Blocked by:** 04 (CR-01 C1: portable generators go to pumping stations)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `playbook_rules.yaml` P-6.2 hunk and `docs/playbook.md` P-6.2 text match the delivered copies
-- [ ] `hospital_backup_confirmed` in `initial_state.json` (false) and among the operational state keys an approval can set
-- [ ] Approving the P-6.2 action records both confirmations, and the finding is satisfied after approval
-- [ ] Generator: SUB-07 rank ≤ 25 at advisory 3 and Bayport General not yet contacted; seed check covers it
-- [ ] Tests: P-6.2 stays open with only one of the two keys true; P-6.2 open for SUB-07 at advisory 3 (cites HOSP-01); demo test row updated to plan section 8 (v3.3)
-- [ ] `./scripts/check.sh` passes
+- [x] `playbook_rules.yaml` P-6.2 hunk and `docs/playbook.md` P-6.2 text match the delivered copies
+- [x] `hospital_backup_confirmed` in `initial_state.json` (false) and among the operational state keys an approval can set
+- [x] Approving the P-6.2 action records both confirmations, and the finding is satisfied after approval
+- [x] Generator: SUB-07 rank ≤ 25 at advisory 3 and Bayport General not yet contacted; seed check covers it
+- [x] Tests: P-6.2 stays open with only one of the two keys true; P-6.2 open for SUB-07 at advisory 3 (cites HOSP-01); demo test row updated to plan section 8 (v3.3)
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as f9aac10 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

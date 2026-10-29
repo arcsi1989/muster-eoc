@@ -4,11 +4,15 @@
 
 **Blocked by:** 06 (CR-01 C3: activation is declared, not computed (backend))
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `ensemble.sigma_cone_factor: 1.0` in `config/scoring.yaml`, read by the ensemble; no factor left in code
-- [ ] Test: the cross-track spread scales with the factor
-- [ ] Every demo seed still holds (seed check and demo test green); any generator change recorded in `docs/decisions.md`
-- [ ] `docs/assumptions_limitations.md`: production would use NHC probabilistic products (wind-speed probabilities, P-Surge); surge and elevation share one vertical datum; wind is 1-minute sustained; distribution assets are out of scope (PRD A10)
-- [ ] README: one line on the distribution scope
-- [ ] `./scripts/check.sh` passes
+- [x] `ensemble.sigma_cone_factor: 1.0` in `config/scoring.yaml`, read by the ensemble; no factor left in code
+- [x] Test: the cross-track spread scales with the factor
+- [x] Every demo seed still holds (seed check and demo test green); any generator change recorded in `docs/decisions.md`
+- [x] `docs/assumptions_limitations.md`: production would use NHC probabilistic products (wind-speed probabilities, P-Surge); surge and elevation share one vertical datum; wind is 1-minute sustained; distribution assets are out of scope (PRD A10)
+- [x] README: one line on the distribution scope
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as bb1f5b4 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
