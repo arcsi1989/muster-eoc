@@ -6,8 +6,9 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT
+from app.config import REPO_ROOT, get_settings
 from app.datagen.seed_check import check_seeds
+from app.playbook.service import load_playbook
 from app.risk.fragility import adjusted_theta, combine, failure_probability
 from app.scoring_config import load_scoring_config
 
@@ -148,4 +149,7 @@ def test_alerts_for_an_advisory_not_yet_issued_are_not_found(client: TestClient)
 
 
 def test_every_demo_seed_fact_holds() -> None:
-    assert check_seeds(REPO_ROOT / "data" / "gold", CONFIG) == []
+    settings = get_settings()
+    playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
+
+    assert check_seeds(REPO_ROOT / "data" / "gold", CONFIG, playbook) == []

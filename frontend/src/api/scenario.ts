@@ -1,11 +1,13 @@
 import type {
   AdvisoryChanges,
   Alert,
+  Clause,
   Asset,
   Coastline,
   Explanation,
   Exposure,
   Facility,
+  Finding,
   LineageEntry,
   RiskList,
   Scenario,
@@ -27,3 +29,5 @@ export const getExposure = (advisoryNo: number) => api<Exposure[]>(`/exposure?ad
 export const getExplanation = (assetId: string, advisoryNo: number) =>
   api<Explanation>(`/assets/${encodeURIComponent(assetId)}/explain?advisory=${advisoryNo}`)
 export const getAlerts = (advisoryNo: number) => api<Alert[]>(`/alerts?advisory=${advisoryNo}`)
+export const getFindings = (advisoryNo: number) => api<Finding[]>(`/findings?advisory=${advisoryNo}`)
+export const getClauses = () => api<Clause[]>('/clauses')

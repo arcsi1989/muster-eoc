@@ -13,6 +13,7 @@ import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
+import { PackagePanel } from './features/package/PackagePanel'
 import { TerritoryMap } from './features/map/TerritoryMap'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
@@ -67,6 +68,7 @@ function OperationsScreen() {
   const alertsLoader = useCallback(() => getAlerts(currentNo), [currentNo])
   const alerts = useLoad(currentNo > 0 ? alertsLoader : null)
   const [selected, setSelected] = useState<string | null>(null)
+  const [tab, setTab] = useState<'risk' | 'package'>('risk')
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
 
@@ -148,13 +150,27 @@ function OperationsScreen() {
             <>
               <AdvisoryCard advisory={current} previous={previous} />
               <ChangesPanel state={changes.state} assetsById={assetsById} onRetry={changes.retry} />
-              <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />
             </>
           )}
-          <section className="card" aria-label="Risk list">
-            <h2>Risk list</h2>
-            <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
-          </section>
+          <div className="tabs" role="tablist" aria-label="Side panel">
+            <button type="button" role="tab" aria-selected={tab === 'risk'} onClick={() => setTab('risk')}>
+              Risk list
+            </button>
+            <button type="button" role="tab" aria-selected={tab === 'package'} onClick={() => setTab('package')}>
+              Decision package
+            </button>
+          </div>
+          {tab === 'risk' ? (
+            <>
+              {current && <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />}
+              <section className="card" aria-label="Risk list">
+                <h2>Risk list</h2>
+                <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
+              </section>
+            </>
+          ) : (
+            <PackagePanel advisoryNo={currentNo} />
+          )}
         </aside>
         {selected && currentNo > 0 && (
           <ExplainDrawer assetId={selected} advisoryNo={currentNo} onClose={() => setSelected(null)} />

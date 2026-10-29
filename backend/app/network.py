@@ -34,6 +34,14 @@ class Network:
         """Directly fed treatment plants: they count as critical facilities (plan section 2.1)."""
         return [a for a in self.direct_assets(asset_id) if a.type == "treatment_plant"]
 
+    def treatment_plants_reached(self, asset_id: str) -> list[str]:
+        """Treatment plants fed directly or one hop through a pumping station (plan 2.4)."""
+        reached = [a.id for a in self.treatment_plants_fed(asset_id)]
+        for station in self.direct_assets(asset_id):
+            if station.type == "pump_station":
+                reached += [a.id for a in self.treatment_plants_fed(station.id)]
+        return sorted(set(reached))
+
     def describe(self, entity_id: str) -> tuple[str, str] | None:
         """(kind, name) of an asset or facility; None if unknown."""
         if entity_id in self.assets:
@@ -46,10 +54,7 @@ class Network:
         """Critical facility types the asset supplies: directly, or one hop through a pumping
         station to the treatment plant (plan section 2.4). The treatment plant counts as one."""
         types = {f.type for f in self.direct_facilities(asset_id)}
-        if self.treatment_plants_fed(asset_id) or any(
-            a.type == "pump_station" and self.treatment_plants_fed(a.id)
-            for a in self.direct_assets(asset_id)
-        ):
+        if self.treatment_plants_reached(asset_id):
             types.add("treatment_plant")
         return types
 

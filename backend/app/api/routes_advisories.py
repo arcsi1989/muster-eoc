@@ -12,7 +12,7 @@ from app.api.schemas import (
     TimelineSlotOut,
     TrackPointOut,
 )
-from app.deps import SessionDep, get_activation_levels, get_scoring_config
+from app.deps import PlaybookDep, SessionDep, get_activation_levels, get_scoring_config
 from app.hazard.track import cone_polygon
 from app.playbook.activation import ActivationLevel, activation_level
 from app.replay import service
@@ -63,8 +63,10 @@ def get_scenario(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
 
 
 @router.post("/next", response_model=ScenarioOut)
-def next_advisory(session: SessionDep, levels: LevelsDep, config: ConfigDep) -> ScenarioOut:
-    service.advance(session, config)
+def next_advisory(
+    session: SessionDep, levels: LevelsDep, config: ConfigDep, playbook: PlaybookDep
+) -> ScenarioOut:
+    service.advance(session, config, playbook)
     return _scenario(session, levels)
 
 

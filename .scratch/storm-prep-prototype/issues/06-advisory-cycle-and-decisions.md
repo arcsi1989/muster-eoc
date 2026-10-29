@@ -14,4 +14,6 @@
 - [ ] `GET /packages/{advisory}` and `POST /packages/{advisory}/items/{item_id}/decision`; decision package UI with "What changed", gaps with proposed actions, and "Conflicts (Incident Commander decides)"
 - [ ] Every node and decision writes an audit event (actor, scenario and wall-clock time, input hash, versions)
 - [ ] API test of the plan's section 8 scenario on both paths: PS-14 overridden at advisory 3 → conflict citing P-4.2, P-4.7 and P-8.2 at advisory 5 decided by the Incident Commander; PS-14 inspected at advisory 3 → no conflict at 5; plus every row of the section 8 table and each role refusal
+- [ ] Reset restores the operational state from the initial state (approvals change it; until ticket 06 only the per-advisory flags do)
+- [ ] With up to ~20 P-4.5 gaps and ~30 conflicts per advisory, the package groups items so a person can work through them (for example by rule, with approve-all-for-rule left out: each item is its own decision)
 - [ ] `./scripts/check.sh` passes

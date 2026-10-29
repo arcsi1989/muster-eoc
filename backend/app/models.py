@@ -6,6 +6,8 @@ from typing import Any
 from sqlalchemy import JSON, Column, String
 from sqlmodel import Field, SQLModel
 
+from app.playbook.engine import Status
+from app.playbook.rules import EntityKind
 from app.risk.confidence import Confidence
 
 
@@ -135,6 +137,22 @@ class Score(SQLModel, table=True):
     confidence: Confidence = Field(sa_type=String)
     confidence_reasons: list[str] = Field(sa_column=Column(JSON, nullable=False))
     factors: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+
+
+class Finding(SQLModel, table=True):
+    """The result of evaluating one playbook rule for one entity at one advisory."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    advisory_no: int = Field(foreign_key="advisory.advisory_no")
+    rule_id: str
+    entity_id: str  # asset, staging area or "event"
+    entity_kind: EntityKind = Field(sa_type=String)
+    status: Status = Field(sa_type=String)
+    severity: str
+    owner_role: str
+    cites: list[str] = Field(sa_column=Column(JSON, nullable=False))
+    overdue: bool
+    details: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
 
 
 class Alert(SQLModel, table=True):

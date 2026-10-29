@@ -459,13 +459,18 @@ def export_schemas(out_dir: Path) -> None:
 if __name__ == "__main__":
     import sys
 
+    from app.config import get_settings
     from app.datagen.seed_check import check_seeds
+    from app.playbook.service import load_playbook
     from app.scoring_config import load_scoring_config
 
     generate(REPO_ROOT / "data" / "gold")
     export_schemas(REPO_ROOT / "contracts")
+    settings = get_settings()
     failures = check_seeds(
-        REPO_ROOT / "data" / "gold", load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
+        REPO_ROOT / "data" / "gold",
+        load_scoring_config(settings.scoring_config_path),
+        load_playbook(settings.playbook_rules_path, settings.playbook_path),
     )
     if failures:
         print("Demo seed facts that do not hold:", *failures, sep="\n  - ", file=sys.stderr)

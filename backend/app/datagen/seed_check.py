@@ -11,11 +11,12 @@ from app.errors import DataNotLoaded
 from app.ingest.loader import load_gold
 from app.models import Asset, Exposure, OpState, Score
 from app.network import load_network
+from app.playbook.service import Playbook
 from app.replay import service
 from app.scoring_config import ScoringConfig
 
 
-def check_seeds(data_dir: Path, config: ScoringConfig) -> list[str]:
+def check_seeds(data_dir: Path, config: ScoringConfig, playbook: Playbook) -> list[str]:
     """The demo seed facts that do not hold; empty when the data is demo-ready."""
     with (
         tempfile.TemporaryDirectory() as tmp,
@@ -23,7 +24,7 @@ def check_seeds(data_dir: Path, config: ScoringConfig) -> list[str]:
     ):
         load_gold(session, data_dir)
         for _ in range(service.total_advisories(session)):
-            service.advance(session, config)
+            service.advance(session, config, playbook)
         return _failures(session, config)
 
 

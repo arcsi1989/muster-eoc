@@ -4,9 +4,19 @@ from sqlmodel import Session, col, delete, select
 
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.hazard.service import store_exposure
-from app.models import Advisory, Alert, Exposure, FragilityCurve, ScenarioState, Score
+from app.models import (
+    Advisory,
+    Alert,
+    Exposure,
+    Finding,
+    FragilityCurve,
+    OpState,
+    ScenarioState,
+    Score,
+)
 from app.network import load_network
 from app.playbook.activation import ActivationLevel, activation_level
+from app.playbook.service import PER_ADVISORY_FLAGS, Playbook, store_findings
 from app.replay.diff import AdvisoryChanges, AdvisorySnapshot, diff
 from app.risk.alerts import RankedRisk, raise_alerts
 from app.risk.score import score_assets
@@ -48,9 +58,9 @@ def max_wind_mph(advisory: Advisory) -> float:
     return max(float(point["vmax_mph"]) for point in advisory.track)
 
 
-def advance(session: Session, config: ScoringConfig) -> None:
-    """Issues the next advisory: computes hazard exposure, scores and ranks every asset, and
-    raises alerts against the previous advisory."""
+def advance(session: Session, config: ScoringConfig, playbook: Playbook) -> None:
+    """Issues the next advisory: computes hazard exposure, scores and ranks every asset, raises
+    alerts against the previous advisory, and evaluates the playbook rules."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
@@ -91,13 +101,31 @@ def advance(session: Session, config: ScoringConfig) -> None:
         Alert(advisory_no=advisory.advisory_no, asset_id=a.asset_id, kind=a.kind, message=a.message)
         for a in raise_alerts(current, previous, config.risk.alert)
     )
+    _reset_per_advisory_flags(session, advisory)
+    session.flush()
+    store_findings(session, advisory, playbook)
     state.current_advisory = advisory.advisory_no
     session.add(state)
     session.commit()
 
 
+def _reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:
+    """Risk list reviewed and situation report approved hold for one operational period."""
+    for flag in PER_ADVISORY_FLAGS:
+        session.merge(
+            OpState(
+                entity="event",
+                key=flag,
+                value=False,
+                set_by=f"advisory {advisory.advisory_no}",
+                set_at=advisory.issued_at,
+            )
+        )
+
+
 def reset(session: Session) -> None:
     """Returns to before advisory 1."""
+    session.exec(delete(Finding))
     session.exec(delete(Alert))
     session.exec(delete(Score))
     session.exec(delete(Exposure))
@@ -107,7 +135,7 @@ def reset(session: Session) -> None:
     session.commit()
 
 
-def _require_issued(session: Session, advisory_no: int) -> Advisory:
+def require_issued(session: Session, advisory_no: int) -> Advisory:
     advisory = session.get(Advisory, advisory_no)
     if advisory is None or advisory_no > _state(session).current_advisory:
         raise NotFound(f"advisory {advisory_no} has not been issued")
@@ -115,7 +143,7 @@ def _require_issued(session: Session, advisory_no: int) -> Advisory:
 
 
 def ranked_scores(session: Session, advisory_no: int) -> list[Score]:
-    _require_issued(session, advisory_no)
+    require_issued(session, advisory_no)
     query = select(Score).where(Score.advisory_no == advisory_no).order_by(col(Score.rank))
     return list(session.exec(query))
 
@@ -140,13 +168,13 @@ def changes(session: Session, advisory_no: int, levels: list[ActivationLevel]) -
             ranks=ranks(session, advisory.advisory_no),
         )
 
-    current = _require_issued(session, advisory_no)
+    current = require_issued(session, advisory_no)
     previous = session.get(Advisory, advisory_no - 1)
     return diff(snapshot(current), snapshot(previous) if previous else None)
 
 
 def exposures(session: Session, advisory_no: int) -> list[Exposure]:
-    _require_issued(session, advisory_no)
+    require_issued(session, advisory_no)
     query = (
         select(Exposure).where(Exposure.advisory_no == advisory_no).order_by(col(Exposure.site_id))
     )
@@ -154,7 +182,7 @@ def exposures(session: Session, advisory_no: int) -> list[Exposure]:
 
 
 def score(session: Session, asset_id: str, advisory_no: int) -> Score:
-    _require_issued(session, advisory_no)
+    require_issued(session, advisory_no)
     found = session.get(Score, (asset_id, advisory_no))
     if found is None:
         raise NotFound(f"asset {asset_id} was not scored")
@@ -166,6 +194,6 @@ def exposure(session: Session, site_id: str, advisory_no: int) -> Exposure | Non
 
 
 def alerts(session: Session, advisory_no: int) -> list[Alert]:
-    _require_issued(session, advisory_no)
+    require_issued(session, advisory_no)
     query = select(Alert).where(Alert.advisory_no == advisory_no).order_by(col(Alert.id))
     return list(session.exec(query))

@@ -1,12 +1,14 @@
 """Response models for the HTTP API."""
 
 from datetime import date, datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.playbook.engine import Status
+from app.playbook.rules import EntityKind
 from app.risk.alerts import AlertKind
 from app.risk.confidence import Confidence
 
@@ -208,3 +210,24 @@ class AlertOut(BaseModel):
     asset_id: str
     kind: AlertKind
     message: str
+
+
+class FindingOut(BaseModel):
+    rule_id: str
+    title: str
+    entity_id: str
+    entity_kind: EntityKind
+    entity_name: str | None
+    status: Status
+    severity: str
+    owner_role: str
+    cites: list[str]
+    overdue: bool
+    details: dict[str, Any]
+
+
+class ClauseOut(BaseModel):
+    id: str
+    section: str
+    title: str
+    text: str

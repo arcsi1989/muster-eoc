@@ -205,3 +205,29 @@ export interface Alert {
   kind: 'risk_threshold' | 'top_n_entry' | 'rank_jump'
   message: string
 }
+
+export type FindingStatus = 'open' | 'satisfied' | 'conflict'
+
+/** The result of evaluating one playbook rule for one entity at one advisory. */
+export interface Finding {
+  rule_id: string
+  title: string
+  entity_id: string
+  entity_kind: 'event' | 'asset' | 'staging_area'
+  entity_name: string | null
+  status: FindingStatus
+  severity: string
+  owner_role: string
+  /** clause IDs: the rule's own, plus the prohibition and P-8.2 for a conflict */
+  cites: string[]
+  overdue: boolean
+  /** the values the rule engine decided on */
+  details: Record<string, unknown>
+}
+
+export interface Clause {
+  id: string
+  section: string
+  title: string
+  text: string
+}

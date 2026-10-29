@@ -736,3 +736,92 @@ button.link {
     border-top: 1px solid var(--border);
   }
 }
+
+/* Tabs and playbook findings */
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.4rem 0.7rem;
+}
+
+.tabs button[aria-selected='true'] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.findings h3 {
+  font-size: 0.9rem;
+  margin: 0.8rem 0 0.4rem;
+}
+
+.findings ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.finding {
+  padding: 0.45rem 0.5rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 6px;
+}
+
+.finding.severity-critical {
+  border-left-color: var(--danger);
+}
+
+.finding.severity-high {
+  border-left-color: #d4a72c;
+}
+
+.finding-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.finding-meta {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.chips {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.chip {
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.badge.overdue {
+  background: var(--danger);
+  color: #fff;
+}
+
+.findings details summary {
+  cursor: pointer;
+  margin: 0.8rem 0 0.4rem;
+  font-size: 0.9rem;
+}
