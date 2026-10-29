@@ -116,8 +116,9 @@ def test_the_template_draft_is_grounded_in_its_request() -> None:
     conflict = DraftItem(
         "P-8.2", "SUB-07", True, "conflict", "Hold crews", ["P-8.2", "P-4.7"], False
     )
+    feeds = item("P-4.5", "PS-09", ["P-4.5"], action="Assign a generator to PS-09 (feeds WTP-01)")
     shown = request(
-        items=[item("P-4.5", "PS-09", ["P-4.5"]), item("P-2.1", "event", ["P-2.1"]), conflict],
+        items=[feeds, item("P-2.1", "event", ["P-2.1"], action="Notify per P-7.2"), conflict],
         top=["SUB-07", "STG-02", "PS-14"],
     )
 

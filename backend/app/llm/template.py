@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from app.ids import CLAUSE_ID, SITE_ID, mentioned
 from app.llm.schemas import (
     ChatResult,
     ChatTurn,
@@ -18,6 +19,14 @@ from app.llm.template_chat import template_chat
 
 def _asset_ids(item: DraftItem) -> list[str]:
     return [item.entity_id] if item.entity_is_citable else []
+
+
+def _paragraph(text: str, clause_ids: list[str], asset_ids: list[str]) -> Paragraph:
+    """A paragraph that also lists every ID its text mentions (action text can name other
+    sites and clauses, such as the treatment plant a pumping station feeds)."""
+    clauses = clause_ids + sorted(mentioned(CLAUSE_ID, text) - set(clause_ids))
+    assets = asset_ids + sorted(mentioned(SITE_ID, text) - set(asset_ids))
+    return Paragraph(text=text, clause_ids=clauses, asset_ids=assets)
 
 
 class TemplateProvider:
@@ -58,19 +67,19 @@ class TemplateProvider:
                 )
             )
         conflicts = [
-            Paragraph(
-                text=f"Conflict at {i.entity_id}, citing {', '.join(i.cites)}: {i.action}",
-                clause_ids=list(i.cites),
-                asset_ids=_asset_ids(i),
+            _paragraph(
+                f"Conflict at {i.entity_id}, citing {', '.join(i.cites)}: {i.action}",
+                list(i.cites),
+                _asset_ids(i),
             )
             for i in request.items
             if i.kind == "conflict"
         ]
         gaps = [
-            Paragraph(
-                text=f"{i.rule_id}{' (overdue)' if i.overdue else ''}: {i.action}.",
-                clause_ids=[i.rule_id],
-                asset_ids=_asset_ids(i),
+            _paragraph(
+                f"{i.rule_id}{' (overdue)' if i.overdue else ''}: {i.action}.",
+                [i.rule_id],
+                _asset_ids(i),
             )
             for i in request.items
             if i.kind == "gap"
