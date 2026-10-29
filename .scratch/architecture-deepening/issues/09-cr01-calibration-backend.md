@@ -4,11 +4,15 @@
 
 **Blocked by:** 08 (CR-01 C4 + C5: ensemble spread and scope notes)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `POST /calibration/run` returns the reliability bins, Brier score and top-decile capture before and after, and creates a `proposed` model version
-- [ ] `POST /model-versions/{id}/approve` approves it, by role, with an audit event
-- [ ] Replay scores with the latest approved model version; scores record their model version
-- [ ] Storm Delta back-test data generated reproducibly (seed 42) and checked by the seed check
-- [ ] Tests: Brier score after calibration is lower than before; scores differ between model versions; an unapproved version is never used for scoring
-- [ ] `./scripts/check.sh` passes
+- [x] `POST /calibration/run` returns the reliability bins, Brier score and top-decile capture before and after, and creates a `proposed` model version
+- [x] `POST /model-versions/{id}/approve` approves it, by role, with an audit event
+- [x] Replay scores with the latest approved model version; scores record their model version
+- [x] Storm Delta back-test data generated reproducibly (seed 42) and checked by the seed check
+- [x] Tests: Brier score after calibration is lower than before; scores differ between model versions; an unapproved version is never used for scoring
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as a7a3d99 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
