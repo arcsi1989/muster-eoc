@@ -100,7 +100,7 @@ test('a run shows both reliability curves and the scores before and after', asyn
 
   const scores = screen.getByRole('table', { name: /scores/i })
   expect(within(scores).getByRole('row', { name: /brier score/i })).toHaveTextContent(/0\.184.*0\.152/)
-  expect(within(scores).getByRole('row', { name: /top-decile capture/i })).toHaveTextContent(/29%.*33%/)
+  expect(within(scores).getByRole('row', { name: /top-10% capture/i })).toHaveTextContent(/29%.*33%/)
 })
 
 test('a failed run offers a retry that runs again', async () => {
@@ -137,9 +137,9 @@ test('approving sends the chosen role and shows the version as approved and in u
   await userEvent.selectOptions(await screen.findByLabelText(/deciding as/i), 'director')
   await userEvent.click(screen.getByRole('button', { name: /approve model version 2/i }))
 
-  expect(await screen.findByText(/approved by director/i)).toBeInTheDocument()
+  expect(await screen.findByText(/approved by director\. model version 2 \(calibrated on storm delta\) scores the next advisory/i)).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /approve model version 2/i })).not.toBeInTheDocument()
-  expect(await screen.findByText(/scoring uses version 2 \(calibrated on storm delta\)/i)).toBeInTheDocument()
+  expect(await screen.findByText(/scoring uses version 2 \(calibrated on storm delta\), approved by director\./i)).toBeInTheDocument()
   const approveCall = fetchMock.mock.calls.find(([url]) => String(url) === '/api/model-versions/2/approve')
   expect(JSON.parse(String(approveCall?.[1]?.body))).toEqual({ role: 'director' })
 })

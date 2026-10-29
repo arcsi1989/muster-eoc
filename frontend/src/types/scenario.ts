@@ -375,7 +375,7 @@ export interface ModelVersion {
   in_use: boolean
   curves: Curve[]
   created_at: string
-  approved_by: Role | null
+  approved_by: string | null
   approved_at: string | null
 }
 

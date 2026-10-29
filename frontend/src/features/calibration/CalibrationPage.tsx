@@ -7,6 +7,9 @@ import { ReliabilityChart } from './ReliabilityChart'
 import { useCalibration } from './useCalibration'
 
 const versionName = (v: ModelVersion) => `version ${v.id} (${v.label})`
+const approvedBy = (v: ModelVersion) => (v.approved_by ? `, approved by ${roleLabel(v.approved_by)}` : '')
+/** "Top-decile capture" when the configured fraction is 10%; built from it so it follows the config. */
+const captureLabel = (topFraction: number) => `Top-${formatPercent(topFraction)} capture`
 
 export function CalibrationPage() {
   const { versions, result, run, approve, approving, approveError } = useCalibration()
@@ -29,7 +32,12 @@ export function CalibrationPage() {
           </button>
         </div>
       )}
-      {inUse && <p>Scoring uses {versionName(inUse)}.</p>}
+      {inUse && (
+        <p>
+          Scoring uses {versionName(inUse)}
+          {approvedBy(inUse)}.
+        </p>
+      )}
 
       <div className="calibration-actions">
         <RoleSelector role={role} onChange={setRole} />
@@ -96,21 +104,21 @@ function CalibrationResult({ calibration, approving, approveError, onApprove }: 
                 <td className="num">{after.brier.toFixed(3)}</td>
               </tr>
               <tr>
-                <th scope="row">Top-decile capture (higher is better)</th>
+                <th scope="row">{captureLabel(after.top_fraction)} (higher is better)</th>
                 <td className="num">{formatPercent(before.top_capture)}</td>
                 <td className="num">{formatPercent(after.top_capture)}</td>
               </tr>
             </tbody>
           </table>
           <p className="hint small">
-            Top-decile capture: the share of all failures among the {formatPercent(after.top_fraction)} of assets with
+            {captureLabel(after.top_fraction)}: the share of all failures among the {formatPercent(after.top_fraction)} of assets with
             the highest predicted probability.
           </p>
           {proposed.status === 'approved' ? (
             <p>
-              <span className="badge status-approved">Approved</span> Approved by{' '}
-              {proposed.approved_by ? roleLabel(proposed.approved_by) : 'unknown'}; model {versionName(proposed)} scores
-              the next advisory.
+              <span className="badge status-approved">Approved</span>{' '}
+              {proposed.approved_by && `Approved by ${roleLabel(proposed.approved_by)}. `}Model {versionName(proposed)}{' '}
+              scores the next advisory.
             </p>
           ) : (
             <>
