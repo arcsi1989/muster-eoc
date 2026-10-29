@@ -108,20 +108,22 @@ def test_feedback_from_a_rejected_try_does_not_ground_a_retry() -> None:
     assert "feedback" not in retry.shown()
 
 
-def test_the_template_setting_is_not_shown_to_the_model() -> None:
-    assert "template_top_assets" not in request().shown()
-
-
 def test_the_template_draft_is_grounded_in_its_request() -> None:
     conflict = DraftItem(
         "P-8.2", "SUB-07", True, "conflict", "Hold crews", ["P-8.2", "P-4.7"], False
     )
+    feeds = item("P-4.5", "PS-09", ["P-4.5"], action="Assign a generator to PS-09 (feeds WTP-01)")
     shown = request(
-        items=[item("P-4.5", "PS-09", ["P-4.5"]), item("P-2.1", "event", ["P-2.1"]), conflict],
+        items=[feeds, item("P-2.1", "event", ["P-2.1"], action="Notify per P-7.2"), conflict],
         top=["SUB-07", "STG-02", "PS-14"],
     )
 
-    assert citation_problems(TemplateProvider().draft_sitrep(shown).draft, shown) == []
+    assert (
+        citation_problems(
+            TemplateProvider(top_risks=5, top_assets=5).draft_sitrep(shown).draft, shown
+        )
+        == []
+    )
 
 
 def test_a_grounded_paragraph_has_no_problems() -> None:

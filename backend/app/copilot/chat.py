@@ -12,14 +12,14 @@ from app import advisory_context
 from app.audit.log import record
 from app.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID
+from app.llm.grounded import FALLBACK_LABEL
 from app.llm.provider import LLMProvider
 from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable
 from app.llm.template import TemplateProvider
 from app.playbook.service import Playbook
-from app.scoring_config import CopilotConfig
+from app.scoring_config import ScoringConfig
 
 log = logging.getLogger(__name__)
-TEMPLATE_FALLBACK = "template (fallback)"
 
 
 @dataclass(frozen=True)
@@ -79,11 +79,12 @@ def answer(
     provider: LLMProvider,
     question: str,
     history: list[ChatTurn],
-    config: CopilotConfig,
+    scoring: ScoringConfig,
 ) -> CopilotAnswer:
+    config = scoring.copilot
     tools = CopilotTools(session, playbook, config)
     recorder = _Recorder(tools)
-    template = TemplateProvider(config.top_risks_default)
+    template = TemplateProvider.from_config(scoring)
     recent = history[-config.history_turns :]
     started = time.monotonic()
     attempt: dict[str, Any] = {"provider": provider.name, "model": provider.model}
@@ -116,7 +117,7 @@ def answer(
     if fallback_reason or result is None:
         recorder = _Recorder(tools)
         result = template.chat(question, recent, TOOL_DEFINITIONS, recorder)
-        label = TEMPLATE_FALLBACK
+        label = FALLBACK_LABEL
     citations, _ = _cite(result.text, recorder)
 
     advisory = advisory_context.current(session, playbook.levels).advisory
@@ -137,6 +138,4 @@ def answer(
         {"prompt_version": result.prompt_version},
     )
     session.commit()
-    return CopilotAnswer(
-        result.text, citations, label, label == TEMPLATE_FALLBACK, result.tools_used
-    )
+    return CopilotAnswer(result.text, citations, label, label == FALLBACK_LABEL, result.tools_used)
