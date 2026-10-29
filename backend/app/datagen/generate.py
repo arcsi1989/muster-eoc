@@ -163,7 +163,7 @@ def recent_inspection(rng: random.Random) -> date:
 
 
 # Demo seeds (plan section 2.2), placed by construction. Values: (x_km, km inland, elevation,
-# condition, install_year). The hazard-dependent facts are checked once scoring exists (ticket 04).
+# condition, install_year). The hazard-dependent facts are checked by seed_check.py.
 ASSET_SEEDS: dict[str, tuple[float, float, float, int, int]] = {
     # Feeds HOSP-01 (Bayport General), near the converged landfall.
     "SUB-07": (126.0, 6.0, 2.4, 4, 1972),
@@ -226,8 +226,8 @@ def build_assets(rng: random.Random) -> list[dict[str, Any]]:
             elevation = elevation_for(rng, distance_to_coast(x, y))
         if asset_id in WTP_PUMP_SEEDS:
             # Placed after the random draws, so every other asset keeps its random values.
-            sx, inland, elevation, condition = WTP_PUMP_SEEDS[asset_id]
-            x, y = inland_point(sx, inland)
+            seed_x_km, inland, elevation, condition = WTP_PUMP_SEEDS[asset_id]
+            x, y = inland_point(seed_x_km, inland)
         if kind == "SUB":
             asset_type, name = "substation", sub_names[int(number) - 1]
             customers = rng.randint(1500, 12000)

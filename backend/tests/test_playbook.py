@@ -376,7 +376,8 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
     ps9 = find(found, "P-4.5", "PS-09")
     assert ps9["status"] == "open"
     assert "WTP-01" in ps9["details"]["asset.feeds_facility_ids"]
-    assert not any(f["rule_id"] == "P-4.5" and f["entity_id"].startswith("SUB-") for f in found), (
+    types = {a["id"]: a["type"] for a in client.get("/assets").json()}
+    assert {types[f["entity_id"]] for f in found if f["rule_id"] == "P-4.5"} == {"pump_station"}, (
         "portable generators never go to substations"
     )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"

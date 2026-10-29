@@ -83,9 +83,7 @@ def evaluation_context(
         "wtp_pump_stations_top25": sum(
             1
             for a, s in scores.items()
-            if s.rank <= WTP_PUMP_STATIONS_TOP_N
-            and network.assets[a].type == "pump_station"
-            and "treatment_plant" in feeds_types[a]
+            if s.rank <= WTP_PUMP_STATIONS_TOP_N and network.serves_treatment_plant(a)
         ),
         **{flag: event_state.get(flag, False) for flag in PER_ADVISORY_FLAGS},
     }

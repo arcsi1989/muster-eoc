@@ -209,12 +209,13 @@ def test_sitrep_rule_is_never_a_package_item(client: TestClient) -> None:
 
 
 def test_the_generator_action_is_offered_on_pumping_stations_only(client: TestClient) -> None:
+    types = {a["id"]: a["type"] for a in client.get("/assets").json()}
     for advisory in (3, 4, 5):
         advance_to(client, advisory)
         generators = [i for i in package(client, advisory)["items"] if i["rule_id"] == "P-4.5"]
 
         assert generators, f"P-4.5 items at advisory {advisory}"
-        assert all(i["entity_id"].startswith("PS-") for i in generators)
+        assert {types[i["entity_id"]] for i in generators} == {"pump_station"}
 
 
 def test_reset_restores_the_initial_state(client: TestClient) -> None:

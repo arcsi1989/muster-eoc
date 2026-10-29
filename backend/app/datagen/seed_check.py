@@ -49,11 +49,7 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         row = session.get(OpState, (entity, key))
         return None if row is None else row.value
 
-    def serves_plant(asset_id: str) -> bool:
-        serves = "treatment_plant" in network.feeds_facility_types(asset_id)
-        return serves and assets[asset_id].type == "pump_station"
-
-    wtp_pump_stations_top25 = [a for a in top(1, 25) if serves_plant(a)]
+    wtp_pump_stations_top25 = [a for a in top(1, 25) if network.serves_treatment_plant(a)]
     first_issued = service.all_advisories(session)[0].issued_at.date()
     stale_days = config.risk.stale_inspection_years * 365
     stale = [
@@ -67,7 +63,8 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
     stg02_floods = [exposure("STG-02", n).flood_depth_p90_m > 0 for n in range(1, 6)]
     checks = {
         "SUB-07 feeds HOSP-01": "HOSP-01" in {f.id for f in network.direct_facilities("SUB-07")},
-        "PS-09 serves WTP-01": "WTP-01" in network.treatment_plants_reached("PS-09"),
+        "PS-09 serves WTP-01": network.serves_treatment_plant("PS-09")
+        and "WTP-01" in network.treatment_plants_reached("PS-09"),
         "PS-09 has no generator": state("PS-09", "generator_assigned") is False,
         "PS-09 p_fail >= 0.20 at advisory 3": scores(3)["PS-09"].p_fail >= 0.20,
         "PS-14 is a pumping station within 5 km of the coast": (
