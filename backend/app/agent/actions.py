@@ -3,9 +3,20 @@ counts the action as done from that moment)."""
 
 from typing import Any
 
+from app.playbook.activation import (
+    DECLARED_BY,
+    DECLARED_DETAIL,
+    LEVEL_NUMBER,
+    PROPOSED_DETAIL,
+    Level,
+)
 from app.playbook.rules import Rule
 
 ACTION_TEXT = {
+    "P-2.5": (
+        "Declare activation Level {level_number} ({proposed}), now {declared}; "
+        "the {declarer} declares it"
+    ),
     "P-4.1": "Review the ranked risk list for this advisory and record the review",
     "P-4.2": "Pre-inspect {entity}: pumps, controls and the flood door, before crews withdraw",
     "P-4.3": "Fuel {missing} more portable generators ({needed} needed, {fuelled} fuelled)",
@@ -32,7 +43,12 @@ def proposed_action(
 ) -> str:
     fuelled = details.get("event.generators_fuelled", 0)
     needed = details.get("event.wtp_pump_stations_top25", 0)
+    proposed: Level | None = details.get(PROPOSED_DETAIL)  # only P-2.5 has one
     text = ACTION_TEXT.get(rule_id, "Act on {entity} as the playbook requires").format(
+        level_number=LEVEL_NUMBER[proposed] if proposed else None,
+        proposed=proposed,
+        declared=details.get(DECLARED_DETAIL),
+        declarer=DECLARED_BY[proposed].replace("_", " ") if proposed else None,
         entity=entity_label,
         facilities=", ".join(details.get("asset.feeds_facility_ids", [])) or "critical facilities",
         fuelled=fuelled,

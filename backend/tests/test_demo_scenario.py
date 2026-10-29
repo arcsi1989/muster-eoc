@@ -14,6 +14,22 @@ def advance_to(client: TestClient, advisory: int) -> None:
         assert client.post("/advisories/next").status_code == 200
 
 
+def declare(client: TestClient, level: str, role: str, reason: str | None = None) -> Any:
+    return client.post(
+        "/activation/declare", json={"level": level, "declared_by": role, "reason": reason}
+    )
+
+
+def advance_declaring(client: TestClient, advisory: int) -> None:
+    """The section 8 path: the Director declares `prepare` at advisory 1, the IC `full` at 3."""
+    for number, level, role in ((1, "prepare", "director"), (3, "full", "incident_commander")):
+        if number <= advisory:
+            advance_to(client, number)
+            declared = declare(client, level, role)
+            assert declared.status_code == 200, declared.text
+    advance_to(client, advisory)
+
+
 def package(client: TestClient, advisory: int) -> dict[str, Any]:
     response = client.get(f"/packages/{advisory}")
     assert response.status_code == 200, response.text
@@ -47,8 +63,9 @@ def finding(
 
 
 def scripted_decisions_at_advisory_3(client: TestClient, inspect_ps14: bool) -> None:
-    advance_to(client, 3)
+    advance_declaring(client, 3)
     pkg = package(client, 3)
+    assert (pkg["activation_level"], pkg["decides_as_commander"]) == ("full", "incident_commander")
     assert (
         decide(client, 3, item(pkg, "P-4.5", "PS-09")["id"], "logistics", "approve").status_code
         == 200
@@ -124,8 +141,8 @@ def test_alternative_path_ps_14_inspected_at_advisory_3_gives_no_conflict(
     )
 
 
-def test_without_decisions_p_7_2_is_overdue_at_advisory_5(client: TestClient) -> None:
-    advance_to(client, 5)
+def test_without_notifying_the_regulator_p_7_2_is_overdue_at_advisory_5(client: TestClient) -> None:
+    advance_declaring(client, 5)
 
     regulator = item(package(client, 5), "P-7.2")
 
@@ -146,7 +163,7 @@ def test_without_decisions_p_7_2_is_overdue_at_advisory_5(client: TestClient) ->
 def test_refused_decisions_change_nothing(
     client: TestClient, role: str, action: str, reason: str | None, why: str
 ) -> None:
-    advance_to(client, 3)
+    advance_declaring(client, 3)
     target = item(package(client, 3), "P-4.5", "PS-09")
 
     response = decide(client, 3, target["id"], role, action, reason)
@@ -241,6 +258,7 @@ def test_reset_restores_the_initial_state(client: TestClient) -> None:
     assert finding(client, 3, "P-4.5", "PS-09")["status"] == "open"
     assert finding(client, 3, "P-4.2", "PS-14")["status"] == "open"
     assert item(package(client, 3), "P-4.5", "PS-09")["status"] == "pending"
+    assert package(client, 3)["activation_level"] == "monitor", "the declarations are undone"
 
 
 def test_every_node_and_decision_is_audited(client: TestClient) -> None:
@@ -257,7 +275,7 @@ def test_every_node_and_decision_is_audited(client: TestClient) -> None:
         for e in events
         if e["type"] in {"context_loaded", "diff", "rules_evaluated", "sitrep_drafted", "decision"}
     ]
-    assert all(e["versions"]["rules_version"] == "3.2" for e in graph_steps)
+    assert all(e["versions"]["rules_version"] == "3.3" for e in graph_steps)
     assert all(e["advisory_no"] == 1 and e["hours_to_landfall"] == 72 for e in events)
     assert [e["type"] for e in human] == ["decision"]
     assert human[0]["payload"]["state_written"] == {"event.risk_list_reviewed_current": True}
@@ -289,7 +307,7 @@ def test_advisory_2_logs_top_10_changes_in_the_diff(client: TestClient) -> None:
 
 
 def test_advisory_4_has_barrier_items_and_regulator_not_yet_overdue(client: TestClient) -> None:
-    advance_to(client, 4)
+    advance_declaring(client, 4)
     pkg = package(client, 4)
 
     assert any(i["rule_id"] == "P-5.1" for i in pkg["items"])
@@ -306,7 +324,7 @@ def test_advisory_4_has_barrier_items_and_regulator_not_yet_overdue(client: Test
     ],
 )
 def test_conflict_refusals(client: TestClient, action: str, reason: str | None, why: str) -> None:
-    advance_to(client, 5)
+    advance_declaring(client, 5)
     conflict = item(package(client, 5), "P-4.2", "PS-14")
 
     response = decide(client, 5, conflict["id"], "incident_commander", action, reason)
@@ -315,7 +333,7 @@ def test_conflict_refusals(client: TestClient, action: str, reason: str | None, 
 
 
 def test_an_alternative_measure_is_recorded_without_changing_state(client: TestClient) -> None:
-    advance_to(client, 5)
+    advance_declaring(client, 5)
     conflict = item(package(client, 5), "P-4.2", "PS-14")
 
     decided = decide(
@@ -324,4 +342,16 @@ def test_an_alternative_measure_is_recorded_without_changing_state(client: TestC
 
     assert item(decided.json(), "P-4.2", "PS-14")["status"] == "alternative"
     human = client.get("/audit", params={"actor": "human"}).json()
+    assert human[0]["type"] == "decision"
     assert human[0]["payload"]["state_written"] == {}
+
+
+def test_below_full_activation_the_director_decides_a_conflict(client: TestClient) -> None:
+    advance_to(client, 5)  # Full never declared
+    conflict = item(package(client, 5), "P-4.2", "PS-14")
+
+    as_ic = decide(client, 5, conflict["id"], "incident_commander", "defer", "stop-work")
+    as_director = decide(client, 5, conflict["id"], "director", "defer", "stop-work")
+
+    assert as_ic.status_code == 403
+    assert as_director.status_code == 200, as_director.text

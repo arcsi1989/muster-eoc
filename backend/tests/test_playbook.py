@@ -19,10 +19,12 @@ FALSE_STATE = dict.fromkeys(STATE_KEYS_ASSET, False)
 
 
 def event(hours: int, **overrides: Any) -> dict[str, Any]:
+    """Each level declared as soon as it is proposed, Full at 48 h."""
     level = "prepare" if hours > 48 else "full"
     values = {
         "hours_to_landfall": hours,
         "activation_level": level,
+        "proposed_activation_level": level,
         "hours_since_full_activation": 48 - hours if level == "full" else None,
         "regulator_notified": False,
         "generators_fuelled": 6,
@@ -269,6 +271,30 @@ def test_p_6_2_needs_both_contact_and_confirmed_on_site_backup() -> None:
     assert status(critical_customer_contacted=True, hospital_backup_confirmed=True) == "satisfied"
 
 
+def test_p_2_5_proposes_a_level_that_differs_from_the_declared_one() -> None:
+    proposal = one(findings(72, [], activation_level="monitor"), "P-2.5")
+
+    assert (proposal.status, proposal.severity) == ("open", "high")
+    assert proposal.details == {
+        "event.proposed_activation_level": "prepare",
+        "event.activation_level": "monitor",
+    }
+    assert absent(findings(72, []), "P-2.5"), "nothing to propose once declared"
+    assert absent(
+        findings(130, [], activation_level="monitor", proposed_activation_level=None), "P-2.5"
+    ), "before the first threshold"
+
+
+def test_p_2_5_is_never_satisfied_by_data() -> None:
+    rule = next(r for r in RULEBOOK.rules if r.id == "P-2.5")
+    assert rule.kind == "proposal"
+
+    # satisfied_if is empty, which for any other kind would mean satisfied
+    for hours, declared in ((72, "monitor"), (48, "prepare"), (48, "monitor"), (24, "prepare")):
+        proposal = one(findings(hours, [], activation_level=declared), "P-2.5")
+        assert proposal.status == "open", (hours, declared)
+
+
 def test_p_7_1_situation_report_approved_this_period() -> None:
     assert one(findings(72, []), "P-7.1").status == "open"
     assert one(findings(72, [], sitrep_approved_current=True), "P-7.1").status == "satisfied"
@@ -287,6 +313,10 @@ def test_p_7_2_regulator_deadline_escalates_after_12_hours_of_full_activation() 
     assert (overdue.status, overdue.overdue, overdue.severity) == ("open", True, "critical")
     assert (notified.status, notified.overdue) == ("satisfied", False)
     assert absent(findings(60, []), "P-7.2"), "only at full activation"
+    not_declared = findings(36, [], activation_level="prepare", hours_since_full_activation=None)
+    assert absent(not_declared, "P-7.2"), (
+        "Full proposed but not declared: the clock has not started"
+    )
 
 
 VALUES = {
@@ -332,17 +362,18 @@ def test_every_rule_in_the_yaml_has_a_test_here() -> None:
         assert f"test_{rule.id.lower().replace('-', '_').replace('.', '_')}" in source, rule.id
 
 
-def test_the_playbook_has_29_clauses() -> None:
+def test_the_playbook_has_30_clauses() -> None:
     clauses = parse_clauses(SETTINGS.playbook_path)
 
-    assert len(clauses) == 29
+    assert len(clauses) == 30
     p82 = next(c for c in clauses if c.id == "P-8.2")
     assert p82.title == "Conflicting clauses"
     assert p82.section == "8. Deviations and conflicts"
     assert "safety of personnel prevails" in p82.text
 
 
-# Seam 1: section 8 rows that need only data and the engine (initial state, no decisions).
+# Seam 1: section 8 rows that need only data and the engine (initial state, no decisions
+# except declaring Full where a row needs it).
 
 
 def findings_at(client: TestClient, advisory: int, **params: str) -> list[dict[str, Any]]:
@@ -358,10 +389,26 @@ def find(found: list[dict[str, Any]], rule_id: str, entity_id: str = "event") ->
     return next(f for f in found if f["rule_id"] == rule_id and f["entity_id"] == entity_id)
 
 
+def declare_full_at_advisory_3(client: TestClient) -> None:
+    findings_at(client, 3)
+    declared = client.post(
+        "/activation/declare", json={"level": "full", "declared_by": "incident_commander"}
+    )
+    assert declared.status_code == 200, declared.text
+
+
 def test_advisory_1_prepare_with_review_generator_gap_and_sitrep_open(client: TestClient) -> None:
     found = findings_at(client, 1)
 
-    assert {f["rule_id"] for f in found if f["status"] == "open"} >= {"P-4.1", "P-4.3", "P-7.1"}
+    assert {f["rule_id"] for f in found if f["status"] == "open"} >= {
+        "P-2.5",
+        "P-4.1",
+        "P-4.3",
+        "P-7.1",
+    }
+    proposal = find(found, "P-2.5")["details"]
+    assert proposal["event.activation_level"] == "monitor"
+    assert proposal["event.proposed_activation_level"] == "prepare"
     gap = find(found, "P-4.3")
     assert gap["status"] == "open"
     assert gap["details"]["event.generators_fuelled"] == 6
@@ -391,11 +438,17 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
         "Bayport General relies on its own backup power, not a portable generator"
     )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
-    regulator = find(found, "P-7.2")
+    assert find(found, "P-2.5")["details"]["event.proposed_activation_level"] == "full"
+    assert not any(f["rule_id"] == "P-7.2" for f in found), "Full is not declared yet"
+
+    declare_full_at_advisory_3(client)
+
+    regulator = find(findings_at(client, 3), "P-7.2")
     assert (regulator["status"], regulator["overdue"]) == ("open", False)
 
 
 def test_advisory_4_staging_area_barriers_and_regulator_not_yet_overdue(client: TestClient) -> None:
+    declare_full_at_advisory_3(client)
     found = findings_at(client, 4)
 
     assert find(found, "P-4.6", "STG-02")["status"] == "open"
@@ -405,6 +458,7 @@ def test_advisory_4_staging_area_barriers_and_regulator_not_yet_overdue(client: 
 
 
 def test_advisory_5_ps_14_conflict_and_regulator_overdue(client: TestClient) -> None:
+    declare_full_at_advisory_3(client)
     found = findings_at(client, 5)
 
     conflict = find(found, "P-4.2", "PS-14")
@@ -424,7 +478,7 @@ def test_findings_filter_by_status_and_need_an_issued_advisory(client: TestClien
 def test_clauses_are_served(client: TestClient) -> None:
     clauses = client.get("/clauses").json()
 
-    assert len(clauses) == 29
+    assert len(clauses) == 30
     assert clauses[0]["id"] == "P-1.1"
 
 

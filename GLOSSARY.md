@@ -14,8 +14,12 @@ The clock of the replayed storm, counted as hours to landfall at the current adv
 _Avoid_: Real time, current time
 
 **Activation level**:
-The EOC's readiness stage, derived from hours to landfall: Monitor (T-120 to T-72), Prepare (T-72 to T-48), Full (T-48 to landfall). A boundary hour belongs to the later, higher level.
-_Avoid_: Phase, alert level
+The EOC's readiness stage: Monitor (Level 3), Prepare (Level 2) or Full (Level 1). It is the last level a person declared, never computed; the scenario starts at Monitor. The **proposed level** is the one the playbook's thresholds propose at the current scenario time (Monitor from T-120, Prepare from T-72, Full from T-48); when it differs from the declared level, the decision package carries an activation proposal (P-2.5).
+_Avoid_: Phase, alert level, computed level
+
+**Declaration**:
+A person's decision to put the EOC at an activation level, taken on the activation proposal: the Director declares Level 3 and Level 2, the Incident Commander Level 1 (P-2.5). It records who declared, when (in scenario time) and why; the Full declaration starts the regulator notification clock (P-7.2).
+_Avoid_: Activation, escalation (as a verb for what the system does)
 
 **Advisory context**:
 What holds at the current advisory: which advisory is current (none before advisory 1), its scenario time, its activation level, whether the EOC is at Full activation, and who commands (Incident Commander or Director). A new advisory starts a new operational period, which resets the per-advisory flags (risk list reviewed, situation report approved).

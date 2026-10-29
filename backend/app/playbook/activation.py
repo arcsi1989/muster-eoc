@@ -1,36 +1,50 @@
-"""Activation level derived from hours to landfall, using the bounds in playbook_rules.yaml.
+"""Activation levels (P-2.1 to P-2.5). A level is declared by a person, never computed: the
+`propose_at_hours` thresholds in playbook_rules.yaml only drive the P-2.5 proposal.
 
-A boundary hour belongs to the later, higher level: (to_hours, from_hours]. The lowest level
-also covers landfall and after (docs/decisions.md).
+The proposed level is the highest level whose threshold has been reached: at 72 h to landfall
+`prepare` is proposed, at 48 h `full`. Before the first threshold nothing is proposed.
 """
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 import yaml
 
-FULL_ACTIVATION = "full"
+Level = Literal["monitor", "prepare", "full"]
+FULL_ACTIVATION: Level = "full"
+PROPOSAL_RULE = "P-2.5"  # proposes a change of level; only a declaration closes it
+
+DeclaringRole = Literal["director", "incident_commander"]
+# P-2.5: the EOC Director declares Level 3 and Level 2, the Incident Commander Level 1.
+DECLARED_BY: dict[Level, DeclaringRole] = {
+    "monitor": "director",
+    "prepare": "director",
+    FULL_ACTIVATION: "incident_commander",
+}
+LEVEL_NUMBER: dict[Level, int] = {"monitor": 3, "prepare": 2, FULL_ACTIVATION: 1}
+
+
+# The P-2.5 finding's details: the level proposed and the level declared when it was evaluated.
+PROPOSED_DETAIL = "event.proposed_activation_level"
+DECLARED_DETAIL = "event.activation_level"
 
 
 @dataclass(frozen=True)
 class ActivationLevel:
     name: str
-    from_hours: float
-    to_hours: float
+    propose_at_hours: float
 
 
 def load_activation_levels(rules_path: Path) -> list[ActivationLevel]:
     rules = yaml.safe_load(rules_path.read_text())
     return [
-        ActivationLevel(name=name, from_hours=b["from_hours"], to_hours=b["to_hours"])
+        ActivationLevel(name=name, propose_at_hours=b["propose_at_hours"])
         for name, b in rules["activation_levels"].items()
     ]
 
 
-def activation_level(hours_to_landfall: float, levels: list[ActivationLevel]) -> str | None:
-    """The level in force, or None before the first level starts."""
-    for level in levels:
-        if level.to_hours < hours_to_landfall <= level.from_hours:
-            return level.name
-    last = min(levels, key=lambda lvl: lvl.to_hours)
-    return last.name if hours_to_landfall <= last.to_hours else None
+def proposed_level(hours_to_landfall: float, levels: list[ActivationLevel]) -> str | None:
+    """The level the thresholds propose at this time, or None before the first threshold."""
+    reached = [lvl for lvl in levels if hours_to_landfall <= lvl.propose_at_hours]
+    return min(reached, key=lambda lvl: lvl.propose_at_hours).name if reached else None

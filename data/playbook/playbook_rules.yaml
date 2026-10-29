@@ -1,4 +1,4 @@
-# Machine-readable triggers for docs/playbook.md (EOP-HUR-01 v3.2)
+# Machine-readable triggers for docs/playbook.md (EOP-HUR-01 v3.3)
 #
 # FICTIONAL. Take-home challenge for the role of AI Solution Engineer (Zug).
 # Not an official AECOM document. All thresholds are invented for a prototype.
@@ -11,20 +11,24 @@
 #   - kind: prohibition rules never become findings on their own. They BLOCK any open
 #     rule with requires_field_work: true on the same entity. A blocked action becomes a
 #     CONFLICT finding that cites both clauses and P-8.2, and is routed to the IC.
+#   - kind: proposal rules produce a PROPOSAL finding that only a human can close,
+#     by declaring the proposed level (recorded as a decision).
 #   - The LLM never evaluates these rules. It only narrates findings and cites clause IDs.
 #
 # Predicate: {field, op, value} or {field, op, value_field}
 #   ops: eq, ne, gt, ge, lt, le, in, contains_any, is_true, is_false
 #   field namespaces: asset.*, exposure.*, state.*, staging.*, event.*  (see data model in the plan)
 
-version: "3.2"
+version: "3.3"
 document_id: EOP-HUR-01
 fictional: true
 
+# Activation levels are DECLARED by a human (P-2.5). These thresholds only drive the
+# P-2.5 proposal; event.activation_level is the last declared level, never computed.
 activation_levels:
-  monitor: {from_hours: 120, to_hours: 72}   # Level 3, P-2.1
-  prepare: {from_hours: 72, to_hours: 48}    # Level 2, P-2.2
-  full: {from_hours: 48, to_hours: 0}        # Level 1, P-2.3
+  monitor: {propose_at_hours: 120}   # Level 3, P-2.1, declared by EOC Director
+  prepare: {propose_at_hours: 72}    # Level 2, P-2.2, declared by EOC Director
+  full: {propose_at_hours: 48}       # Level 1, P-2.3, declared by IC
 
 conflict_policy:
   clause: P-8.2
@@ -32,6 +36,18 @@ conflict_policy:
   resolution: route_to_incident_commander     # tools flag, never resolve
 
 rules:
+  - id: P-2.5
+    title: Propose activation change at threshold
+    kind: proposal
+    entity: event
+    active_from_hours: 120
+    when:
+      - {field: event.proposed_activation_level, op: ne, value_field: event.activation_level}
+    satisfied_if: []          # never satisfied by data: closed only by a human declaration
+    requires_field_work: false
+    severity: high
+    owner_role: incident_commander
+
   - id: P-4.1
     title: Risk list reviewed for this advisory
     kind: process
@@ -206,7 +222,7 @@ rules:
     satisfied_if:
       - {field: event.regulator_notified, op: is_true}
     deadline:
-      field: event.hours_since_full_activation
+      field: event.hours_since_full_activation   # counted from the IC's declaration (P-2.5)
       within_hours: 12          # open and overdue after this -> severity escalates to critical
     requires_field_work: false
     severity: high

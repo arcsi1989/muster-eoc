@@ -8,15 +8,20 @@ from sqlmodel import Session, col, select
 from app import advisory_context
 from app.agent import decisions
 from app.agent.cycle import AdvisoryCycle
-from app.errors import ConflictError, NotFound
+from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.models import DecisionPackage, Finding, PackageItem, Sitrep
 from app.network import load_network
+from app.playbook.activation import PROPOSAL_RULE
 from app.playbook.service import Playbook
 from app.replay import service
 
 
 class PackageClosed(ConflictError):
     code = "package_closed"
+
+
+class NoActivationProposal(ConflictError):
+    code = "no_activation_proposal"
 
 
 @dataclass(frozen=True)
@@ -33,6 +38,7 @@ class ItemView:
 class PackageView:
     package: DecisionPackage
     activation_level: str | None
+    proposed_activation_level: str | None
     decides_as_commander: advisory_context.Commander
     items: list[ItemView]
     changes: dict[str, Any]
@@ -69,6 +75,7 @@ def package_view(session: Session, playbook: Playbook, advisory_no: int) -> Pack
     return PackageView(
         package=package,
         activation_level=context.activation_level,
+        proposed_activation_level=context.proposed_activation_level,
         decides_as_commander=context.commander,
         items=[view(i) for i in items],
         changes=package.changes,
@@ -101,3 +108,31 @@ def decide(
 
     cycle.decide(advisory_no, item_id, request, precheck)
     session.expire_all()
+
+
+def declare(session: Session, cycle: AdvisoryCycle, declaration: decisions.Declaration) -> int:
+    """Declares an activation level on the current advisory's P-2.5 proposal: checked first (so
+    a refusal changes nothing), then the cycle records it. Returns the advisory number."""
+    advisory_no = advisory_context.current_advisory_no(session)
+    if not advisory_no or not cycle.waiting(advisory_no):
+        raise PackageClosed("no decision package is open; a level is declared on its proposal")
+    item = session.exec(
+        select(PackageItem).where(
+            PackageItem.advisory_no == advisory_no, PackageItem.rule_id == PROPOSAL_RULE
+        )
+    ).first()
+    if item is None:
+        raise NoActivationProposal(
+            f"advisory {advisory_no} proposes no change of activation level (P-2.5)"
+        )
+    finding = session.get(Finding, item.finding_id)
+    if finding is None:
+        raise DataNotLoaded(f"finding {item.finding_id} missing")
+
+    def precheck() -> None:
+        session.refresh(item)
+        decisions.check_declaration(item, finding, declaration)
+
+    cycle.declare(advisory_no, item.id or 0, declaration, precheck)
+    session.expire_all()
+    return advisory_no

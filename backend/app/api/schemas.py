@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.playbook.activation import Level
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.risk.alerts import AlertKind
@@ -240,7 +241,7 @@ class PackageItemOut(BaseModel):
     title: str
     entity_id: str
     entity_name: str | None
-    kind: Literal["gap", "conflict"]
+    kind: Literal["gap", "conflict", "proposal"]
     proposed_action: str
     owner_role: str
     severity: str
@@ -289,7 +290,8 @@ class SitrepApproveIn(BaseModel):
 class PackageOut(BaseModel):
     advisory_no: int
     status: Literal["open", "closed"]
-    activation_level: str | None
+    activation_level: str | None  # declared (P-2.5)
+    proposed_activation_level: str | None  # from the playbook's thresholds
     decides_as_commander: Literal["incident_commander", "director"]
     changes: ChangesOut
     items: list[PackageItemOut]
@@ -301,6 +303,12 @@ class PackageOut(BaseModel):
 class DecisionIn(BaseModel):
     role: Role
     action: Action
+    reason: str | None = None
+
+
+class DeclarationIn(BaseModel):
+    level: Level
+    declared_by: Role
     reason: str | None = None
 
 

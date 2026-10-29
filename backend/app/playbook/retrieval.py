@@ -1,5 +1,5 @@
 """BM25 over the playbook's clauses, filtered by the phase a clause applies from (plan section 4):
-29 clauses need no vector store, and BM25 is deterministic and explainable."""
+30 clauses need no vector store, and BM25 is deterministic and explainable."""
 
 import re
 from dataclasses import dataclass

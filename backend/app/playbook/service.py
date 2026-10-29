@@ -67,7 +67,8 @@ def evaluation_context(
     event_state = state.get("event", {})
     event = {
         "hours_to_landfall": advisory.hours_to_landfall,
-        "activation_level": context.activation_level,
+        "activation_level": context.activation_level,  # declared (P-2.5), never computed
+        "proposed_activation_level": context.proposed_activation_level,
         "hours_since_full_activation": context.hours_since_full_activation,
         "regulator_notified": event_state.get("regulator_notified", False),
         "generators_fuelled": event_state.get("generators_fuelled", 0),
@@ -131,25 +132,41 @@ def evaluation_context(
     return event, entities
 
 
+def _row(advisory: Advisory, f: EngineFinding) -> Finding:
+    return Finding(
+        advisory_no=advisory.advisory_no,
+        rule_id=f.rule_id,
+        entity_id=f.entity_id,
+        entity_kind=f.entity_kind,
+        status=f.status,
+        severity=f.severity,
+        owner_role=f.owner_role,
+        cites=f.cites,
+        overdue=f.overdue,
+        details=f.details,
+    )
+
+
 def store_findings(session: Session, advisory: Advisory, playbook: Playbook) -> list[EngineFinding]:
     event, entities = evaluation_context(session, advisory, playbook)
     findings = evaluate(playbook.rulebook, event, entities)
-    session.add_all(
-        Finding(
-            advisory_no=advisory.advisory_no,
-            rule_id=f.rule_id,
-            entity_id=f.entity_id,
-            entity_kind=f.entity_kind,
-            status=f.status,
-            severity=f.severity,
-            owner_role=f.owner_role,
-            cites=f.cites,
-            overdue=f.overdue,
-            details=f.details,
-        )
-        for f in findings
-    )
+    session.add_all(_row(advisory, f) for f in findings)
     return findings
+
+
+def store_new_event_findings(
+    session: Session, advisory: Advisory, playbook: Playbook
+) -> list[Finding]:
+    """After an activation declaration: the event-level findings that match now but were not
+    stored at this advisory (P-7.2 once Full is declared). Stored findings are left as they are."""
+    event, _ = evaluation_context(session, advisory, playbook)
+    stored = {f.rule_id for f in findings(session, advisory.advisory_no) if f.entity_id == "event"}
+    rows = [
+        _row(advisory, f) for f in evaluate(playbook.rulebook, event, []) if f.rule_id not in stored
+    ]
+    session.add_all(rows)
+    session.flush()
+    return rows
 
 
 def clear_findings(session: Session) -> None:

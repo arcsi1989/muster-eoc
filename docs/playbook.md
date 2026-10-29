@@ -5,7 +5,7 @@
 | Field | Value |
 |---|---|
 | Document | EOP-HUR-01, Hurricane Response Playbook |
-| Version | 3.2 |
+| Version | 3.3 |
 | Owner | Director, Emergency Operations Center (EOC) |
 | Approved by | Chief Operating Officer |
 | Approved on | 15 May 2026 |
@@ -31,6 +31,8 @@
 **P-2.3 Level 1, Full activation (T-48 to landfall).** The EOC is fully staffed under the Incident Command System. An Incident Commander (IC) is appointed and holds authority for all decisions in this playbook until stand-down.
 
 **P-2.4 Stand-down.** The IC declares stand-down when restoration of critical customers is complete and no further hazard is forecast.
+
+**P-2.5 Declaring a level.** Activation levels are declared, not reached automatically. Planning (or a decision-support tool) proposes a change of level when the time thresholds above are reached; the EOC Director declares Level 3 and Level 2, and the IC (or the Director, until an IC is appointed) declares Level 1. The time of each declaration is recorded and starts any notification deadline in this playbook.
 
 ## 3. Roles and decision rights
 
@@ -90,4 +92,4 @@
 
 ---
 
-*End of playbook. 29 clauses. Clauses with machine-checkable triggers are listed in `playbook_rules.yaml`; the others (for example P-6.1) guide narrative and judgement and are retrieved for context only.*
+*End of playbook. 30 clauses. Clauses with machine-checkable triggers are listed in `playbook_rules.yaml`; the others (for example P-6.1) guide narrative and judgement and are retrieved for context only.*
