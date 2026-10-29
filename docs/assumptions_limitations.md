@@ -18,7 +18,7 @@ The reasoning behind each item is in `docs/decisions.md`, by date and topic.
 - **Ensemble, not NHC products.** Cross-track σ is `ensemble.sigma_cone_factor` (`config/scoring.yaml`) × the cone radius at landfall, an approximation of the forecast spread. Production would consume the NHC probabilistic products instead: wind-speed probabilities and P-Surge.
 - **One vertical datum.** Surge height and ground elevation are assumed to share it, so flood depth is their plain difference.
 - **Wind is 1-minute sustained** throughout (advisory Vmax, wind field and playbook thresholds); there are no gusts.
-- **Fragility curves are illustrative** and uncalibrated (calibration was cut). The condition score lowers capacity by up to 30%.
+- **Fragility curves are illustrative.** The published curves overstate capacity by about 20 % against the hidden truth that Storm Delta's synthetic failures were drawn from; calibration fits them to that one storm (196 assets, in-sample: there is no hold-out storm, so the improvement is not an out-of-sample test). The condition score lowers capacity by up to 30%.
 - **Consequence is one hop**, with a dependent's customers and a facility's policy weight shared among its feeders; there is no network flow or restoration model.
 - **Confidence is a data-quality flag** (imputed elevation, stale inspection); it never changes the score.
 

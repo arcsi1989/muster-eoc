@@ -72,6 +72,16 @@ _Avoid_: Rejection, dismissal
 The written status issued once per operational period. It stays marked DRAFT until the Incident Commander approves it.
 _Avoid_: Sitrep (in UI text), summary
 
+## Risk model
+
+**Model version**:
+A set of fragility curves risk scoring can use. Version 1 is the published curves; a calibration proposes a new one, and only an approved version is ever used. Each score records the version that produced it.
+_Avoid_: Model, curve set
+
+**Calibration**:
+Fitting the fragility curves to the failures of a past storm (Storm Delta) and back-testing the fit against the version in use: reliability table, Brier score and top-decile capture, before and after.
+_Avoid_: Training, tuning
+
 ## Roles
 
 **Owner role**:
