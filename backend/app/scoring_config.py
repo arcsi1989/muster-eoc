@@ -33,6 +33,7 @@ class HazardConfig(Strict):
     surge: SurgeConfig
     ensemble: EnsembleConfig
     interpolation_step_hours: float
+    intensity_min_mph: dict[str, float]  # Saffir-Simpson category -> lowest wind in it
 
 
 class AlertConfig(Strict):

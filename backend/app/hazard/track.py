@@ -1,9 +1,11 @@
-"""Forecast track helpers: hourly interpolation and the forecast cone."""
+"""Forecast track helpers: hourly interpolation, the forecast cone and intensity categories."""
 
 from dataclasses import dataclass
+from itertools import pairwise
 from typing import Any
 
 import numpy as np
+import shapely
 
 from app.geo import FloatArray, Point, heading_unit_vector
 
@@ -39,19 +41,41 @@ def heading(track: list[dict[str, Any]]) -> Point:
 
 
 def cone_radius(lead_hours: float, radii: dict[str, float]) -> float:
-    """Cone radius at a lead time, interpolated between the published lead times."""
-    leads = sorted((float(k), v) for k, v in radii.items())
+    """Cone radius at a lead time, interpolated between the published lead times (zero at issue
+    time). The one source for both the drawn cone and the ensemble's sideways spread."""
+    leads = sorted((float(k), v) for k, v in {"0": 0.0, **radii}.items())
     return float(np.interp(lead_hours, [k for k, _ in leads], [v for _, v in leads]))
 
 
+@dataclass(frozen=True)
+class Circle:
+    x_km: float
+    y_km: float
+    radius_km: float
+
+
+def cone_circles(track: list[dict[str, Any]], radii: dict[str, float]) -> list[Circle]:
+    """One circle per forecast point, with the cone radius at that point's lead time."""
+    return [Circle(p["x_km"], p["y_km"], cone_radius(p["t_hours"], radii)) for p in track]
+
+
 def cone_polygon(track: list[dict[str, Any]], radii: dict[str, float]) -> list[Point]:
-    """Outline of the forecast cone: the track widened sideways by the cone radius at each lead
-    time (zero at issue time)."""
-    hx, hy = heading(track)
-    nx, ny = -hy, hx
-    left, right = [], []
-    for p in track:
-        radius = cone_radius(p["t_hours"], {"0": 0.0, **radii})
-        left.append((p["x_km"] + nx * radius, p["y_km"] + ny * radius))
-        right.append((p["x_km"] - nx * radius, p["y_km"] - ny * radius))
-    return [*left, *reversed(right)]
+    """Outline of the forecast cone as NHC draws it: the convex hull of each pair of consecutive
+    circles, all unioned."""
+    shapes = [
+        shapely.Point(c.x_km, c.y_km).buffer(c.radius_km)
+        if c.radius_km > 0
+        else shapely.Point(c.x_km, c.y_km)
+        for c in cone_circles(track, radii)
+    ]
+    cone = shapely.union_all([shapely.union(a, b).convex_hull for a, b in pairwise(shapes)])
+    if not isinstance(cone, shapely.Polygon):  # consecutive hulls share a circle: one shape
+        raise ValueError("the forecast cone is not a single polygon")
+    return [(round(x, 3), round(y, 3)) for x, y in cone.exterior.coords]
+
+
+def intensity_category(vmax_mph: float, min_mph: dict[str, float]) -> str:
+    """The highest intensity category whose lowest wind `vmax_mph` reaches (Saffir-Simpson,
+    thresholds from config)."""
+    reached = [(threshold, name) for name, threshold in min_mph.items() if vmax_mph >= threshold]
+    return max(reached)[1]

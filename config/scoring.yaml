@@ -17,6 +17,16 @@ hazard:
     sigma_cone_factor: 1.0      # sideways track shift ~ N(0, factor x cone radius at landfall)
     seed: 42                    # each advisory uses seed + advisory_no
   interpolation_step_hours: 1.0
+  # Saffir-Simpson on 1-minute sustained wind (mph): the lowest wind of each intensity category.
+  # A track point takes the highest category whose minimum it reaches (CR-02 C1).
+  intensity_min_mph:
+    tropical_depression: 0
+    tropical_storm: 39
+    cat_1: 74
+    cat_2: 96
+    cat_3: 111
+    cat_4: 130
+    cat_5: 157
 
 risk:
   condition_theta_reduction_per_step: 0.075  # theta x (1 - 0.075 x (condition - 1)): up to -30 %
