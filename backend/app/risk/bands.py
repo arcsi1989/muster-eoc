@@ -2,8 +2,8 @@
 
 from typing import Literal
 
-# Band names are the API contract the frontend mirrors; their thresholds are config.
-RiskBand = Literal["low", "moderate", "high", "severe"]
+from app.scoring_config import RiskBand
+
 TopFactor = Literal["wind", "flood"]
 
 

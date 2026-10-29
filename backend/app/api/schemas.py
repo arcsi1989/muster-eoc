@@ -16,9 +16,9 @@ from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.replay.diff import AdvisoryChanges
 from app.risk.alerts import AlertKind
-from app.risk.bands import RiskBand, TopFactor
+from app.risk.bands import TopFactor
 from app.risk.confidence import Confidence
-from app.scoring_config import IntensityCategory
+from app.scoring_config import IntensityCategory, RiskBand
 
 
 class PointOut(BaseModel):
