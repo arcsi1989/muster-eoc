@@ -4,7 +4,7 @@ Status: ready-for-agent
 
 Source: the architecture review of 2026-10-29 (six candidates, found by walking the commit hot spots and the uncommitted grounding fix), the glossary, ADR 0001, the decision log, and change request CR-01 (playbook v3.3, `docs/change_requests/CR-01_operational_realism.md`). This is a refactor: the EOC-facing behaviour of the prototype stays the same except where a story below says otherwise.
 
-**Relation to CR-01.** CR-01 is a behaviour change implemented on its own, not by these tickets. Tickets 01–03 land first, on playbook v3.2, with no behaviour change; ticket 02 is the prefactor that turns CR-01's C3 (activation is declared, not computed) into a one-module change. CR-01 then lands. Tickets 04–12 are built against playbook v3.3, where the activation level is the last level a person declared, P-2.5 proposes a change of level, declaring a level is a human decision, and P-6.2 is satisfied by two state keys.
+**Relation to CR-01.** CR-01 is a behaviour change. This spec does not specify it (the change request does), but its tickets live in this folder so one dependency graph drives delivery: tickets 01–03 are refactor prefactors on playbook v3.2 with no behaviour change; tickets 04–11 implement CR-01 (C1 to C7, from the change request and the delivered files in `docs/change_requests/CR-01_delivered/`); tickets 12–20 are the rest of this refactor. Ticket 02 is the prefactor that turns CR-01's C3 (activation is declared, not computed, ticket 06) into a one-module change. Tickets 12–20 are built against playbook v3.3, where the activation level is the last level a person declared, P-2.5 proposes a change of level, declaring a level is a human decision, and P-6.2 is satisfied by two state keys.
 
 ## Problem Statement
 
@@ -120,7 +120,7 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 ### Developer: tests and runnability
 
 57. As a developer, I want a seeded session fixture that gives a database with the gold data loaded and a chosen advisory issued, so that every deepened module can be tested in process.
-58. As a developer, I want the HTTP end-to-end demo test to stay green throughout and never be edited by a refactor ticket (CR-01 alone updates it to v3.3), so that it remains the regression net for the whole refactor.
+58. As a developer, I want the HTTP end-to-end demo test to stay green throughout and never be edited by a refactor ticket (only the CR-01 tickets update it to v3.3), so that it remains the regression net for the whole refactor.
 59. As a developer, I want each ticket to leave `./scripts/check.sh` green and the app runnable, so that the refactor can stop after any ticket.
 60. As a developer, I want tests that only reached past an interface to be replaced by tests at the new interface, not kept alongside them, so that the test suite does not double in size.
 
@@ -128,17 +128,18 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### Order and slicing
 
-- Tickets are delivered one at a time, in this order: seeded session fixture → advisory context → shared citation ID patterns → **CR-01 (outside this spec)** → draft request grounding → decision package lifecycle → grounded generation → typed package payloads → playbook module. Advisory context comes before the lifecycle because the lifecycle uses "who commands" and "is current". Grounding comes before grounded generation because the generation module validates through the draft request.
+- Tickets are delivered one at a time, in this order: seeded session fixture → advisory context → shared citation ID patterns → **CR-01, tickets 04–11 (C1 generators, C2 hospital readiness, C3 declared activation backend and card, C4+C5 ensemble spread and scope notes, C6 calibration backend and view, C7 Muster rename)** → draft request grounding → decision package lifecycle → grounded generation → typed package payloads → playbook module. Advisory context comes before the lifecycle because the lifecycle uses "who commands" and "is current". Grounding comes before grounded generation because the generation module validates through the draft request.
 - Advisory context lands before CR-01 as a prefactor ("make the change easy, then make the easy change"): it moves every activation-level lookup behind one interface without changing behaviour, so CR-01's C3 changes that one module.
 - CR-01's project rename (C7, Python package and frontend app named `muster`) is a wide mechanical change. It lands as its own commit and never at the same time as a refactor ticket. The tickets name no file paths, so they survive it.
-- Start ticket 01 from a clean tree. The CR-01 playbook, rules and plan files currently sit uncommitted and make `./scripts/check.sh` fail (the rule loader does not know `kind: proposal` yet); hold them back until CR-01 starts.
+- The CR-01 playbook, rules and plan files are kept as reference copies in `docs/change_requests/CR-01_delivered/`. The live files move to them step by step (tickets 04, 05, 06), so `./scripts/check.sh` stays green after each ticket; ticket 11 deletes the copies.
+- Tickets are dispatched with herdr-tickets (local mode, `.claude/herdr-tickets.env`): each runs in its own worktree with a fresh reviewer and merges only when `./scripts/check.sh` passes on the combined code. Blockers are ticket numbers in this folder, so every gate is a numbered ticket.
 - Each ticket is a vertical slice that keeps the app runnable. No ticket leaves a half-moved concept with both an old and a new path in use.
 
 ### Seeded session fixture (the one new test seam)
 
 - A test fixture yields a database session on a fresh engine with the gold data loaded, plus the playbook and scoring config. A helper issues advisories up to a given number using the same replay code the app uses.
 - The deepened modules are tested through this fixture with a fake provider, without the FastAPI app or `TestClient`.
-- The existing HTTP fixtures (`create_app(settings, llm)` plus `TestClient`) stay the regression seam. No refactor ticket edits the end-to-end demo test; CR-01 updates it to v3.3.
+- The existing HTTP fixtures (`create_app(settings, llm)` plus `TestClient`) stay the regression seam. No refactor ticket edits the end-to-end demo test; the CR-01 tickets update it to v3.3.
 
 ### Advisory context module
 
@@ -211,7 +212,7 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ## Out of Scope
 
-- Everything CR-01 delivers (playbook v3.3 rules and seeds, the declaration endpoint and UI, ensemble spread, calibration, the Muster rename, the updated demo test). These tickets only reshape the code CR-01 touches, before or after it.
+- Specifying what CR-01 delivers (playbook v3.3 rules and seeds, the declaration endpoint and UI, ensemble spread, calibration, the Muster rename, the updated demo test): the change request is the spec for tickets 04–11. The refactor tickets only reshape the code CR-01 touches, before or after it.
 - Replacing LangGraph or changing the advisory cycle's step order or interrupt (ADR 0001).
 - Removing the Azure OpenAI stub (decision log, 2026-10-28).
 - Any change to playbook clause text, rule thresholds or scoring numbers.
@@ -225,6 +226,6 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 - Each ticket records any choice this spec leaves open in `docs/decisions.md`, per the project rules.
 - If a ticket finds that the deletion test fails for a planned module (it would only move code, not concentrate it), the ticket stops, says so in its Comments and proposes a smaller change, rather than building a shallow module to match this spec.
-- The glossary's "Activation level" entry says the level is derived from hours to landfall. CR-01 makes that wrong; updating the entry (declared level, proposed level, declaration) is CR-01 work, and ticket 02 must not add glossary text that repeats the old definition.
+- The glossary's "Activation level" entry says the level is derived from hours to landfall. CR-01 makes that wrong; updating the entry (declared level, proposed level, declaration) is CR-01 work (ticket 06), and ticket 02 must not add glossary text that repeats the old definition.
 - The glossary already names the domain concepts these modules use (advisory, scenario time, activation level, decision package, situation report, approval, override, finding, Incident Commander, Director). If a ticket names a module after a concept not in the glossary (for example "advisory context"), it adds the term to `GLOSSARY.md`.
 - The architecture review that produced this spec was a throwaway HTML report in the OS temp directory, not kept in the repo.

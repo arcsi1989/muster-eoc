@@ -1,8 +1,8 @@
-# 12: Direct tests for rule inputs, and one owner for re-evaluation
+# 20: Direct tests for rule inputs, and one owner for re-evaluation
 
 **What to build:** The rule-input builder (the namespace the playbook rules read) stays internal to the playbook module but is tested directly through the seeded session, so a field-name bug is caught without a replay. Re-evaluating one finding after a state change becomes part of the playbook interface, used by the lifecycle's state-writing path instead of a patch called from outside. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 01 (Seeded session test fixture), 06 (Situation report approval and activation declaration through the lifecycle)
+**Blocked by:** 01 (Seeded session test fixture), 14 (Situation report approval and activation declaration through the lifecycle)
 
 **Status:** ready-for-agent
 

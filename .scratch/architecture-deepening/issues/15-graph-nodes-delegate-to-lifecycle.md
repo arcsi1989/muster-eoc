@@ -1,8 +1,8 @@
-# 07: Graph nodes delegate to the lifecycle
+# 15: Graph nodes delegate to the lifecycle
 
 **What to build:** The LangGraph advisory cycle keeps only orchestration: the order of steps and the pause for decisions (ADR 0001, not reopened). The node bodies (creating package items, saving the draft, expiring, closing, writing audit records) move into the decision package lifecycle module, and the nodes call it. The P-7.1 rule ID, the situation report flag and the item status values are each defined once; the API item status reuses the backend definition. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 06 (Situation report approval and activation declaration through the lifecycle)
+**Blocked by:** 14 (Situation report approval and activation declaration through the lifecycle)
 
 **Status:** ready-for-agent
 

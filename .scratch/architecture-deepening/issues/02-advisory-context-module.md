@@ -13,5 +13,5 @@
 - [ ] Frontend reads the current advisory from the scenario state the backend returns, not the last issued advisory
 - [ ] Seeded-session tests: current advisory before/after advance, level at each boundary hour (boundary belongs to the later level), commander per level, "require current" refusal, flag reset
 - [ ] "Advisory context" added to `GLOSSARY.md` if the module takes that name, without restating the computed-level definition CR-01 replaces
-- [ ] Comment for CR-01: the one place C3 must change is named in this ticket's Comments
+- [ ] For ticket 06 (CR-01 C3): the one place the declared level must replace the computed one is named in this ticket's Comments
 - [ ] End-to-end demo test green and not edited by this ticket; `./scripts/check.sh` passes

@@ -1,8 +1,8 @@
-# 10: Typed package payloads
+# 18: Typed package payloads
 
 **What to build:** "What changed" and the situation report draft (with its metadata: provider, prompt version, fallback flag) are each one typed model, used for storage and as the API response model. The mirror API classes are deleted and the package routes no longer need `type: ignore`. "Decides as commander" is derived from the commander role definition. On the frontend, a test checks a fixture taken from a real backend response against the TypeScript types. No type generation unless the ticket states why the new dev dependency is worth it. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 04 (The draft request carries its own grounding), 07 (Graph nodes delegate to the lifecycle)
+**Blocked by:** 12 (The draft request carries its own grounding), 15 (Graph nodes delegate to the lifecycle)
 
 **Status:** ready-for-agent
 

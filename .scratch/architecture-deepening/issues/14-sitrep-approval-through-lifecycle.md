@@ -1,8 +1,8 @@
-# 06: Situation report approval and activation declaration through the lifecycle
+# 14: Situation report approval and activation declaration through the lifecycle
 
 **What to build:** Approving the situation report goes through the same open/closed gate and the same "who commands" answer as item decisions. Approving it for a closed package is refused with the existing "package closed" error. Its operational state write (the per-advisory situation report flag) and the re-evaluation of the P-7.1 finding go through the single state-writing path, so "only the decision step changes operational state" becomes true. Declaring an activation level (playbook v3.3, P-2.5, added by CR-01) becomes a lifecycle operation too: the same role check (EOC Director for Level 3 and 2, Incident Commander for Level 1), the declared level and its time written through the same path, one decision and one audit record, and the P-2.5 proposal closed. It is the only code that sets the activation level. The demo flow keeps working: if the cycle currently closes the package before the report can be approved, change when it closes rather than break the demo. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 05 (Decision package lifecycle: one answer to "is it open")
+**Blocked by:** 13 (Decision package lifecycle: one answer to "is it open")
 
 **Status:** ready-for-agent
 

@@ -1,8 +1,8 @@
-# 11: The playbook answers "what satisfies this finding"
+# 19: The playbook answers "what satisfies this finding"
 
 **What to build:** The playbook module, not the action or package code, gives the proposed action for a finding, the state that would satisfy it (which may be several state keys together, as P-6.2 in v3.3, or none, as a P-2.5 proposal), and which findings become package items and how (leaving out the P-7.1 situation report rule; presenting P-2.5 as an activation proposal). The engine's predicate and detail-key formats stay internal. Entity names are resolved in one place. Clause text and thresholds are not edited. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 07 (Graph nodes delegate to the lifecycle)
+**Blocked by:** 15 (Graph nodes delegate to the lifecycle)
 
 **Status:** ready-for-agent
 
