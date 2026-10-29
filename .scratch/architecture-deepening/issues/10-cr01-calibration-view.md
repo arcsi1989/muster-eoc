@@ -4,11 +4,15 @@
 
 **Blocked by:** 09 (CR-01 C6: calibration back-test and approved model versions (backend))
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Calibration route in the main navigation
-- [ ] One chart with both reliability curves and the diagonal; Brier score and top-decile capture before and after
-- [ ] Approve button for the proposed version; approved state shown afterwards
-- [ ] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
-- [ ] Frontend tests for the view states and the approve call
-- [ ] `./scripts/check.sh` passes
+- [x] Calibration route in the main navigation
+- [x] One chart with both reliability curves and the diagonal; Brier score and top-decile capture before and after
+- [x] Approve button for the proposed version; approved state shown afterwards
+- [x] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
+- [x] Frontend tests for the view states and the approve call
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as 00699b9 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
