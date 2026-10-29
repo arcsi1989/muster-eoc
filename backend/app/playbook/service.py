@@ -1,5 +1,6 @@
-"""The playbook: builds the rule inputs for an advisory (plan section 2.4), stores the findings
-and re-evaluates one finding after a state change."""
+"""The playbook: builds the rule inputs for an advisory (plan section 2.4), stores the findings,
+and re-evaluates one finding after a state change. What a finding asks for in the decision
+package is `app.playbook.package`."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,7 +17,7 @@ from app.playbook.clauses import Clause, parse_clauses
 from app.playbook.engine import Entity, Status, evaluate
 from app.playbook.engine import Finding as EngineFinding
 from app.playbook.retrieval import ClauseIndex
-from app.playbook.rules import Rulebook, load_rulebook
+from app.playbook.rules import Rule, Rulebook, load_rulebook
 
 # The definition of event.wtp_pump_stations_top25 (P-4.3, plan section 2.4): pumping stations in
 # the top 25 of the risk list that serve the treatment plant. Part of the field's name, not a
@@ -30,6 +31,13 @@ class Playbook:
     levels: list[ActivationLevel]
     clauses: list[Clause]
     index: ClauseIndex
+
+    def rule(self, rule_id: str) -> Rule:
+        """The rule with this ID; a stored finding always names one, so a miss is a bug."""
+        found = next((r for r in self.rulebook.rules if r.id == rule_id), None)
+        if found is None:
+            raise KeyError(f"no rule {rule_id} in playbook {self.rulebook.version}")
+        return found
 
 
 def load_playbook(rules_path: Path, playbook_path: Path) -> Playbook:

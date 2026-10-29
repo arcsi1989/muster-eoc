@@ -1,6 +1,6 @@
 """The playbook module against a seeded session, without HTTP: the rule inputs (the namespace
-the playbook rules read) at a seeded advisory, and re-evaluating one finding after a state
-change."""
+the playbook rules read) at a seeded advisory, re-evaluating one finding after a state change,
+what satisfies a finding and the package items findings produce."""
 
 from datetime import UTC, datetime
 
@@ -10,6 +10,7 @@ from app import advisory_context
 from app.agent import lifecycle
 from app.agent.decisions import Declaration
 from app.models import Advisory, Finding, OpState
+from app.playbook.package import StateChange, package_items, satisfying_state
 from app.playbook.service import RuleInputs, findings, reevaluate, rule_inputs
 from tests.conftest import SeededScenario
 
@@ -150,3 +151,67 @@ def test_re_evaluating_a_finding_that_was_not_stored_finds_nothing(seeded: Seede
     issued = advisory(seeded, 1)
 
     assert reevaluate(seeded.session, issued, seeded.playbook, "P-7.2") is None
+
+
+# What satisfies a finding
+
+
+@pytest.mark.parametrize(
+    ("advisory_no", "rule_id", "entity_id", "satisfying"),
+    [
+        (3, "P-4.2", "PS-14", [StateChange("PS-14", "inspection_completed", True)]),
+        (
+            3,
+            "P-6.2",
+            "SUB-07",
+            [
+                StateChange("SUB-07", "critical_customer_contacted", True),
+                StateChange("SUB-07", "hospital_backup_confirmed", True),
+            ],
+        ),
+        (3, "P-4.3", "event", [StateChange("event", "generators_fuelled", 10)]),
+        (1, "P-2.5", "event", []),
+    ],
+    ids=["one key", "P-6.2 two keys", "event value from the rule inputs", "proposal none"],
+)
+def test_the_state_that_satisfies_a_finding(
+    seeded: SeededScenario,
+    advisory_no: int,
+    rule_id: str,
+    entity_id: str,
+    satisfying: list[StateChange],
+) -> None:
+    seeded.issue_until(advisory_no)
+
+    finding = stored(seeded, advisory_no, rule_id, entity_id)
+
+    assert satisfying_state(seeded.playbook, finding) == satisfying
+
+
+# Package items
+
+
+def test_package_items_leave_out_the_situation_report_and_propose_the_level(
+    seeded: SeededScenario,
+) -> None:
+    seeded.issue_until(1)
+    at_1 = findings(seeded.session, 1)
+    assert any(f.rule_id == "P-7.1" and f.status == "open" for f in at_1)
+
+    items = {
+        (p.finding.rule_id, p.finding.entity_id): p
+        for p in package_items(seeded.session, seeded.playbook, at_1)
+    }
+
+    assert ("P-7.1", "event") not in items, "approving the situation report satisfies P-7.1"
+    proposal = items[("P-2.5", "event")]
+    assert (proposal.kind, proposal.owner_role, proposal.proposed_action) == (
+        "proposal",
+        "director",
+        "Declare activation Level 2 (prepare), now monitor; the director declares it",
+    )
+    inspection = items[("P-4.4", "SUB-52")]
+    assert (inspection.kind, inspection.proposed_action) == (
+        "gap",
+        "Inspect SUB-52 Lantern Hill South Substation",
+    )

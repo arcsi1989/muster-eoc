@@ -11,10 +11,11 @@ from app import advisory_context
 from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
+from app.agent.sitrep import SitrepAlreadyApproved
 from app.llm.schemas import Paragraph
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
+from app.playbook.package import SITREP_RULE
 from tests.conftest import FakeProvider, SeededFactory, SeededScenario, draft_of
 
 

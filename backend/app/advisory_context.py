@@ -16,11 +16,10 @@ from app.audit.log import record
 from app.errors import DataNotLoaded
 from app.models import Advisory, Finding, OpState, PackageItem, ScenarioState
 from app.playbook.activation import (
-    DECLARED_DETAIL,
     FULL_ACTIVATION,
     PROPOSAL_RULE,
-    PROPOSED_DETAIL,
     ActivationLevel,
+    activation_proposal,
     proposed_level,
 )
 
@@ -98,11 +97,9 @@ def _level_after(session: Session, advisory_no: int, declared_now: str | None) -
     ]
     done = [details for number, details in declarations if number <= advisory_no]
     if done:
-        declared: str | None = done[-1][PROPOSED_DETAIL]
-        return declared
+        return activation_proposal(done[-1]).proposed
     if declarations:
-        before: str | None = declarations[0][1][DECLARED_DETAIL]
-        return before
+        return activation_proposal(declarations[0][1]).declared
     return declared_now
 
 
