@@ -11,7 +11,7 @@ from app.geo import FloatArray, Point, inside_polygon, project_onto_polyline
 from app.hazard.surge import flood_depth, local_surge
 from app.hazard.track import cone_radius, heading, interpolate
 from app.hazard.wind import rankine_wind
-from app.scoring_config import HazardConfig
+from app.scoring_config import EnsembleConfig, HazardConfig
 
 SiteKind = Literal["asset", "staging_area"]  # also used by the API schema
 
@@ -67,6 +67,12 @@ def impute_elevations(
     return result
 
 
+def track_shift_sd(storm: StormInput, config: EnsembleConfig) -> float:
+    """Standard deviation of the members' sideways track shift: the cone radius at landfall
+    (the same radius the drawn cone uses there) times the configured factor."""
+    return config.sigma_cone_factor * cone_radius(storm.hours_to_landfall, storm.cone_radius_km)
+
+
 def compute_exposure(
     storm: StormInput,
     sites: list[Site],
@@ -78,9 +84,8 @@ def compute_exposure(
     hourly = interpolate(storm.track, config.interpolation_step_hours)
     hx, hy = heading(storm.track)
     normal = np.array([-hy, hx])
-    sigma = ens_cfg.sigma_cone_factor * cone_radius(storm.hours_to_landfall, storm.cone_radius_km)
     rng = np.random.default_rng(ens_cfg.seed + storm.advisory_no)
-    shifts = rng.normal(0.0, sigma, ens_cfg.members)
+    shifts = rng.normal(0.0, track_shift_sd(storm, ens_cfg), ens_cfg.members)
 
     xy = np.array([[s.x_km, s.y_km] for s in sites])
     elevation = np.array([s.elevation_m for s in sites])
