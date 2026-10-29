@@ -21,7 +21,7 @@ def citation_problems(
                     problems.append(f"clause {clause} is not in the findings or retrieved clauses")
             for asset in paragraph.asset_ids:
                 if asset not in allowed_assets:
-                    problems.append(f"asset {asset} is not in the findings or top assets")
+                    problems.append(f"asset {asset} is not in the findings, changes or top assets")
             for clause in set(CLAUSE_ID.findall(paragraph.text)) - set(paragraph.clause_ids):
                 problems.append(f"clause {clause} is mentioned in the text but not listed")
             for asset in set(ENTITY_ID.findall(paragraph.text)) - set(paragraph.asset_ids):

@@ -44,7 +44,7 @@ class FakeProvider:
 
     name = "anthropic"
     model: str | None = "claude-sonnet-5-5"
-    prompt_version: str | None = "sitrep-v1"
+    prompt_version: str | None = "sitrep-v2"
 
     def __init__(self, *outputs: SitrepDraft | Exception) -> None:
         self.outputs = list(outputs)
@@ -111,6 +111,19 @@ def test_an_invented_clause_is_rejected_and_the_template_draft_served(
         assert "P-9.9" in draft["fallback_reason"]
         attempts = drafted_event(client)["payload"]["attempts"]
         assert len(attempts) == 2, "one retry before falling back"
+
+
+def test_an_asset_that_left_the_top_10_is_grounded(make_client: ClientFactory) -> None:
+    # The draft sees what changed, so an asset named there may be cited (ticket 09 live check)
+    with make_client(FakeProvider(draft_of())) as client:
+        advance_to(client, 3)
+        left = client.get("/advisories/3/changes").json()["top10_left"][0]
+    cites_it = draft_of(Paragraph(text=f"{left} left the top 10.", clause_ids=[], asset_ids=[left]))
+    with make_client(FakeProvider(cites_it)) as client:
+        advance_to(client, 3)
+
+        assert package(client, 3)["draft"]["provider"] == "anthropic"
+        assert len(drafted_event(client)["payload"]["attempts"]) == 1
 
 
 def test_an_id_in_the_text_must_be_listed(make_client: ClientFactory) -> None:
@@ -226,7 +239,7 @@ def anthropic_with(messages: FakeMessages) -> AnthropicProvider:
         client,  # type: ignore[arg-type]  # a fake with the same beta.messages surface
         "claude-sonnet-5-5",
         "system prompt",
-        "sitrep-v1",
+        "sitrep-v2",
         4000,
         copilot,
     )
@@ -284,7 +297,7 @@ def test_a_failed_call_records_latency_and_model(make_client: ClientFactory) -> 
 
     assert attempt["error"] == "model provider error 503"
     assert attempt["model"] == "claude-sonnet-5-5"
-    assert attempt["prompt_version"] == "sitrep-v1"
+    assert attempt["prompt_version"] == "sitrep-v2"
     assert "latency_ms" in attempt
 
 

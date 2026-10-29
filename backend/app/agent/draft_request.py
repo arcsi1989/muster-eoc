@@ -1,4 +1,5 @@
-"""Assembles what the draft may see and cite: package items, top assets, retrieved clauses."""
+"""Assembles what the draft may see and cite: package items, changes, top assets, retrieved
+clauses."""
 
 from typing import Any
 
@@ -83,4 +84,6 @@ def draft_request(
     allowed_clauses = {c for i in draft_items for c in i.cites} | {c.id for c in retrieved}
     allowed_assets = {i.entity_id for i in draft_items if i.entity_is_citable}
     allowed_assets |= {s.asset_id for s in top}
+    allowed_assets |= set(changes["top10_entered"]) | set(changes["top10_left"])
+    allowed_assets |= {m["asset_id"] for m in changes["rank_moves"]}
     return request, Grounding(allowed_clauses, allowed_assets)

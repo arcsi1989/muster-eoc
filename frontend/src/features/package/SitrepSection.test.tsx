@@ -9,7 +9,7 @@ const draft: Draft = {
   provider: 'anthropic',
   fallback: false,
   model: 'claude-sonnet-5-5',
-  prompt_version: 'sitrep-v1',
+  prompt_version: 'sitrep-v2',
   fallback_reason: null,
   sections: [
     {

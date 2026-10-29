@@ -12,7 +12,7 @@ from app.llm.template import TemplateProvider
 from app.scoring_config import ScoringConfig
 
 PROMPTS = Path(__file__).resolve().parents[1] / "agent" / "prompts"
-SITREP_PROMPT = PROMPTS / "sitrep_v1.md"  # its version is its name: sitrep-v1
+SITREP_PROMPT = PROMPTS / "sitrep_v2.md"  # its version is its name: sitrep-v2
 COPILOT_PROMPT = PROMPTS / "copilot_v1.md"
 
 

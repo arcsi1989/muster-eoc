@@ -70,7 +70,8 @@ class DraftRequest:
 
 @dataclass(frozen=True)
 class Grounding:
-    """The clause and asset IDs a draft may cite: the findings, retrieved clauses, top assets."""
+    """The clause and asset IDs a draft may cite: what its request shows (findings, retrieved
+    clauses, changes, top assets)."""
 
     clauses: set[str]
     assets: set[str]

@@ -89,7 +89,7 @@ class FakeChat:
 
     name = "anthropic"
     model: str | None = "claude-sonnet-5-5"
-    prompt_version: str | None = "sitrep-v1"
+    prompt_version: str | None = "sitrep-v2"
 
     def __init__(self, calls: list[tuple[str, dict[str, Any]]], text: str | Exception) -> None:
         self.calls, self.text = calls, text
@@ -212,7 +212,7 @@ def test_anthropic_chat_loop_runs_tools_and_returns_the_answer() -> None:
     copilot = CopilotPrompt(
         system="copilot prompt", version="copilot-v1", max_tokens=2000, max_tool_rounds=3
     )
-    provider = AnthropicProvider(client, "claude-sonnet-5-5", "s", "sitrep-v1", 4000, copilot)  # type: ignore[arg-type]
+    provider = AnthropicProvider(client, "claude-sonnet-5-5", "s", "sitrep-v2", 4000, copilot)  # type: ignore[arg-type]
     ran: list[tuple[str, dict[str, Any]]] = []
 
     def run_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
