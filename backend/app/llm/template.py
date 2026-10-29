@@ -2,6 +2,7 @@
 
 from typing import Any
 
+from app.ids import CLAUSE_ID, SITE_ID, mentioned
 from app.llm.schemas import (
     ChatResult,
     ChatTurn,
@@ -14,10 +15,19 @@ from app.llm.schemas import (
     ToolRunner,
 )
 from app.llm.template_chat import template_chat
+from app.scoring_config import ScoringConfig
 
 
 def _asset_ids(item: DraftItem) -> list[str]:
     return [item.entity_id] if item.entity_is_citable else []
+
+
+def _paragraph(text: str, clause_ids: list[str], asset_ids: list[str]) -> Paragraph:
+    """A paragraph that also lists every ID its text mentions (action text can name other
+    sites and clauses, such as the treatment plant a pumping station feeds)."""
+    clauses = clause_ids + sorted(mentioned(CLAUSE_ID, text) - set(clause_ids))
+    assets = asset_ids + sorted(mentioned(SITE_ID, text) - set(asset_ids))
+    return Paragraph(text=text, clause_ids=clauses, asset_ids=assets)
 
 
 class TemplateProvider:
@@ -25,8 +35,14 @@ class TemplateProvider:
     model: str | None = None
     prompt_version: str | None = None
 
-    def __init__(self, top_risks: int = 5) -> None:
-        self._top_risks = top_risks
+    def __init__(self, top_risks: int, top_assets: int) -> None:
+        self._top_risks = top_risks  # the copilot's default number of top risks
+        self._top_assets = top_assets  # how many top assets the draft names
+
+    @classmethod
+    def from_config(cls, config: ScoringConfig) -> "TemplateProvider":
+        """The same settings whether the template is configured or serves the fallback."""
+        return cls(config.copilot.top_risks_default, config.draft.template_top_assets)
 
     def chat(
         self,
@@ -46,7 +62,7 @@ class TemplateProvider:
         if shift:
             distance = round(shift.distance_km)
             situation += f" The forecast landfall moved {distance} km {shift.direction}."
-        named = request.top_assets[: request.template_top_assets]
+        named = request.top_assets[: self._top_assets]
         top = ", ".join(a.id for a in named)
         overview = [Paragraph(text=situation, clause_ids=[], asset_ids=[])]
         if top:
@@ -58,19 +74,19 @@ class TemplateProvider:
                 )
             )
         conflicts = [
-            Paragraph(
-                text=f"Conflict at {i.entity_id}, citing {', '.join(i.cites)}: {i.action}",
-                clause_ids=list(i.cites),
-                asset_ids=_asset_ids(i),
+            _paragraph(
+                f"Conflict at {i.entity_id}, citing {', '.join(i.cites)}: {i.action}",
+                list(i.cites),
+                _asset_ids(i),
             )
             for i in request.items
             if i.kind == "conflict"
         ]
         gaps = [
-            Paragraph(
-                text=f"{i.rule_id}{' (overdue)' if i.overdue else ''}: {i.action}.",
-                clause_ids=[i.rule_id],
-                asset_ids=_asset_ids(i),
+            _paragraph(
+                f"{i.rule_id}{' (overdue)' if i.overdue else ''}: {i.action}.",
+                [i.rule_id],
+                _asset_ids(i),
             )
             for i in request.items
             if i.kind == "gap"

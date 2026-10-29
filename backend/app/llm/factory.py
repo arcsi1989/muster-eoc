@@ -26,7 +26,7 @@ def prompt_version(path: Path) -> str:
 
 def build_provider(settings: Settings, config: ScoringConfig) -> LLMProvider:
     if settings.llm_provider == "template":
-        return TemplateProvider(config.copilot.top_risks_default)
+        return TemplateProvider.from_config(config)
     if settings.llm_provider == "azure_openai":
         return AzureOpenAIProvider()
     key = settings.anthropic_api_key.get_secret_value() if settings.anthropic_api_key else ""

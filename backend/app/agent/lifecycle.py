@@ -29,12 +29,14 @@ from sqlmodel import Session, col, select
 from app import advisory_context
 from app.agent import decisions, sitrep
 from app.agent.actions import proposed_action
-from app.agent.draft import DraftOutcome
+from app.agent.draft import produce_draft
 from app.agent.draft_request import draft_request
 from app.audit.log import record
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
+from app.llm.grounded import GroundedOutcome
 from app.llm.provider import LLMProvider
-from app.llm.schemas import DraftRequest
+from app.llm.schemas import DraftRequest, DraftResult
+from app.llm.template import TemplateProvider
 from app.models import (
     Advisory,
     DecisionPackage,
@@ -62,7 +64,6 @@ from app.scoring_config import ScoringConfig
 if TYPE_CHECKING:  # the cycle runs the graph, whose steps call back into this module
     from app.agent.cycle import AdvisoryCycle
 
-TEMPLATE_FALLBACK = "template (fallback)"
 # what resumes the approval pause besides an item decision (whose action is the person's)
 EXPIRE = "expire"
 DECLARE = "declare"
@@ -283,6 +284,7 @@ class CycleSteps:
         self._playbook = playbook
         self._llm = llm
         self._config = config
+        self._fallback = TemplateProvider.from_config(config)
         self._rules = {r.id: r for r in playbook.rulebook.rules}
 
     def _versions(self, session: Session, advisory: Advisory) -> dict[str, Any]:
@@ -419,15 +421,22 @@ class CycleSteps:
         changes = changes_from_json(self._package(session, advisory_no).changes)
         return draft_request(session, advisory, self._playbook, changes, self._config.draft)
 
+    def write_draft(self, request: DraftRequest) -> GroundedOutcome[DraftResult]:
+        """The provider's grounded draft, else the template's. Runs outside any transaction."""
+        return produce_draft(self._llm, self._fallback, request, 1 + self._config.draft.retries)
+
     def save_draft(
-        self, session: Session, advisory_no: int, request: DraftRequest, outcome: DraftOutcome
+        self,
+        session: Session,
+        advisory_no: int,
+        request: DraftRequest,
+        outcome: GroundedOutcome[DraftResult],
     ) -> None:
         advisory = self._advisory(session, advisory_no)
         package = self._package(session, advisory_no)
-        label = TEMPLATE_FALLBACK if outcome.fallback else outcome.result.provider
         package.draft = {
             "status": "DRAFT",
-            "provider": label,
+            "provider": outcome.provider,
             "fallback": outcome.fallback,
             "model": outcome.result.model,
             "prompt_version": outcome.prompt_version,
@@ -439,11 +448,11 @@ class CycleSteps:
             session,
             "agent",
             "sitrep_drafted",
-            f"Draft situation report written by {label}"
+            f"Draft situation report written by {outcome.provider}"
             + (f" ({outcome.fallback_reason})" if outcome.fallback_reason else ""),
             advisory,
             {
-                "provider": label,
+                "provider": outcome.provider,
                 "model": outcome.result.model,
                 "attempts": outcome.attempts,
                 "fallback_reason": outcome.fallback_reason,
@@ -453,23 +462,23 @@ class CycleSteps:
         )
 
     @staticmethod
-    def pending_items(session: Session, advisory_no: int) -> int:
+    def pending_count(session: Session, advisory_no: int) -> int:
         return len(_pending(session, advisory_no))
 
-    def apply(self, session: Session, advisory_no: int, decision: dict[str, Any]) -> None:
+    def apply(self, session: Session, advisory_no: int, decision: dict[str, Any]) -> bool:
         """Applies a decision the lifecycle checked: an item decision, a declaration, the
         situation report approval, or the next advisory expiring the package. The only writer
-        of decided operational state."""
+        of decided operational state. Returns True when the package's decisions are over."""
         advisory = self._advisory(session, advisory_no)
         action = decision.get("action")
         if action == EXPIRE:
             self._expire_items(session, advisory)
-            return
+            return True
         if action == APPROVE_SITREP:
             sitrep.apply_approval(
                 session, self._playbook, advisory, decision["role"], decision["text"]
             )
-            return
+            return False
         item = session.get(PackageItem, decision["item_id"])
         finding = session.get(Finding, item.finding_id) if item else None
         if item is None or finding is None:
@@ -478,6 +487,7 @@ class CycleSteps:
             self._declare(session, advisory, item, finding, decision)
         else:
             self._decide(session, advisory, item, finding, decision)
+        return False
 
     def _expire_items(self, session: Session, advisory: Advisory) -> None:
         items = _pending(session, advisory.advisory_no)

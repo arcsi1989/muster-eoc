@@ -79,9 +79,7 @@ class DraftRequest:
     items: list[DraftItem]
     top_assets: list[TopAsset]
     clauses: list[RetrievedClause]
-    # Not shown: the template's setting, and validation problems from the last try (a
-    # rejection, not data to cite).
-    template_top_assets: int = field(default=5, metadata=HIDDEN)
+    # Not shown: validation problems from the last try (a rejection, not data to cite).
     feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
 
     def shown(self) -> dict[str, Any]:

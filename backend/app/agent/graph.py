@@ -22,8 +22,7 @@ from langgraph.types import Command, interrupt
 from sqlalchemy import Engine
 from sqlmodel import Session
 
-from app.agent.draft import produce_draft
-from app.agent.lifecycle import EXPIRE, CycleSteps
+from app.agent.lifecycle import CycleSteps
 from app.llm.provider import LLMProvider
 from app.playbook.service import Playbook
 from app.scoring_config import ScoringConfig
@@ -64,23 +63,22 @@ def build_graph(
         with unit() as session:
             request = steps.draft_request(session, state["advisory_no"])
         # the model call runs outside any database transaction
-        outcome = produce_draft(llm, request, config.draft.retries)
+        outcome = steps.write_draft(request)
         with unit() as session:
             steps.save_draft(session, state["advisory_no"], request, outcome)
         return {}
 
     def await_approval(state: CycleState) -> Command[str]:
         """Pauses even with every item decided: the situation report may still be approved."""
-        with unit() as session:
-            waiting = steps.pending_items(session, state["advisory_no"])
+        with Session(engine) as session:  # a read: nothing to commit
+            waiting = steps.pending_count(session, state["advisory_no"])
         decision = interrupt({"advisory_no": state["advisory_no"], "pending_items": waiting})
         return Command(goto="apply_decision", update={"decision": decision})
 
     def apply_decision(state: CycleState) -> Command[str]:
-        decision = state["decision"]
         with unit() as session:
-            steps.apply(session, state["advisory_no"], decision)
-        return Command(goto="finalise" if decision.get("action") == EXPIRE else "await_approval")
+            ended = steps.apply(session, state["advisory_no"], state["decision"])
+        return Command(goto="finalise" if ended else "await_approval")
 
     def finalise(state: CycleState) -> CycleState:
         with unit() as session:

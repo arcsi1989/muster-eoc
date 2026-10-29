@@ -41,11 +41,12 @@ def draft_of(*paragraphs: Paragraph) -> SitrepDraft:
 
 
 class FakeProvider:
-    """Returns the given drafts in turn (or raises), and records what it was shown."""
+    """A fake provider: returns the given drafts in turn (or raises), and records what it was
+    shown."""
 
-    name = "anthropic"
-    model: str | None = "claude-sonnet-5-5"
-    prompt_version: str | None = "sitrep-v2"
+    name = "fake"
+    model: str | None = "fake-model"
+    prompt_version: str | None = "fake-prompt-v1"
 
     def __init__(self, *outputs: SitrepDraft | Exception) -> None:
         self.outputs = list(outputs)
@@ -57,7 +58,7 @@ class FakeProvider:
         if isinstance(output, Exception):
             raise output
         return DraftResult(
-            output, "anthropic", "claude-sonnet-5-5", 42, {"input_tokens": 100, "output_tokens": 50}
+            output, self.name, self.model, 42, {"input_tokens": 100, "output_tokens": 50}
         )
 
 
@@ -80,6 +81,17 @@ def test_template_draft_is_marked_draft_and_cites_only_grounded_ids(client: Test
     assert drafted_event(client)["payload"]["clauses_retrieved"], "BM25 found context clauses"
 
 
+def test_the_configured_template_draft_passes_validation_at_every_advisory(
+    client: TestClient,
+) -> None:
+    last = len(client.get("/advisories").json()["advisories"])
+    advance_to(client, last)
+
+    drafts = [package(client, n)["draft"] for n in range(1, last + 1)]
+
+    assert [(d["provider"], d["fallback"]) for d in drafts] == [("template", False)] * last
+
+
 def test_a_grounded_llm_draft_is_used_and_its_call_is_logged(make_client: ClientFactory) -> None:
     fake = FakeProvider(
         draft_of(
@@ -92,7 +104,7 @@ def test_a_grounded_llm_draft_is_used_and_its_call_is_logged(make_client: Client
         advance_to(client, 3)
 
         draft = package(client, 3)["draft"]
-        assert (draft["provider"], draft["model"]) == ("anthropic", "claude-sonnet-5-5")
+        assert (draft["provider"], draft["model"]) == ("fake", "fake-model")
         attempt = drafted_event(client)["payload"]["attempts"][0]
         assert attempt["usage"] == {"input_tokens": 100, "output_tokens": 50}
         assert attempt["latency_ms"] == 42
@@ -125,7 +137,7 @@ def test_an_id_in_the_text_must_be_listed(make_client: ClientFactory) -> None:
     with make_client(fake) as client:
         advance_to(client, 3)
 
-        assert package(client, 3)["draft"]["provider"] == "anthropic", "the retry fixed it"
+        assert package(client, 3)["draft"]["provider"] == "fake", "the retry fixed it"
         assert any("PS-14" in problem for problem in fake.requests[1].feedback)
 
 
@@ -283,8 +295,8 @@ def test_a_failed_call_records_latency_and_model(make_client: ClientFactory) -> 
         attempt = drafted_event(client)["payload"]["attempts"][0]
 
     assert attempt["error"] == "model provider error 503"
-    assert attempt["model"] == "claude-sonnet-5-5"
-    assert attempt["prompt_version"] == "sitrep-v2"
+    assert attempt["model"] == "fake-model"
+    assert attempt["prompt_version"] == "fake-prompt-v1"
     assert "latency_ms" in attempt
 
 
