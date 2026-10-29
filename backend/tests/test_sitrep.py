@@ -14,16 +14,14 @@ from app.llm.anthropic_provider import AnthropicProvider, CopilotPrompt
 from app.llm.factory import LLMConfigError, build_provider
 from app.llm.schemas import (
     DraftRequest,
-    DraftResult,
     LLMUnavailable,
     Paragraph,
-    Section,
     SitrepDraft,
 )
 from app.main import create_app
 from app.replay.diff import AdvisoryChanges
 from app.scoring_config import load_scoring_config
-from tests.conftest import ClientFactory
+from tests.conftest import ClientFactory, FakeProvider, draft_of
 
 
 def advance_to(client: TestClient, advisory: int) -> None:
@@ -34,32 +32,6 @@ def advance_to(client: TestClient, advisory: int) -> None:
 def package(client: TestClient, advisory: int) -> dict[str, Any]:
     result: dict[str, Any] = client.get(f"/packages/{advisory}").json()
     return result
-
-
-def draft_of(*paragraphs: Paragraph) -> SitrepDraft:
-    return SitrepDraft(sections=[Section(heading="Situation", paragraphs=list(paragraphs))])
-
-
-class FakeProvider:
-    """A fake provider: returns the given drafts in turn (or raises), and records what it was
-    shown."""
-
-    name = "fake"
-    model: str | None = "fake-model"
-    prompt_version: str | None = "fake-prompt-v1"
-
-    def __init__(self, *outputs: SitrepDraft | Exception) -> None:
-        self.outputs = list(outputs)
-        self.requests: list[DraftRequest] = []
-
-    def draft_sitrep(self, request: DraftRequest) -> DraftResult:
-        self.requests.append(request)
-        output = self.outputs.pop(0) if len(self.outputs) > 1 else self.outputs[0]
-        if isinstance(output, Exception):
-            raise output
-        return DraftResult(
-            output, self.name, self.model, 42, {"input_tokens": 100, "output_tokens": 50}
-        )
 
 
 def drafted_event(client: TestClient) -> dict[str, Any]:

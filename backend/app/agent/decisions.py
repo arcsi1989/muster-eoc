@@ -2,20 +2,26 @@
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Literal, get_args
 
 from sqlmodel import Session
 
 from app.advisory_context import ACTIVATION_LEVEL, COMMANDERS, DECLARED_AT_HOURS, Commander
 from app.agent.actions import approval_state
 from app.errors import AppError, ConflictError
-from app.models import Advisory, Finding, OpState, PackageItem
+from app.models import Advisory, Finding, ItemStatus, OpState, PackageItem
 from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER, PROPOSED_DETAIL, Level
 from app.playbook.rules import Rule
 
 Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
 Action = Literal["approve", "override", "defer", "alternative"]
-DECIDED = {"approved", "overridden", "deferred", "alternative", "not_decided"}
+DECIDED: set[ItemStatus] = set(get_args(ItemStatus)) - {"pending"}
+DECIDED_BY_ACTION: dict[Action, ItemStatus] = {
+    "approve": "approved",
+    "override": "overridden",
+    "defer": "deferred",
+    "alternative": "alternative",
+}
 
 
 def role_label(role: str) -> str:
@@ -143,12 +149,7 @@ def apply(
     """Records the decision; an approval writes the state that satisfies the rule. Returns the
     state changes made (empty for overrides and conflict decisions)."""
     now = datetime.now(UTC)
-    item.status = {  # type: ignore[assignment]  # the map's values are all ItemStatus
-        "approve": "approved",
-        "override": "overridden",
-        "defer": "deferred",
-        "alternative": "alternative",
-    }[request.action]
+    item.status = DECIDED_BY_ACTION[request.action]
     item.decided_by = request.role
     item.reason = (request.reason or "").strip() or None
     item.decided_at = now
