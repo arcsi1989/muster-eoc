@@ -118,7 +118,6 @@ export function PackagePanel({ advisoryNo, role, hoursToLandfall, assetsById, on
           hoursToLandfall={hoursToLandfall}
           declareError={declareError?.advisoryNo === advisoryNo ? declareError.error : null}
           onDeclare={onDeclare}
-          sitrepOpen={state.data.advisory_no === advisoryNo}
           clauses={clauses}
           sitrepError={sitrepError?.advisoryNo === advisoryNo ? sitrepError.error : null}
           onApproveSitrep={onApproveSitrep}
