@@ -66,9 +66,11 @@ for d in $PY_DIRS; do
     step "$d" "lint"   uv run ruff check .
   fi
   if [ -d "$d/tests" ]; then
-    # pytest-xdist, where the project has it: one worker per CPU (each test has its own tmp_path).
+    # pytest-xdist, where the project has it (each test has its own tmp_path). Capped at
+    # CHECK_WORKERS (default 4) so parallel agents' runs don't oversubscribe the CPU;
+    # CHECK_WORKERS=auto gives one worker per CPU. vite.config.ts caps vitest the same way.
     if grep -q 'pytest-xdist' "$d/pyproject.toml" 2>/dev/null; then
-      step "$d" "test" uv run pytest -q -x -n auto
+      step "$d" "test" uv run pytest -q -x -n "${CHECK_WORKERS:-4}"
     else
       step "$d" "test" uv run pytest -q -x
     fi

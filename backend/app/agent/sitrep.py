@@ -42,7 +42,7 @@ def check_approval(
         raise SitrepAlreadyApproved(f"the situation report for advisory {advisory_no} is approved")
     if role != lead:
         raise DecisionRefused(
-            f"The {lead.replace('_', ' ')} approves the situation report (P-3.1, P-7.1)."
+            f"The {lead.replace('_', ' ')} approves the situation report (P-3.1, {SITREP_RULE})."
         )
     if not text.strip():
         raise DecisionRefused("The approved situation report cannot be empty.")

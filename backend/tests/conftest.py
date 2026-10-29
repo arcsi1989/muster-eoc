@@ -15,6 +15,7 @@ from app.db import create_fresh_engine
 from app.ingest.loader import load_gold
 from app.llm.factory import build_provider
 from app.llm.provider import LLMProvider
+from app.llm.schemas import DraftRequest, DraftResult, Paragraph, Prompt, Section, SitrepDraft
 from app.main import create_app
 from app.playbook.service import Playbook, load_playbook
 from app.scoring_config import ScoringConfig, load_scoring_config
@@ -102,3 +103,29 @@ def make_seeded(tmp_path: Path) -> SeededFactory:
 def seeded(make_seeded: SeededFactory) -> Iterator[SeededScenario]:
     with make_seeded() as scenario:
         yield scenario
+
+
+def draft_of(*paragraphs: Paragraph) -> SitrepDraft:
+    return SitrepDraft(sections=[Section(heading="Situation", paragraphs=list(paragraphs))])
+
+
+class FakeProvider:
+    """A fake provider: returns the given drafts in turn (or raises), and records what it was
+    shown."""
+
+    name = "fake"
+    model: str | None = "fake-model"
+
+    def __init__(self, *outputs: SitrepDraft | Exception) -> None:
+        self.outputs = list(outputs)
+        self.requests: list[DraftRequest] = []
+        self.prompts: list[Prompt] = []
+
+    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
+        self.requests.append(request)
+        self.prompts.append(prompt)
+        output = self.outputs.pop(0) if len(self.outputs) > 1 else self.outputs[0]
+        if isinstance(output, Exception):
+            raise output
+        usage = {"input_tokens": 100, "output_tokens": 50}
+        return DraftResult(output, self.name, self.model, prompt.version, 42, usage)

@@ -11,23 +11,63 @@ activation declarations are checked here, under the cycle's lock and before anyt
 the only writer of decided operational state; besides it, only the initial load, a scenario
 reset and the per-advisory flag reset when an advisory is issued write operational state. A
 declaration is the only code that sets the activation level.
+
+The cycle's steps do their work here too (`CycleSteps`): opening the package and its items,
+saving the draft, applying decisions, expiring and closing, and the audit record of each. The
+LangGraph graph keeps only the order of the steps and the pause for decisions.
 """
 
-from dataclasses import dataclass
-from typing import Any
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from sqlmodel import Session, col, select
 
 from app import advisory_context
 from app.agent import decisions, sitrep
-from app.agent.cycle import AdvisoryCycle
+from app.agent.actions import proposed_action
+from app.agent.draft import produce_draft, sitrep_prompt
+from app.agent.draft_request import draft_request
+from app.audit.log import record
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
-from app.models import Advisory, DecisionPackage, Finding, PackageItem, PackageStatus, Sitrep
+from app.llm.grounded import GroundedOutcome
+from app.llm.provider import LLMProvider
+from app.llm.schemas import DraftRequest, DraftResult
+from app.llm.template import TemplateProvider
+from app.models import (
+    Advisory,
+    DecisionPackage,
+    Finding,
+    ItemKind,
+    OpState,
+    PackageItem,
+    PackageStatus,
+    Score,
+    Sitrep,
+)
 from app.network import load_network
-from app.playbook.activation import PROPOSAL_RULE
-from app.playbook.service import Playbook
+from app.playbook.activation import (
+    DECLARED_BY,
+    DECLARED_DETAIL,
+    LEVEL_NUMBER,
+    PROPOSAL_RULE,
+    PROPOSED_DETAIL,
+)
+from app.playbook.service import Playbook, reevaluate, store_findings, store_new_event_findings
 from app.replay import service
+from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
+
+if TYPE_CHECKING:  # the cycle runs the graph, whose steps call back into this module
+    from app.agent.cycle import AdvisoryCycle
+
+# what resumes the approval pause besides an item decision (whose action is the person's)
+EXPIRE = "expire"
+DECLARE = "declare"
+APPROVE_SITREP = "approve_sitrep"
 
 
 class PackageClosed(ConflictError):
@@ -234,3 +274,340 @@ def declare(session: Session, cycle: AdvisoryCycle, declaration: decisions.Decla
     cycle.declare(advisory_no, item.id or 0, declaration, precheck)
     session.expire_all()
     return advisory_no
+
+
+class CycleSteps:
+    """The work of each advisory cycle step, one transaction each (the graph opens it). Every
+    step writes its audit event."""
+
+    def __init__(self, playbook: Playbook, llm: LLMProvider, config: ScoringConfig) -> None:
+        self._playbook = playbook
+        self._llm = llm
+        self._config = config
+        self._fallback = TemplateProvider.from_config(config)
+        self._prompt = sitrep_prompt(config.draft)
+        self._rules = {r.id: r for r in playbook.rulebook.rules}
+
+    def _versions(
+        self, session: Session, advisory: Advisory, prompt_version: str | None = None
+    ) -> dict[str, Any]:
+        """The versions that produced a step: the model version is the one that scored the
+        advisory; a prompt version only for the step a prompt wrote."""
+        return {
+            "rules_version": self._playbook.rulebook.version,
+            "model_version": service.model_version(session, advisory.advisory_no),
+            "prompt_version": prompt_version,
+        }
+
+    @staticmethod
+    def _advisory(session: Session, advisory_no: int) -> Advisory:
+        advisory = session.get(Advisory, advisory_no)
+        if advisory is None:
+            raise DataNotLoaded(f"advisory {advisory_no} missing")
+        return advisory
+
+    @staticmethod
+    def _package(session: Session, advisory_no: int) -> DecisionPackage:
+        package = session.get(DecisionPackage, advisory_no)
+        if package is None:
+            raise DataNotLoaded(f"no decision package for advisory {advisory_no}")
+        return package
+
+    def load_context(self, session: Session, advisory_no: int) -> None:
+        """Records what the advisory's cycle starts from: the top risks, the event state and
+        the activation level."""
+        advisory = self._advisory(session, advisory_no)
+        top10 = session.exec(
+            select(Score.asset_id)
+            .where(Score.advisory_no == advisory_no, Score.rank <= self._config.risk.top_n)
+            .order_by(col(Score.rank))
+        ).all()
+        event_state = {
+            s.key: s.value for s in session.exec(select(OpState).where(OpState.entity == "event"))
+        }
+        level = advisory_context.at(session, self._playbook.levels, advisory).activation_level
+        record(
+            session,
+            "system",
+            "context_loaded",
+            f"Advisory {advisory_no} loaded: {advisory.hours_to_landfall} h to landfall, {level}",
+            advisory,
+            {"top10": list(top10), "event_state": event_state, "activation_level": level},
+            self._versions(session, advisory),
+        )
+
+    def open_package(self, session: Session, advisory_no: int) -> None:
+        """Opens the advisory's package with what changed since the previous advisory."""
+        advisory = self._advisory(session, advisory_no)
+        top_n = self._config.risk.top_n
+        changes = asdict(service.changes(session, advisory_no, self._playbook.levels, top_n))
+        session.merge(
+            DecisionPackage(
+                advisory_no=advisory_no,
+                status="open",
+                changes=changes,
+                draft={},
+                opened_at=datetime.now(UTC),
+            )
+        )
+        moves = len(changes["rank_moves"])
+        record(
+            session,
+            "system",
+            "diff",
+            f"Compared with advisory {changes['previous_advisory_no'] or '-'}: {moves} rank moves",
+            advisory,
+            changes,
+            self._versions(session, advisory),
+        )
+
+    def _add_items(
+        self, session: Session, advisory: Advisory, stored: Sequence[Finding]
+    ) -> list[str]:
+        """One pending package item per open or conflicting finding; returns their rule IDs."""
+        network = load_network(session)
+        added = []
+        for finding in stored:
+            if finding.status == "satisfied" or finding.rule_id == sitrep.SITREP_RULE:
+                continue
+            described = network.describe(finding.entity_id)
+            label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
+            kind: ItemKind = "conflict" if finding.status == "conflict" else "gap"
+            owner_role = finding.owner_role
+            if self._rules[finding.rule_id].kind == "proposal":
+                kind = "proposal"  # declared by the role for the proposed level (P-2.5)
+                owner_role = DECLARED_BY[finding.details[PROPOSED_DETAIL]]
+            session.add(
+                PackageItem(
+                    advisory_no=advisory.advisory_no,
+                    finding_id=finding.id or 0,
+                    rule_id=finding.rule_id,
+                    entity_id=finding.entity_id,
+                    kind=kind,
+                    proposed_action=proposed_action(
+                        finding.rule_id,
+                        label,
+                        finding.details,
+                        finding.cites if finding.status == "conflict" else None,
+                    ),
+                    owner_role=owner_role,
+                    status="pending",
+                )
+            )
+            added.append(finding.rule_id)
+        return added
+
+    def evaluate_rules(self, session: Session, advisory_no: int) -> None:
+        """Evaluates the playbook and adds the package's items."""
+        advisory = self._advisory(session, advisory_no)
+        findings = store_findings(session, advisory, self._playbook)
+        session.flush()
+        stored = session.exec(select(Finding).where(Finding.advisory_no == advisory_no)).all()
+        self._add_items(session, advisory, stored)
+        counts = {
+            s: sum(1 for f in findings if f.status == s) for s in ("open", "conflict", "satisfied")
+        }
+        record(
+            session,
+            "system",
+            "rules_evaluated",
+            f"Playbook evaluated: {counts['open']} gaps, {counts['conflict']} conflicts, "
+            f"{counts['satisfied']} satisfied",
+            advisory,
+            counts,
+            self._versions(session, advisory),
+        )
+
+    def draft_request(self, session: Session, advisory_no: int) -> DraftRequest:
+        """What the draft situation report may see."""
+        advisory = self._advisory(session, advisory_no)
+        changes = changes_from_json(self._package(session, advisory_no).changes)
+        return draft_request(session, advisory, self._playbook, changes, self._config.draft)
+
+    def write_draft(self, request: DraftRequest) -> GroundedOutcome[DraftResult]:
+        """The provider's grounded draft, else the template's. Runs outside any transaction."""
+        attempts = 1 + self._config.draft.retries
+        return produce_draft(self._llm, self._fallback, self._prompt, request, attempts)
+
+    def save_draft(
+        self,
+        session: Session,
+        advisory_no: int,
+        request: DraftRequest,
+        outcome: GroundedOutcome[DraftResult],
+    ) -> None:
+        advisory = self._advisory(session, advisory_no)
+        package = self._package(session, advisory_no)
+        package.draft = {
+            "status": "DRAFT",
+            "provider": outcome.provider,
+            "fallback": outcome.fallback,
+            "model": outcome.result.model,
+            "prompt_version": outcome.prompt_version,
+            "fallback_reason": outcome.fallback_reason,
+            "sections": outcome.result.draft.model_dump()["sections"],
+        }
+        session.add(package)
+        record(
+            session,
+            "agent",
+            "sitrep_drafted",
+            f"Draft situation report written by {outcome.provider}"
+            + (f" ({outcome.fallback_reason})" if outcome.fallback_reason else ""),
+            advisory,
+            {
+                "provider": outcome.provider,
+                "model": outcome.result.model,
+                "attempts": outcome.attempts,
+                "fallback_reason": outcome.fallback_reason,
+                "clauses_retrieved": [c.id for c in request.clauses],
+            },
+            self._versions(session, advisory, outcome.prompt_version),
+        )
+
+    @staticmethod
+    def pending_count(session: Session, advisory_no: int) -> int:
+        return len(_pending(session, advisory_no))
+
+    def apply(self, session: Session, advisory_no: int, decision: dict[str, Any]) -> bool:
+        """Applies a decision the lifecycle checked: an item decision, a declaration, the
+        situation report approval, or the next advisory expiring the package. The only writer
+        of decided operational state. Returns True when the package's decisions are over."""
+        advisory = self._advisory(session, advisory_no)
+        action = decision.get("action")
+        if action == EXPIRE:
+            self._expire_items(session, advisory)
+            return True
+        if action == APPROVE_SITREP:
+            sitrep.apply_approval(session, advisory, decision["role"], decision["text"])
+            session.flush()
+            reevaluate(session, advisory, self._playbook, sitrep.SITREP_RULE)
+            return False
+        item = session.get(PackageItem, decision["item_id"])
+        finding = session.get(Finding, item.finding_id) if item else None
+        if item is None or finding is None:
+            raise DataNotLoaded(f"package item {decision['item_id']} missing")
+        if action == DECLARE:
+            self._declare(session, advisory, item, finding, decision)
+        else:
+            self._decide(session, advisory, item, finding, decision)
+        return False
+
+    def _expire_items(self, session: Session, advisory: Advisory) -> None:
+        items = _pending(session, advisory.advisory_no)
+        for undecided in items:
+            undecided.status = "not_decided"
+            session.add(undecided)
+        if items:  # nothing to record when every item was decided
+            record(
+                session,
+                "system",
+                "items_not_decided",
+                f"{len(items)} items closed as not decided when the next advisory arrived",
+                advisory,
+                {
+                    "items": [
+                        {"id": i.id, "rule_id": i.rule_id, "entity_id": i.entity_id} for i in items
+                    ]
+                },
+                self._versions(session, advisory),
+            )
+
+    def _decide(
+        self,
+        session: Session,
+        advisory: Advisory,
+        item: PackageItem,
+        finding: Finding,
+        decision: dict[str, Any],
+    ) -> None:
+        request = decisions.DecisionRequest(
+            role=decision["role"], action=decision["action"], reason=decision.get("reason")
+        )
+        written = decisions.apply(session, item, request, self._rules[item.rule_id], finding)
+        record(
+            session,
+            "human",
+            "decision",
+            f"{decisions.role_label(request.role)} {item.status} "
+            f"{item.rule_id} for {item.entity_id}" + (f": {item.reason}" if item.reason else ""),
+            advisory,
+            {
+                "item_id": item.id,
+                "role": request.role,
+                "rule_id": item.rule_id,
+                "entity_id": item.entity_id,
+                "action": request.action,
+                "reason": item.reason,
+                "state_written": written,
+            },
+            self._versions(session, advisory),
+        )
+
+    def _declare(
+        self,
+        session: Session,
+        advisory: Advisory,
+        item: PackageItem,
+        finding: Finding,
+        decision: dict[str, Any],
+    ) -> None:
+        """Declares the activation level on the P-2.5 item, then adds the event items the new
+        level brings (P-7.2 once Full is declared)."""
+        declaration = decisions.Declaration(
+            level=decision["level"], declared_by=decision["declared_by"], reason=decision["reason"]
+        )
+        written = decisions.declare(session, item, declaration, advisory)
+        session.flush()
+        added = self._add_items(
+            session, advisory, store_new_event_findings(session, advisory, self._playbook)
+        )
+        record(
+            session,
+            "human",
+            "activation_declared",
+            f"{decisions.role_label(declaration.declared_by)} declared activation "
+            f"Level {LEVEL_NUMBER[declaration.level]} ({declaration.level})"
+            + (f": {item.reason}" if item.reason else ""),
+            advisory,
+            {
+                "item_id": item.id,
+                "role": declaration.declared_by,
+                "rule_id": item.rule_id,
+                "entity_id": item.entity_id,
+                "level": declaration.level,
+                "from_level": finding.details.get(DECLARED_DETAIL),
+                "reason": item.reason,
+                "state_written": written,
+                "items_added": added,
+            },
+            self._versions(session, advisory),
+        )
+
+    def close(self, session: Session, advisory_no: int) -> None:
+        """Closes the package once its advisory expired."""
+        advisory = self._advisory(session, advisory_no)
+        package = session.get(DecisionPackage, advisory_no)
+        if package is not None:
+            package.status = "closed"
+            package.closed_at = datetime.now(UTC)
+            session.add(package)
+        record(
+            session,
+            "system",
+            "package_finalised",
+            f"Decision package for advisory {advisory_no} closed",
+            advisory,
+            {},
+            self._versions(session, advisory),
+        )
+
+
+def _pending(session: Session, advisory_no: int) -> list[PackageItem]:
+    return list(
+        session.exec(
+            select(PackageItem).where(
+                PackageItem.advisory_no == advisory_no, PackageItem.status == "pending"
+            )
+        )
+    )

@@ -8,6 +8,7 @@ from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     LLMUnavailable,
+    Prompt,
     ToolRunner,
 )
 
@@ -15,9 +16,8 @@ from app.llm.schemas import (
 class AzureOpenAIProvider:
     name = "azure_openai"
     model: str | None = None
-    prompt_version: str | None = None
 
-    def draft_sitrep(self, request: DraftRequest) -> DraftResult:
+    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
         raise LLMUnavailable("the Azure OpenAI provider is a stub in this prototype")
 
     def chat(
@@ -26,5 +26,6 @@ class AzureOpenAIProvider:
         history: list[ChatTurn],
         tools: list[dict[str, Any]],
         run_tool: ToolRunner,
+        prompt: Prompt,
     ) -> ChatResult:
         raise LLMUnavailable("the Azure OpenAI provider is a stub in this prototype")

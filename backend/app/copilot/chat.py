@@ -1,25 +1,36 @@
-"""Answers a copilot question: the provider calls read-only tools; the answer may cite only IDs
-the tools returned. A failure or an ungrounded ID serves the template answer (L9)."""
+"""Answers a copilot question through grounded generation: the provider calls read-only tools;
+the answer may cite only IDs the tools returned. A failure or an ungrounded ID serves the
+template answer (L9). This task owns the copilot prompt."""
 
-import logging
-import time
+import json
 from dataclasses import dataclass
 from typing import Any, Literal
 
 from sqlmodel import Session
 
 from app import advisory_context
+from app.agent.prompts import load_prompt
 from app.audit.log import record
 from app.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
-from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID
-from app.llm.grounded import FALLBACK_LABEL
+from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID, mentioned
+from app.llm.grounded import generate
 from app.llm.provider import LLMProvider
-from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable
+from app.llm.schemas import ChatResult, ChatTurn, Prompt
 from app.llm.template import TemplateProvider
 from app.playbook.service import Playbook
-from app.scoring_config import ScoringConfig
+from app.scoring_config import CopilotConfig, ScoringConfig
 
-log = logging.getLogger(__name__)
+# A retry is sent the question again with what the validator found, as the draft is (L9).
+_REJECTED = "\n\nYour previous answer was rejected:\n- "
+
+
+def copilot_prompt(config: CopilotConfig) -> Prompt:
+    return load_prompt(
+        "copilot_v1",
+        max_tokens=config.max_tokens,
+        max_tool_rounds=config.max_tool_rounds,
+        deadline_s=config.deadline_s,
+    )
 
 
 @dataclass(frozen=True)
@@ -38,7 +49,9 @@ class CopilotAnswer:
 
 
 class _Recorder:
-    """Runs tools for the provider and remembers every asset and clause ID they returned."""
+    """Runs tools for the provider and remembers the IDs they returned: asset and clause IDs,
+    which become citations, and every ID anywhere in what a tool returned (an error that names
+    an unknown asset included), which an answer may name: what the model is shown is citable."""
 
     def __init__(self, tools: CopilotTools) -> None:
         self._tools = tools
@@ -50,13 +63,42 @@ class _Recorder:
         try:
             output: ToolOutput = self._tools.run(name, args)
         except ToolError as error:
-            return {"error": str(error)}
+            return self._shown({"error": str(error)})
         except TypeError:
             return {"error": f"wrong arguments for {name}"}
         self.asset_ids |= output.asset_ids
         self.clause_ids |= output.clause_ids
         self.other_ids |= output.other_ids
-        return output.data
+        return self._shown(output.data)
+
+    def _shown(self, data: dict[str, Any]) -> dict[str, Any]:
+        text = json.dumps(data, default=str)
+        self.other_ids |= mentioned(ENTITY_ID, text) | mentioned(CLAUSE_ID, text)
+        return data
+
+
+@dataclass(frozen=True)
+class _Answered:
+    """A chat result with the recorder of the tools it ran, so it is checked against its own."""
+
+    chat: ChatResult
+    recorder: _Recorder
+
+    @property
+    def model(self) -> str | None:
+        return self.chat.model
+
+    @property
+    def prompt_version(self) -> str | None:
+        return self.chat.prompt_version
+
+    @property
+    def latency_ms(self) -> int:
+        return self.chat.latency_ms
+
+    @property
+    def usage(self) -> dict[str, int]:
+        return self.chat.usage
 
 
 def _cite(text: str, recorder: _Recorder) -> tuple[list[Citation], list[str]]:
@@ -73,6 +115,13 @@ def _cite(text: str, recorder: _Recorder) -> tuple[list[Citation], list[str]]:
     return citations, ungrounded
 
 
+def _problems(answered: _Answered) -> list[str]:
+    """The copilot's validator: an answer names only IDs its tools returned, and is not empty."""
+    _, ungrounded = _cite(answered.chat.text, answered.recorder)
+    problems = ["it names IDs no tool returned: " + ", ".join(ungrounded)] if ungrounded else []
+    return problems + ([] if answered.chat.text else ["it has no text"])
+
+
 def answer(
     session: Session,
     playbook: Playbook,
@@ -83,59 +132,43 @@ def answer(
 ) -> CopilotAnswer:
     config = scoring.copilot
     tools = CopilotTools(session, playbook, config)
-    recorder = _Recorder(tools)
-    template = TemplateProvider.from_config(scoring)
     recent = history[-config.history_turns :]
-    started = time.monotonic()
-    attempt: dict[str, Any] = {"provider": provider.name, "model": provider.model}
-    fallback_reason = None
-    result: ChatResult | None = None
-    try:
-        result = provider.chat(question, recent, TOOL_DEFINITIONS, recorder)
-        citations, ungrounded = _cite(result.text, recorder)
-        attempt |= {
-            "model": result.model,
-            "latency_ms": result.latency_ms,
-            "usage": result.usage,
-            "tools": result.tools_used,
-            "prompt_version": result.prompt_version,
-        }
-        if ungrounded and not isinstance(provider, TemplateProvider):
-            fallback_reason = "the answer named IDs no tool returned: " + ", ".join(ungrounded)
-        elif not result.text:
-            fallback_reason = "the model returned no text"
-    except Exception as error:  # noqa: BLE001 - any provider failure serves the template (L9)
-        known = isinstance(error, LLMUnavailable)
-        fallback_reason = str(error) if known else "unexpected provider error"
-        attempt |= {
-            "latency_ms": round((time.monotonic() - started) * 1000),
-            "error": fallback_reason,
-        }
-        log.warning("copilot_fallback %s", attempt, exc_info=not known)
 
-    label = provider.name
-    if fallback_reason or result is None:
-        recorder = _Recorder(tools)
-        result = template.chat(question, recent, TOOL_DEFINITIONS, recorder)
-        label = FALLBACK_LABEL
-    citations, _ = _cite(result.text, recorder)
+    def ask(p: LLMProvider, prompt: Prompt, feedback: list[str]) -> _Answered:
+        recorder = _Recorder(tools)  # each call is checked against the tools it ran
+        asked = question + (_REJECTED + "\n- ".join(feedback) if feedback else "")
+        return _Answered(p.chat(asked, recent, TOOL_DEFINITIONS, recorder, prompt), recorder)
+
+    outcome = generate(
+        provider,
+        TemplateProvider.from_config(scoring),
+        copilot_prompt(config),
+        ask,
+        _problems,
+        1 + config.retries,
+        rejected="the answer was not grounded",
+    )
+    result = outcome.result.chat
+    citations, _ = _cite(result.text, outcome.result.recorder)
 
     advisory = advisory_context.current(session, playbook.levels).advisory
     record(
         session,
         "agent",
         "copilot_answered",
-        f"Copilot ({label}) answered: {question[:80]}",
+        f"Copilot ({outcome.provider}) answered: {question[:80]}",
         advisory,
         {
             "question": question,
-            "provider": label,
-            "attempt": attempt,
+            "provider": outcome.provider,
+            "attempts": outcome.attempts,
             "tools_used": result.tools_used,
             "citations": [c.id for c in citations],
-            "fallback_reason": fallback_reason,
+            "fallback_reason": outcome.fallback_reason,
         },
-        {"prompt_version": result.prompt_version},
+        {"prompt_version": outcome.prompt_version},
     )
     session.commit()
-    return CopilotAnswer(result.text, citations, label, label == FALLBACK_LABEL, result.tools_used)
+    return CopilotAnswer(
+        result.text, citations, outcome.provider, outcome.fallback, result.tools_used
+    )

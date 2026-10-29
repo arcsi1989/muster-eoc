@@ -15,7 +15,8 @@ from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
 from app.agent.decisions import DecisionRequest, Declaration, Role
-from app.agent.graph import APPROVE_SITREP, DECLARE, EXPIRE, build_graph
+from app.agent.graph import build_graph
+from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT

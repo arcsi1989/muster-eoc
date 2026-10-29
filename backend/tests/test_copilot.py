@@ -8,8 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.copilot.tools import TOOL_DEFINITIONS
-from app.llm.anthropic_provider import AnthropicProvider, CopilotPrompt
-from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable, ToolRunner
+from app.llm.anthropic_provider import AnthropicProvider
+from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable, Prompt, ToolRunner
 from tests.conftest import ClientFactory
 
 
@@ -89,13 +89,13 @@ class FakeChat:
 
     name = "fake"
     model: str | None = "fake-model"
-    prompt_version: str | None = "fake-prompt-v1"
 
     def __init__(self, calls: list[tuple[str, dict[str, Any]]], text: str | Exception) -> None:
         self.calls, self.text = calls, text
         self.history: list[ChatTurn] = []
+        self.prompts: list[Prompt] = []
 
-    def draft_sitrep(self, request: Any) -> Any:
+    def draft_sitrep(self, request: Any, prompt: Prompt) -> Any:
         raise LLMUnavailable("not used here")
 
     def chat(
@@ -104,8 +104,10 @@ class FakeChat:
         history: list[ChatTurn],
         tools: list[dict[str, Any]],
         run_tool: ToolRunner,
+        prompt: Prompt,
     ) -> ChatResult:
         self.history = history
+        self.prompts.append(prompt)
         for name, args in self.calls:
             run_tool(name, args)
         if isinstance(self.text, Exception):
@@ -114,7 +116,7 @@ class FakeChat:
             self.text,
             [n for n, _ in self.calls],
             self.model,
-            self.prompt_version,
+            prompt.version,
             900,
             {"input_tokens": 500, "output_tokens": 80},
         )
@@ -163,19 +165,27 @@ def test_a_failed_model_call_falls_back(make_client: ClientFactory, failure: Exc
 
 
 def test_each_answer_is_audited_with_model_latency_and_tokens(make_client: ClientFactory) -> None:
-    with make_client(
-        FakeChat([("get_asset", {"asset_id": "SUB-07"})], "SUB-07 is a substation.")
-    ) as client:
+    fake = FakeChat([("get_asset", {"asset_id": "SUB-07"})], "SUB-07 is a substation.")
+    with make_client(fake) as client:
         advance_to(client, 1)
         ask(client, "Tell me about SUB-07")
         event = next(e for e in client.get("/audit").json() if e["type"] == "copilot_answered")
 
     assert event["actor"] == "agent"
-    assert event["payload"]["attempt"]["usage"] == {"input_tokens": 500, "output_tokens": 80}
-    assert event["payload"]["attempt"]["latency_ms"] == 900
+    assert event["payload"]["attempts"] == [
+        {
+            "provider": "fake",
+            "model": "fake-model",
+            "prompt_version": "copilot-v1",
+            "latency_ms": 900,
+            "usage": {"input_tokens": 500, "output_tokens": 80},
+            "problems": [],
+        }
+    ]
     assert event["payload"]["tools_used"] == ["get_asset"]
     assert event["payload"]["citations"] == ["SUB-07"]
-    assert event["versions"]["prompt_version"] == "fake-prompt-v1"
+    assert event["versions"]["prompt_version"] == "copilot-v1", "the prompt the copilot loads"
+    assert (fake.prompts[0].max_tool_rounds, fake.prompts[0].deadline_s) == (5, 60)
 
 
 def test_tools_cannot_be_used_to_change_anything(make_client: ClientFactory) -> None:
@@ -209,10 +219,8 @@ def test_anthropic_chat_loop_runs_tools_and_returns_the_answer() -> None:
         return responses[len(calls) - 1]
 
     client = SimpleNamespace(beta=SimpleNamespace(messages=SimpleNamespace(create=create)))
-    copilot = CopilotPrompt(
-        system="copilot prompt", version="copilot-v1", max_tokens=2000, max_tool_rounds=3
-    )
-    provider = AnthropicProvider(client, "claude-sonnet-5-5", "s", "sitrep-v2", 4000, copilot)  # type: ignore[arg-type]
+    prompt = Prompt("copilot-v9", "copilot prompt", max_tokens=2000, max_tool_rounds=3)
+    provider = AnthropicProvider(client, "claude-sonnet-5-5")  # type: ignore[arg-type]
     ran: list[tuple[str, dict[str, Any]]] = []
 
     def run_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
@@ -220,10 +228,12 @@ def test_anthropic_chat_loop_runs_tools_and_returns_the_answer() -> None:
         return {"id": "SUB-07"}
 
     result = provider.chat(
-        "How is SUB-07?", [], [{"name": "get_asset", "input_schema": {}}], run_tool
+        "How is SUB-07?", [], [{"name": "get_asset", "input_schema": {}}], run_tool, prompt
     )
 
     assert result.text == "SUB-07 is fine."
+    assert (result.prompt_version, calls[0]["system"]) == ("copilot-v9", "copilot prompt")
+    assert calls[0]["max_tokens"] == 2000
     assert ran == [("get_asset", {"asset_id": "SUB-07"})]
     assert calls[0]["tools"][0]["strict"] is True
     assert calls[0]["fallbacks"] == "default"

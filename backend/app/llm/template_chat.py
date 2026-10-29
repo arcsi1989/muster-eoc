@@ -9,11 +9,12 @@ from app.llm.schemas import ChatResult, ToolRunner
 
 DEPENDS = re.compile(r"depend|feeds?\b|supplies|supplied|upstream|downstream", re.IGNORECASE)
 TOP = re.compile(r"\btop\b|highest|most at risk|riskiest", re.IGNORECASE)
+# No example names a real ID: the answer cites only IDs a tool returned, and this one runs none.
 HELP = (
     "I can answer, offline: why an asset is ranked where it is "
-    '("Why is PS-14 ranked where it is?"), the top risks ("What are the top risks?"), '
-    'what depends on an asset ("What depends on SUB-07?") and what a clause says '
-    '("What does P-4.2 say?").'
+    '("Why is <asset ID> ranked where it is?"), the top risks ("What are the top risks?"), '
+    'what depends on an asset ("What depends on <asset ID>?") and what a clause says '
+    '("What does <clause ID> say?").'
 )
 
 

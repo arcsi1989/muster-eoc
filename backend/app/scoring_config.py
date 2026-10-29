@@ -75,6 +75,7 @@ class CopilotConfig(Strict):
     max_tokens: int
     deadline_s: float
     history_max: int
+    retries: int
 
 
 class CalibrationConfig(Strict):

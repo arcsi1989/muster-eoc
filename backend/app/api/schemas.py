@@ -5,9 +5,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from app.advisory_context import Commander
 from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.models import ItemKind, ItemStatus, PackageStatus
 from app.playbook.activation import Level
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
@@ -257,13 +259,13 @@ class PackageItemOut(BaseModel):
     title: str
     entity_id: str
     entity_name: str | None
-    kind: Literal["gap", "conflict", "proposal"]
+    kind: ItemKind
     proposed_action: str
     owner_role: str
     severity: str
     cites: list[str]
     overdue: bool
-    status: Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
+    status: ItemStatus
     decided_by: str | None
     reason: str | None
     decided_at: datetime | None
@@ -305,10 +307,10 @@ class SitrepApproveIn(BaseModel):
 
 class PackageOut(BaseModel):
     advisory_no: int
-    status: Literal["open", "closed"]
+    status: PackageStatus
     activation_level: str | None  # declared (P-2.5)
     proposed_activation_level: str | None  # from the playbook's thresholds
-    decides_as_commander: Literal["incident_commander", "director"]
+    decides_as_commander: Commander
     changes: ChangesOut
     items: list[PackageItemOut]
     draft: DraftOut | None

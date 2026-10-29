@@ -11,10 +11,11 @@ from app import advisory_context
 from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
+from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved, draft_text
+from app.llm.schemas import Paragraph
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
-from tests.conftest import SeededScenario
+from tests.conftest import FakeProvider, SeededFactory, SeededScenario, draft_of
 
 
 def item(seeded: SeededScenario, advisory_no: int, rule_id: str) -> PackageItem:
@@ -314,3 +315,48 @@ def test_no_lifecycle_operation_but_a_declaration_sets_the_activation_level(
 
 def view_items(seeded: SeededScenario, advisory_no: int) -> list[lifecycle.ItemView]:
     return lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, advisory_no).items
+
+
+def test_a_package_goes_through_its_whole_lifecycle_without_http(
+    make_seeded: SeededFactory,
+) -> None:
+    """Open -> declare the proposed level -> decide an item -> approve the situation report ->
+    closed by the next advisory, with the audit record each step writes."""
+    paragraph = Paragraph(text="Storm preparation is under way.", clause_ids=[], asset_ids=[])
+    with make_seeded(FakeProvider(draft_of(paragraph))) as seeded:
+        seeded.issue_until(1)
+        view = lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, 1)
+        assert (view.status, view.package.draft["provider"]) == ("open", "fake")
+        assert view.proposed_activation_level == "prepare"
+        _, _, events_before = snapshot(seeded)
+
+        lifecycle.declare(seeded.session, seeded.cycle, Declaration("prepare", "director"))
+        decide(seeded, 1, item(seeded, 1, "P-4.1"), "planning", "approve")
+        sitrep = approve_sitrep(seeded, 1, "director", draft_text(view.package.draft))
+        seeded.issue_until(2)
+
+        assert (sitrep.approved_by, sitrep.edited) == ("director", False)
+        assert served_status(seeded, 1) == "closed"
+        statuses = {v.item.rule_id: v.item.status for v in view_items(seeded, 1)}
+        assert (statuses["P-2.5"], statuses["P-4.1"]) == ("approved", "approved")
+        assert {s for r, s in statuses.items() if r not in ("P-2.5", "P-4.1")} == {"not_decided"}
+        assert sitrep_finding(seeded, 1).status == "satisfied"
+        events = [(e.advisory_no, e.type, e.summary) for e in new_events(seeded, events_before)]
+        assert [(no, kind) for no, kind, _ in events] == [
+            (1, "activation_declared"),
+            (1, "decision"),
+            (1, "sitrep_approved"),
+            (1, "items_not_decided"),
+            (1, "package_finalised"),
+            (2, "per_advisory_flags_reset"),
+            (2, "context_loaded"),
+            (2, "diff"),
+            (2, "rules_evaluated"),
+            (2, "sitrep_drafted"),
+        ]
+        assert events[0][2] == "Director declared activation Level 2 (prepare)"
+        assert events[1][2] == "Planning approved P-4.1 for " + item(seeded, 1, "P-4.1").entity_id
+        assert events[2][2] == "Director approved the situation report as drafted"
+        assert events[3][2].endswith("items closed as not decided when the next advisory arrived")
+        assert events[4][2] == "Decision package for advisory 1 closed"
+        assert events[9][2] == "Draft situation report written by fake"
