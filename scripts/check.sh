@@ -66,7 +66,12 @@ for d in $PY_DIRS; do
     step "$d" "lint"   uv run ruff check .
   fi
   if [ -d "$d/tests" ]; then
-    step "$d" "test" uv run pytest -q -x
+    # pytest-xdist, where the project has it: one worker per CPU (each test has its own tmp_path).
+    if grep -q 'pytest-xdist' "$d/pyproject.toml" 2>/dev/null; then
+      step "$d" "test" uv run pytest -q -x -n auto
+    else
+      step "$d" "test" uv run pytest -q -x
+    fi
   fi
 done
 
