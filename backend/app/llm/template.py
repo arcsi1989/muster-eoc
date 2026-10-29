@@ -1,13 +1,19 @@
 """Deterministic provider: the demo runs with no network (CLAUDE.md hard rule)."""
 
+from typing import Any
+
 from app.llm.schemas import (
+    ChatResult,
+    ChatTurn,
     DraftItem,
     DraftRequest,
     DraftResult,
     Paragraph,
     Section,
     SitrepDraft,
+    ToolRunner,
 )
+from app.llm.template_chat import template_chat
 
 
 def _asset_ids(item: DraftItem) -> list[str]:
@@ -18,6 +24,18 @@ class TemplateProvider:
     name = "template"
     model: str | None = None
     prompt_version: str | None = None
+
+    def __init__(self, top_risks: int = 5) -> None:
+        self._top_risks = top_risks
+
+    def chat(
+        self,
+        question: str,
+        history: list[ChatTurn],
+        tools: list[dict[str, Any]],
+        run_tool: ToolRunner,
+    ) -> ChatResult:
+        return template_chat(question, run_tool, self._top_risks)
 
     def draft_sitrep(self, request: DraftRequest) -> DraftResult:
         situation = (

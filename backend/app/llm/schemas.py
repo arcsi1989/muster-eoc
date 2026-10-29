@@ -1,7 +1,8 @@
 """The shapes every LLM provider shares: what a draft is asked from, and what comes back."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -86,3 +87,25 @@ class DraftResult:
 
 class LLMUnavailable(Exception):
     """The provider could not produce a usable draft (network, API error, refusal, no output)."""
+
+
+@dataclass(frozen=True)
+class ChatTurn:
+    role: Literal["user", "assistant"]
+    content: str
+
+
+# Runs a read-only copilot tool by name; returns its data, or {"error": ...} if it can't answer.
+ToolRunner = Callable[[str, dict[str, Any]], dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class ChatResult:
+    text: str
+    tools_used: list[str]
+    model: (
+        str | None
+    )  # the model that answered (a refusal fallback can differ from the configured one)
+    prompt_version: str | None  # the copilot prompt's version; None for the template
+    latency_ms: int
+    usage: dict[str, int]

@@ -9,8 +9,8 @@ import anthropic
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import Settings
-from app.llm.anthropic_provider import AnthropicProvider
+from app.config import REPO_ROOT, Settings
+from app.llm.anthropic_provider import AnthropicProvider, CopilotPrompt
 from app.llm.factory import LLMConfigError, build_provider
 from app.llm.schemas import (
     DraftRequest,
@@ -21,6 +21,7 @@ from app.llm.schemas import (
     SitrepDraft,
 )
 from app.main import create_app
+from app.scoring_config import load_scoring_config
 from tests.conftest import ClientFactory
 
 
@@ -200,7 +201,8 @@ def test_anthropic_without_a_key_fails_at_startup(tmp_path: Path) -> None:
 
 
 def test_template_needs_no_key() -> None:
-    assert build_provider(Settings(_env_file=None), 4000).name == "template"  # type: ignore[call-arg]
+    config = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
+    assert build_provider(Settings(_env_file=None), config).name == "template"  # type: ignore[call-arg]
 
 
 class FakeMessages:
@@ -217,7 +219,17 @@ class FakeMessages:
 
 def anthropic_with(messages: FakeMessages) -> AnthropicProvider:
     client = SimpleNamespace(beta=SimpleNamespace(messages=messages))
-    return AnthropicProvider(client, "claude-sonnet-5-5", "system prompt", "sitrep-v1", 4000)  # type: ignore[arg-type]
+    copilot = CopilotPrompt(
+        system="copilot prompt", version="copilot-v1", max_tokens=2000, max_tool_rounds=3
+    )
+    return AnthropicProvider(
+        client,  # type: ignore[arg-type]  # a fake with the same beta.messages surface
+        "claude-sonnet-5-5",
+        "system prompt",
+        "sitrep-v1",
+        4000,
+        copilot,
+    )
 
 
 def request() -> DraftRequest:

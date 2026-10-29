@@ -3,6 +3,8 @@ import type {
   Alert,
   AuditActor,
   AuditEvent,
+  ChatReply,
+  ChatTurn,
   Clause,
   Asset,
   Coastline,
@@ -51,3 +53,5 @@ export const approveSitrep = (advisoryNo: number, role: Role, text: string) =>
   api<Sitrep>(`/sitrep/${advisoryNo}/approve`, { method: 'POST', body: JSON.stringify({ role, text }) })
 export const getAudit = (actor?: AuditActor) =>
   api<AuditEvent[]>(actor ? `/audit?actor=${encodeURIComponent(actor)}` : '/audit')
+export const postChat = (message: string, history: ChatTurn[]) =>
+  api<ChatReply>('/copilot/chat', { method: 'POST', body: JSON.stringify({ message, history }) })

@@ -34,3 +34,13 @@ draft:
   retrieval_max_clauses: 8
   max_tokens: 4000            # per model call
   retries: 1                  # after a draft fails citation validation
+
+copilot:
+  max_tool_rounds: 5          # model turns that may call tools before an answer is required
+  history_turns: 6            # earlier messages sent back with a question
+  top_risks_default: 5
+  top_risks_max: 25           # the most list_top_risks returns
+  search_results: 3           # clauses search_playbook returns
+  max_tokens: 2000
+  deadline_s: 60              # whole answer, across tool rounds
+  history_max: 20             # earlier messages accepted with a question

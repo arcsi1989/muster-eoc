@@ -1025,3 +1025,43 @@ button.link {
   list-style: none;
   color: var(--muted);
 }
+
+/* Copilot */
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.suggestions button {
+  white-space: normal;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.chat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chat-question {
+  margin: 0.6rem 0 0.3rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-weight: 500;
+}
+
+.chat-answer p {
+  margin: 0 0 0.3rem;
+}
+
+.chat-form {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}

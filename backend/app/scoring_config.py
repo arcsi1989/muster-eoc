@@ -57,10 +57,22 @@ class DraftConfig(Strict):
     retries: int
 
 
+class CopilotConfig(Strict):
+    max_tool_rounds: int
+    history_turns: int
+    top_risks_default: int
+    top_risks_max: int
+    search_results: int
+    max_tokens: int
+    deadline_s: float
+    history_max: int
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
     risk: RiskConfig
     draft: DraftConfig
+    copilot: CopilotConfig
     consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 

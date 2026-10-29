@@ -311,3 +311,18 @@ export interface AuditEvent {
   input_hash: string
   versions: Record<string, unknown>
 }
+
+export interface ChatTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatReply {
+  answer: string
+  /** only IDs a tool returned while answering */
+  citations: { id: string; kind: 'asset' | 'clause' }[]
+  /** the provider that answered, or "template (fallback)" */
+  provider: string
+  fallback: boolean
+  tools_used: string[]
+}

@@ -6,6 +6,7 @@ from sqlmodel import Session
 
 from app.agent.cycle import AdvisoryCycle
 from app.config import Settings
+from app.llm.provider import LLMProvider
 from app.playbook.activation import ActivationLevel
 from app.playbook.service import Playbook
 from app.scoring_config import ScoringConfig
@@ -48,3 +49,12 @@ def get_app_settings(request: Request) -> Settings:
 
 CycleDep = Annotated[AdvisoryCycle, Depends(get_cycle)]
 SettingsDep = Annotated[Settings, Depends(get_app_settings)]
+
+
+def get_llm(request: Request) -> LLMProvider:
+    llm: LLMProvider = request.app.state.llm
+    return llm
+
+
+LLMDep = Annotated[LLMProvider, Depends(get_llm)]
+ScoringConfigDep = Annotated[ScoringConfig, Depends(get_scoring_config)]

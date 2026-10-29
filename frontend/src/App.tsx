@@ -12,6 +12,7 @@ import {
 import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { AuditPage } from './features/audit/AuditPage'
+import { CopilotPanel } from './features/copilot/CopilotPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { PackagePanel } from './features/package/PackagePanel'
@@ -72,7 +73,7 @@ function OperationsScreen() {
   const alertsLoader = useCallback(() => getAlerts(currentNo), [currentNo])
   const alerts = useLoad(currentNo > 0 ? alertsLoader : null)
   const [selected, setSelected] = useState<string | null>(null)
-  const [tab, setTab] = useState<'risk' | 'package'>('risk')
+  const [tab, setTab] = useState<'risk' | 'package' | 'copilot'>('risk')
   const [role, setRole] = useState<Role>('director')
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
@@ -165,8 +166,12 @@ function OperationsScreen() {
             <button type="button" role="tab" aria-selected={tab === 'package'} onClick={() => setTab('package')}>
               Decision package
             </button>
+            <button type="button" role="tab" aria-selected={tab === 'copilot'} onClick={() => setTab('copilot')}>
+              Copilot
+            </button>
           </div>
-          {tab === 'risk' ? (
+          {tab === 'copilot' && <CopilotPanel onSelectAsset={setSelected} />}
+          {tab === 'risk' && (
             <>
               {current && <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />}
               <section className="card" aria-label="Risk list">
@@ -174,7 +179,8 @@ function OperationsScreen() {
                 <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
               </section>
             </>
-          ) : (
+          )}
+          {tab === 'package' && (
             <PackagePanel advisoryNo={currentNo} role={role} assetsById={assetsById} onSelectAsset={setSelected} />
           )}
         </aside>

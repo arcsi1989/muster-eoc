@@ -8,6 +8,7 @@ from app.agent.cycle import AdvisoryCycle
 from app.api import (
     routes_advisories,
     routes_audit,
+    routes_copilot,
     routes_exposure,
     routes_health,
     routes_packages,
@@ -33,7 +34,8 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         scoring = load_scoring_config(settings.scoring_config_path)
-        provider = llm or build_provider(settings, scoring.draft.max_tokens)  # fails without a key
+        provider = llm or build_provider(settings, scoring)  # fails without a key
+        app.state.llm = provider
         engine = create_fresh_engine(settings.database_path)
         with Session(engine) as session:
             load_gold(session, settings.data_dir)
@@ -60,6 +62,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         routes_packages,
         routes_audit,
         routes_sitrep,
+        routes_copilot,
     ):
         app.include_router(router.router)
     return app

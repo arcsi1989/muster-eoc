@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
@@ -315,3 +315,26 @@ class AuditEventOut(BaseModel):
     payload: dict[str, Any]
     input_hash: str
     versions: dict[str, Any]
+
+
+class ChatTurnIn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(max_length=4000)
+
+
+class ChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=2000)
+    history: list[ChatTurnIn] = Field(default=[], max_length=20)  # copilot.history_max
+
+
+class CitationOut(BaseModel):
+    id: str
+    kind: Literal["asset", "clause"]
+
+
+class ChatOut(BaseModel):
+    answer: str
+    citations: list[CitationOut]
+    provider: str  # the provider that answered, or "template (fallback)"
+    fallback: bool
+    tools_used: list[str]

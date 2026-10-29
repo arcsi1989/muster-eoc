@@ -1,8 +1,8 @@
 """The provider interface (plan section 4): Anthropic, template, and an Azure OpenAI stub."""
 
-from typing import Protocol
+from typing import Any, Protocol
 
-from app.llm.schemas import DraftRequest, DraftResult
+from app.llm.schemas import ChatResult, ChatTurn, DraftRequest, DraftResult, ToolRunner
 
 
 class LLMProvider(Protocol):
@@ -11,3 +11,11 @@ class LLMProvider(Protocol):
     prompt_version: str | None  # None when no prompt is used (template)
 
     def draft_sitrep(self, request: DraftRequest) -> DraftResult: ...
+
+    def chat(
+        self,
+        question: str,
+        history: list[ChatTurn],
+        tools: list[dict[str, Any]],
+        run_tool: ToolRunner,
+    ) -> ChatResult: ...

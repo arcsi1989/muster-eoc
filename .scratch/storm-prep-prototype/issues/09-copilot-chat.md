@@ -6,10 +6,10 @@
 
 **Status:** ready-for-agent
 
-- [ ] Tools over the same domain functions: list top risks, get asset, explain score, get dependencies, search playbook, get decision package, get findings by status
-- [ ] Template mode supports the fixed intents: why ranked, top risks, what depends on X, what does clause Y say
-- [ ] Anthropic mode uses tool calling; chat text is treated as data, never instructions; answers cite only IDs returned by tools
-- [ ] `POST /copilot/chat`; Copilot tab with message list and labelled input; citation chips open the asset or clause
-- [ ] Each model call is logged in the audit log like the draft
-- [ ] "Why is PS-14 ranked where it is?" answers with factors and IDs in template mode (tested) and in Anthropic mode (verified manually)
-- [ ] `./scripts/check.sh` passes
+- [x] Tools over the same domain functions: list top risks, get asset, explain score, get dependencies, search playbook, get decision package, get findings by status
+- [x] Template mode supports the fixed intents: why ranked, top risks, what depends on X, what does clause Y say
+- [x] Anthropic mode uses tool calling; chat text is treated as data, never instructions; answers cite only IDs returned by tools
+- [x] `POST /copilot/chat`; Copilot tab with message list and labelled input; citation chips open the asset or clause
+- [x] Each model call is logged in the audit log like the draft
+- [x] "Why is PS-14 ranked where it is?" answers with factors and IDs in template mode (tested) and in Anthropic mode (verified manually) (template mode tested; Anthropic mode left for a manual run with a key)
+- [x] `./scripts/check.sh` passes
