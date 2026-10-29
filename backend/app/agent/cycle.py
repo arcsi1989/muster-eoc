@@ -3,7 +3,8 @@ SQLite file (ADR 0001)."""
 
 import sqlite3
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -40,7 +41,9 @@ class AdvisoryCycle:
         self._saver = SqliteSaver(self._conn)
         self._saver.setup()
         self._graph = build_graph(engine, playbook, llm, config).compile(checkpointer=self._saver)
-        self._lock = threading.Lock()  # one graph step at a time on the shared connection
+        # one graph step at a time on the shared connection; reentrant so a check that runs
+        # under it (a decision's precheck) can read between steps too
+        self._lock = threading.RLock()
 
     @staticmethod
     def _thread(advisory_no: int) -> Any:
@@ -50,10 +53,18 @@ class AdvisoryCycle:
         with self._lock:
             self._graph.invoke({"advisory_no": advisory_no}, self._thread(advisory_no))
 
+    @contextmanager
+    def between_steps(self) -> Iterator[None]:
+        """Holds the cycle between graph steps, so a read sees a step's database writes and its
+        checkpoint together."""
+        with self._lock:
+            yield
+
     def waiting(self, advisory_no: int) -> bool:
         """True while the advisory's thread is paused for decisions. Read only by the decision
         package lifecycle, which keeps it in step with the package record."""
-        return bool(self._graph.get_state(self._thread(advisory_no)).next)
+        with self._lock:
+            return bool(self._graph.get_state(self._thread(advisory_no)).next)
 
     def decide(
         self,
@@ -86,9 +97,10 @@ class AdvisoryCycle:
 
     def expire(self, advisory_no: int) -> None:
         """Resumes the paused thread to close undecided items as not decided and finalise the
-        package."""
+        package. Does nothing if the thread is not paused."""
         with self._lock:
-            self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
+            if self.waiting(advisory_no):
+                self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
 
     def reset(self, session: Session) -> None:
         """Deletes every advisory's thread and the decision packages, their items and situation

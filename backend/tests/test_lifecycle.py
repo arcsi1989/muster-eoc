@@ -1,14 +1,15 @@
 """The decision package lifecycle through a seeded session, without HTTP: one answer to "is the
 package open", and the path every item decision takes."""
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
-from sqlmodel import select
+from sqlmodel import col, select
 
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
 from app.models import AuditEvent, DecisionPackage, OpState, PackageItem
+from app.playbook.activation import Level
 from tests.conftest import SeededScenario
 
 
@@ -37,9 +38,9 @@ def snapshot(seeded: SeededScenario) -> tuple[Any, ...]:
     return items, state, events
 
 
-def is_open(seeded: SeededScenario, advisory_no: int) -> bool:
-    view = lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, advisory_no)
-    return view.open
+def served_status(seeded: SeededScenario, advisory_no: int) -> str:
+    """The package status as the package view (and so the API) reports it."""
+    return lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, advisory_no).status
 
 
 def test_issuing_an_advisory_opens_its_package(seeded: SeededScenario) -> None:
@@ -47,7 +48,7 @@ def test_issuing_an_advisory_opens_its_package(seeded: SeededScenario) -> None:
 
     view = lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, 1)
 
-    assert view.open
+    assert view.status == "open"
     assert view.decides_as_commander == "director"
     assert any(v.item.status == "pending" for v in view.items)
 
@@ -72,7 +73,7 @@ def test_a_decision_writes_one_audit_record(seeded: SeededScenario) -> None:
 
     seeded.session.expire_all()
     new = seeded.session.exec(
-        select(AuditEvent).where(AuditEvent.id.not_in(events_before))  # type: ignore[union-attr]
+        select(AuditEvent).where(col(AuditEvent.id).not_in(events_before))
     ).all()
     assert [(e.type, e.payload["item_id"]) for e in new] == [("decision", target.id)]
     assert item(seeded, 1, "P-4.1").status == "approved"
@@ -88,7 +89,7 @@ def test_a_decided_item_is_refused_and_the_package_stays_open(seeded: SeededScen
         decide(seeded, 1, target, "director", "override", "changed my mind")
 
     assert snapshot(seeded) == before
-    assert is_open(seeded, 1)
+    assert served_status(seeded, 1) == "open"
 
 
 def test_a_decision_on_an_expired_package_is_refused(seeded: SeededScenario) -> None:
@@ -101,7 +102,7 @@ def test_a_decision_on_an_expired_package_is_refused(seeded: SeededScenario) -> 
         decide(seeded, 1, target, "planning", "approve")
 
     assert snapshot(seeded) == before
-    assert not is_open(seeded, 1)
+    assert served_status(seeded, 1) == "closed"
     assert item(seeded, 1, "P-4.1").status == "not_decided"
 
 
@@ -116,24 +117,26 @@ def test_a_package_stays_open_until_the_next_advisory_once_every_item_is_decided
         if v.item.kind == "gap":
             decide(seeded, 1, v.item, "director", "override", "not this period")
     if view.proposed_activation_level:
-        level = view.proposed_activation_level
-        lifecycle.declare(seeded.session, seeded.cycle, Declaration(level, "director"))  # type: ignore[arg-type]
+        level = cast(Level, view.proposed_activation_level)
+        lifecycle.declare(seeded.session, seeded.cycle, Declaration(level, "director"))
     seeded.session.expire_all()
     assert not any(i.status == "pending" for i in seeded.session.exec(select(PackageItem)))
 
-    assert is_open(seeded, 1)
+    assert served_status(seeded, 1) == "open"
 
     seeded.issue_until(2)
 
-    assert not is_open(seeded, 1)
+    assert served_status(seeded, 1) == "closed"
 
 
 def test_package_status_and_the_cycle_never_disagree(seeded: SeededScenario) -> None:
     def agree(advisory_no: int) -> None:
+        served = served_status(seeded, advisory_no)
         seeded.session.expire_all()
         recorded = seeded.session.get(DecisionPackage, advisory_no)
         assert recorded is not None
-        assert is_open(seeded, advisory_no) == (recorded.status == "open")
+        assert served == recorded.status
+        assert (recorded.status == "open") == seeded.cycle.waiting(advisory_no)
 
     seeded.issue_until(1)
     agree(1)
@@ -156,4 +159,4 @@ def test_a_package_record_out_of_step_with_the_cycle_is_an_error(seeded: SeededS
     seeded.session.commit()
 
     with pytest.raises(lifecycle.PackageOutOfStep):
-        is_open(seeded, 1)
+        lifecycle.is_open(seeded.session, seeded.cycle, 1)

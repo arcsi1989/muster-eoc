@@ -3,7 +3,10 @@ and the path every decision on its items takes.
 
 The package row's status is the record (ADR 0001); the advisory cycle's checkpoint is the
 adapter for the approval pause, and only this module reads whether it is waiting. A package
-opens when its advisory is issued and stays open until the next advisory expires it.
+opens when its advisory is issued and stays open until the next advisory expires it. Until
+situation report approval moves here (architecture-deepening/14) it keeps its own check that
+the advisory is current; while a package is open exactly while its advisory is current, the two
+agree.
 """
 
 from dataclasses import dataclass
@@ -15,7 +18,7 @@ from app import advisory_context
 from app.agent import decisions
 from app.agent.cycle import AdvisoryCycle
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
-from app.models import DecisionPackage, Finding, PackageItem, Sitrep
+from app.models import DecisionPackage, Finding, PackageItem, PackageStatus, Sitrep
 from app.network import load_network
 from app.playbook.activation import PROPOSAL_RULE
 from app.playbook.service import Playbook
@@ -50,7 +53,7 @@ class ItemView:
 @dataclass(frozen=True)
 class PackageView:
     package: DecisionPackage
-    open: bool
+    status: PackageStatus  # the lifecycle's answer to "is it open"
     activation_level: str | None
     proposed_activation_level: str | None
     decides_as_commander: advisory_context.Commander
@@ -82,9 +85,11 @@ def is_open(session: Session, cycle: AdvisoryCycle, advisory_no: int) -> bool:
     package = session.get(DecisionPackage, advisory_no)
     if package is None:
         return False
-    session.refresh(package)
-    recorded = package.status == "open"
-    if recorded != cycle.waiting(advisory_no):
+    with cycle.between_steps():  # never mid-step, between a step's commit and its checkpoint
+        session.refresh(package)
+        recorded = package.status == "open"
+        waiting = cycle.waiting(advisory_no)
+    if recorded != waiting:
         raise PackageOutOfStep(
             f"the decision package for advisory {advisory_no} is recorded {package.status} but "
             "its cycle disagrees"
@@ -104,7 +109,7 @@ def package_view(
     package = session.get(DecisionPackage, advisory_no)
     if package is None:
         raise NotFound(f"no decision package for advisory {advisory_no}")
-    is_package_open = is_open(session, cycle, advisory_no)
+    status: PackageStatus = "open" if is_open(session, cycle, advisory_no) else "closed"
     titles = {r.id: r.title for r in playbook.rulebook.rules}
     network = load_network(session)
     findings = {
@@ -129,7 +134,7 @@ def package_view(
 
     return PackageView(
         package=package,
-        open=is_package_open,
+        status=status,
         activation_level=context.activation_level,
         proposed_activation_level=context.proposed_activation_level,
         decides_as_commander=context.commander,

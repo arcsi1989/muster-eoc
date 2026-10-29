@@ -8,7 +8,7 @@ from app.api.schemas import PackageItemOut, PackageOut, SitrepOut
 def package_out(view: PackageView) -> PackageOut:
     return PackageOut(
         advisory_no=view.package.advisory_no,
-        status="open" if view.open else "closed",
+        status=view.status,
         activation_level=view.activation_level,
         proposed_activation_level=view.proposed_activation_level,
         decides_as_commander=view.decides_as_commander,

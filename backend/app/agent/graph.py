@@ -272,22 +272,21 @@ def build_graph(
                 for undecided in items:
                     undecided.status = "not_decided"
                     session.add(undecided)
-                if not items:
-                    return Command(goto="finalise")
-                record(
-                    session,
-                    "system",
-                    "items_not_decided",
-                    f"{len(items)} items closed as not decided when the next advisory arrived",
-                    advisory,
-                    {
-                        "items": [
-                            {"id": i.id, "rule_id": i.rule_id, "entity_id": i.entity_id}
-                            for i in items
-                        ]
-                    },
-                    versions(session, advisory),
-                )
+                if items:  # nothing to record when every item was decided
+                    record(
+                        session,
+                        "system",
+                        "items_not_decided",
+                        f"{len(items)} items closed as not decided when the next advisory arrived",
+                        advisory,
+                        {
+                            "items": [
+                                {"id": i.id, "rule_id": i.rule_id, "entity_id": i.entity_id}
+                                for i in items
+                            ]
+                        },
+                        versions(session, advisory),
+                    )
                 return Command(goto="finalise")
             item = session.get(PackageItem, decision["item_id"])
             finding = session.get(Finding, item.finding_id) if item else None
