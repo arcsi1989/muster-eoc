@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 (Synthetic territory, data contracts and data quality)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Wind: modified Rankine vortex over the hourly-interpolated track, α from config; Vmax × 0.85 while the storm centre is more than 10 km inland; asset wind = maximum over the track
 - [x] Surge and flood depth per the plan; null elevation imputed from the median of the 5 nearest assets, flagged for confidence
@@ -15,3 +15,7 @@
 - [x] Unit tests: wind equals Vmax at Rmax and decays monotonically beyond; flood depth zero above surge height; P90 ≥ P50; same seed gives the same numbers
 - [x] All tunable numbers live in config, none in code
 - [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Resolved with ht-resolve: built in the step 1-10 commits (8a14132 to ac188e6, 102309d); user confirmed 2026-10-29.

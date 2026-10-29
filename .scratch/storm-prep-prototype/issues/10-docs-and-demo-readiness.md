@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 (Situation report with Claude and checked citations), 08 (Audit list), 09 (Copilot chat)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] README: what it is, disclaimer, run steps (`make data`, `make dev`, `make demo-reset`, template and Claude modes, env names), screenshots
 - [x] Architecture document mapping the prototype's components (to the PRD's layers if `docs/PRD.md` exists; otherwise to the plan's sections)
@@ -17,3 +17,7 @@
 ## Verification
 
 A fresh clone (`git clone` into a scratch folder) followed only the README: `make install`, `make data` (git stayed clean: byte-identical data; all demo seed facts hold), the backend served advisory 1 with a decision package and a template draft, and `./scripts/check.sh` passed 7/7 inside the clone. Screenshots show the stacked small-screen layout (the agent's browser window could not be widened).
+
+## Comments
+
+- 2026-10-29: Resolved with ht-resolve: built in the step 1-10 commits (8a14132 to ac188e6, 102309d); user confirmed 2026-10-29.

@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 (Playbook rule engine and findings)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] A LangGraph cycle per advisory: load context → diff → evaluate rules → draft (template text for now) → await approval ⇄ apply decision → finalise; one thread per advisory; the checkpointer uses its own SQLite file, deleted by reset
 - [x] Each decision resumes the paused thread; only the deterministic apply-decision node writes state; the graph loops until no items remain; advancing resumes the previous thread once with "expire", closing undecided items as "not decided"
@@ -17,3 +17,7 @@
 - [x] Reset restores the operational state from the initial state (approvals change it; until ticket 06 only the per-advisory flags do)
 - [x] With up to ~20 P-4.5 gaps and ~30 conflicts per advisory, the package groups items so a person can work through them (grouped by rule; each item is its own decision)
 - [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Resolved with ht-resolve: built in the step 1-10 commits (8a14132 to ac188e6, 102309d); user confirmed 2026-10-29.

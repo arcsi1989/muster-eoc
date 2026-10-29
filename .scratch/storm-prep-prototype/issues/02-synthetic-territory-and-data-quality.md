@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 (Walking skeleton)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] `make data` (seed 42) writes every gold file the plan lists except the calibration history: about 200 assets (about 120 substations, 75 pumping stations, 1 treatment plant), dependencies, about 30 critical facilities, 5 staging areas, initial state, coastline, and 5 advisories with tracks to 24 h after landfall
 - [x] Advisories follow the decision log: max wind 130, 130, 135, 140, 145 mph; peak surge 2.5, 2.5, 3.0, 3.5, 4.0 m; radius of maximum wind 37 km; forecast landfall about 40 km further east at advisories 3 and 4; cone radii per lead time from the 2022 NHC table
@@ -15,3 +15,7 @@
 - [x] `GET /facilities`, `/staging-areas`, `/lineage`; facilities and staging areas shown on the map; a Data quality route
 - [x] No real place, utility or person names anywhere in the data
 - [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Resolved with ht-resolve: built in the step 1-10 commits (8a14132 to ac188e6, 102309d); user confirmed 2026-10-29.
