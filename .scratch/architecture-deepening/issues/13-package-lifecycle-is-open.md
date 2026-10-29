@@ -2,7 +2,7 @@
 
 **What to build:** A decision package lifecycle module that is the only answer to "is the package for this advisory open" and through which item decisions pass. The package status the API returns is that answer; the frontend stops recomputing whether the situation report is open. Each item decision resolves the activation level once and runs the decision rule check once, before anything changes, so a refusal still changes nothing. The DB stays the record (ADR 0001); the checkpoint's waiting state is read only inside the lifecycle. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** 02 (Advisory context module), 11 (CR-01 C7: the product is called Muster)
+**Blocked by:** 02 (Advisory context module), 09 (CR-01 C6: calibration back-test and approved model versions (backend))
 
 **Status:** ready-for-agent
 
