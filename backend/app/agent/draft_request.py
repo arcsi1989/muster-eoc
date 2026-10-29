@@ -73,5 +73,4 @@ def draft_request(
             for s in top
         ],
         clauses=[RetrievedClause(c.id, c.title, c.text) for c in retrieved],
-        template_top_assets=config.template_top_assets,
     )

@@ -15,6 +15,7 @@ from app.llm.schemas import (
     ToolRunner,
 )
 from app.llm.template_chat import template_chat
+from app.scoring_config import ScoringConfig
 
 
 def _asset_ids(item: DraftItem) -> list[str]:
@@ -34,8 +35,14 @@ class TemplateProvider:
     model: str | None = None
     prompt_version: str | None = None
 
-    def __init__(self, top_risks: int = 5) -> None:
-        self._top_risks = top_risks
+    def __init__(self, top_risks: int, top_assets: int) -> None:
+        self._top_risks = top_risks  # the copilot's default number of top risks
+        self._top_assets = top_assets  # how many top assets the draft names
+
+    @classmethod
+    def from_config(cls, config: ScoringConfig) -> "TemplateProvider":
+        """The same settings whether the template is configured or serves the fallback."""
+        return cls(config.copilot.top_risks_default, config.draft.template_top_assets)
 
     def chat(
         self,
@@ -55,7 +62,7 @@ class TemplateProvider:
         if shift:
             distance = round(shift.distance_km)
             situation += f" The forecast landfall moved {distance} km {shift.direction}."
-        named = request.top_assets[: request.template_top_assets]
+        named = request.top_assets[: self._top_assets]
         top = ", ".join(a.id for a in named)
         overview = [Paragraph(text=situation, clause_ids=[], asset_ids=[])]
         if top:
