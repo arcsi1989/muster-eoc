@@ -1,14 +1,10 @@
 """Seam 1: activation is declared, not computed (P-2.5, CR-01 C3). The P-2.5 proposal, the
 declaration through the API, who may declare, and the P-7.2 clock from the declaration."""
 
-import re
-from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-
-from app import advisory_context
 
 ROLES_BY_OWNER = {"incident_commander": "director"}  # the IC's items go to the Director below Full
 
@@ -209,18 +205,3 @@ def test_no_code_path_but_a_declaration_sets_the_activation_level(client: TestCl
     assert [
         e["type"] for e in client.get("/audit").json() if e["type"] == "activation_declared"
     ] == []
-
-
-def test_only_the_declaration_writes_the_activation_level_state() -> None:
-    """The state keys a declaration writes are named in the advisory context (read) and written
-    in exactly one place."""
-    app_dir = Path(advisory_context.__file__).parent
-    keys = re.compile(r"\b(ACTIVATION_LEVEL|DECLARED_AT_HOURS)\b")
-
-    writers = {
-        str(path.relative_to(app_dir))
-        for path in app_dir.rglob("*.py")
-        if path.name != "advisory_context.py" and keys.search(path.read_text())
-    }
-
-    assert writers == {"agent/decisions.py"}

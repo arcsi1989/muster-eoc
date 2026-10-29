@@ -11,17 +11,23 @@ from typing import Literal
 
 import yaml
 
-FULL_ACTIVATION = "full"
+Level = Literal["monitor", "prepare", "full"]
+FULL_ACTIVATION: Level = "full"
 PROPOSAL_RULE = "P-2.5"  # proposes a change of level; only a declaration closes it
 
 DeclaringRole = Literal["director", "incident_commander"]
 # P-2.5: the EOC Director declares Level 3 and Level 2, the Incident Commander Level 1.
-DECLARED_BY: dict[str, DeclaringRole] = {
+DECLARED_BY: dict[Level, DeclaringRole] = {
     "monitor": "director",
     "prepare": "director",
     FULL_ACTIVATION: "incident_commander",
 }
-LEVEL_NUMBER = {"monitor": 3, "prepare": 2, FULL_ACTIVATION: 1}
+LEVEL_NUMBER: dict[Level, int] = {"monitor": 3, "prepare": 2, FULL_ACTIVATION: 1}
+
+
+# The P-2.5 finding's details: the level proposed and the level declared when it was evaluated.
+PROPOSED_DETAIL = "event.proposed_activation_level"
+DECLARED_DETAIL = "event.activation_level"
 
 
 @dataclass(frozen=True)

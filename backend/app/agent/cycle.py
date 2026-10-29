@@ -62,10 +62,7 @@ class AdvisoryCycle:
     ) -> None:
         """Runs `precheck` (which raises to refuse) and resumes the thread under one lock, so two
         decisions on the same item cannot both pass the check."""
-        with self._lock:
-            precheck()
-            resume = {"item_id": item_id, **asdict(request)}
-            self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
+        self._resume(advisory_no, {"item_id": item_id, **asdict(request)}, precheck)
 
     def declare(
         self,
@@ -75,9 +72,14 @@ class AdvisoryCycle:
         precheck: Callable[[], None],
     ) -> None:
         """Like `decide`, for an activation declaration on the P-2.5 item."""
+        resume = {"item_id": item_id, "action": "declare", **asdict(declaration)}
+        self._resume(advisory_no, resume, precheck)
+
+    def _resume(
+        self, advisory_no: int, resume: dict[str, Any], precheck: Callable[[], None]
+    ) -> None:
         with self._lock:
             precheck()
-            resume = {"item_id": item_id, "action": "declare", **asdict(declaration)}
             self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
 
     def expire(self, advisory_no: int) -> None:

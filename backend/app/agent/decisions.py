@@ -10,7 +10,7 @@ from app.advisory_context import ACTIVATION_LEVEL, COMMANDERS, DECLARED_AT_HOURS
 from app.agent.actions import approval_state
 from app.errors import AppError, ConflictError
 from app.models import Advisory, Finding, OpState, PackageItem
-from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER
+from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER, PROPOSED_DETAIL, Level
 from app.playbook.rules import Rule
 
 Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
@@ -38,7 +38,7 @@ class DecisionRequest:
 class Declaration:
     """A person declares an activation level (P-2.5)."""
 
-    level: str
+    level: Level
     declared_by: Role
     reason: str | None = None
 
@@ -94,7 +94,7 @@ def check_declaration(item: PackageItem, finding: Finding, declaration: Declarat
     role that declares that level: the Director Level 3 and 2, the Incident Commander Level 1."""
     if item.status in DECIDED:
         raise AlreadyDecided(f"the activation proposal was already decided ({item.status})")
-    proposed: str = finding.details["event.proposed_activation_level"]
+    proposed: Level = finding.details[PROPOSED_DETAIL]
     number = LEVEL_NUMBER[proposed]
     if declaration.level != proposed:
         raise DecisionRefused(

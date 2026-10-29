@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.playbook.activation import Level
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.risk.alerts import AlertKind
@@ -306,7 +307,7 @@ class DecisionIn(BaseModel):
 
 
 class DeclarationIn(BaseModel):
-    level: Literal["monitor", "prepare", "full"]
+    level: Level
     declared_by: Role
     reason: str | None = None
 

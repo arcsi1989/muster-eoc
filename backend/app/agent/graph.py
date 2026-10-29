@@ -4,9 +4,9 @@ load_context -> diff -> evaluate_rules -> draft -> await_approval <-> apply_deci
 
 Only `apply_decision` changes operational state (item decisions and activation declarations),
 and it is deterministic: the LLM never writes state, never decides whether a rule is met and
-never changes scores. Every node writes an audit
-event. The graph state holds only the advisory number and the decision being applied; the
-package, its items and the findings live in the database.
+never changes scores. Every node writes an audit event. The graph state holds only the advisory
+number and the decision being applied; the package, its items and the findings live in the
+database.
 """
 
 from collections.abc import Callable, Iterator, Sequence
@@ -38,7 +38,7 @@ from app.models import (
     Score,
 )
 from app.network import load_network
-from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER
+from app.playbook.activation import DECLARED_BY, DECLARED_DETAIL, LEVEL_NUMBER, PROPOSED_DETAIL
 from app.playbook.service import Playbook, store_findings, store_new_event_findings
 from app.replay import service
 from app.scoring_config import ScoringConfig
@@ -145,7 +145,7 @@ def build_graph(
             owner_role = finding.owner_role
             if rules[finding.rule_id].kind == "proposal":
                 kind = "proposal"  # declared by the role for the proposed level (P-2.5)
-                owner_role = DECLARED_BY[finding.details["event.proposed_activation_level"]]
+                owner_role = DECLARED_BY[finding.details[PROPOSED_DETAIL]]
             session.add(
                 PackageItem(
                     advisory_no=advisory.advisory_no,
@@ -254,6 +254,12 @@ def build_graph(
         decision = interrupt({"advisory_no": state["advisory_no"], "pending_items": len(waiting)})
         return Command(goto="apply_decision", update={"decision": decision})
 
+    def record_refusal(
+        session: Session, advisory: Advisory, refused: AppError, payload: dict[str, Any]
+    ) -> None:
+        """Normally refused before resuming; never leave the thread stuck on a refusal."""
+        record(session, "system", "decision_refused", str(refused), advisory, payload, versions)
+
     def apply_decision(state: CycleState) -> Command[str]:
         decision = state["decision"]
         with unit() as session:
@@ -297,16 +303,7 @@ def build_graph(
             try:
                 decisions.check(item, request, lead)
             except AppError as refused:
-                # Normally refused before resuming; never leave the thread stuck on a refusal.
-                record(
-                    session,
-                    "system",
-                    "decision_refused",
-                    str(refused),
-                    advisory,
-                    {"item_id": item.id, **decision},
-                    versions,
-                )
+                record_refusal(session, advisory, refused, {"item_id": item.id, **decision})
                 return Command(goto="await_approval")
             written = decisions.apply(session, item, request, rules[item.rule_id], finding)
             record(
@@ -345,10 +342,7 @@ def build_graph(
         try:
             decisions.check_declaration(item, finding, declaration)
         except AppError as refused:
-            # Normally refused before resuming; never leave the thread stuck on a refusal.
-            record(
-                session, "system", "decision_refused", str(refused), advisory, decision, versions
-            )
+            record_refusal(session, advisory, refused, decision)
             return
         written = decisions.declare(session, item, declaration, advisory)
         session.flush()
@@ -367,7 +361,7 @@ def build_graph(
                 "rule_id": item.rule_id,
                 "entity_id": item.entity_id,
                 "level": declaration.level,
-                "from_level": finding.details.get("event.activation_level"),
+                "from_level": finding.details.get(DECLARED_DETAIL),
                 "reason": item.reason,
                 "state_written": written,
                 "items_added": added,

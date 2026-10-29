@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from app.agent.decisions import Declaration
 from app.agent.package import declare, package_view
-from app.api.routes_packages import package_out
+from app.api.package_out import package_out
 from app.api.schemas import DeclarationIn, PackageOut
 from app.deps import CycleDep, PlaybookDep, SessionDep
 
