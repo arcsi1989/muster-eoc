@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { makeAsset, makeRiskItem } from '../../test/fixtures'
 import type { Advisory, RiskList, Scenario, TrackPoint } from '../../types/scenario'
 import { StormMapScreen } from './StormMapScreen'
-import { CATEGORY_COLOR } from './stormTrack'
+import { CATEGORY_COLOR, RISK_BAND_COLOR } from './stormTrack'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -158,3 +158,12 @@ function hexToRgb(hex: string) {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
   return `rgb(${r}, ${g}, ${b})`
 }
+
+test('the ranked list uses the same risk band colour as the map', async () => {
+  backend()
+  render(<StormMapScreen />)
+
+  const row = await screen.findByRole('button', { name: /^1.*PS-14/ })
+  const swatch = row.querySelector<HTMLElement>('.swatch')!
+  expect(swatch.style.background).toBe(hexToRgb(RISK_BAND_COLOR.high))
+})

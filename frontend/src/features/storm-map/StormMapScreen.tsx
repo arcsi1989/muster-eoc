@@ -11,7 +11,7 @@ import { ScenarioHeader } from '../scenario/ScenarioHeader'
 import { useScenario } from '../scenario/useScenario'
 import { StormLegend } from './StormLegend'
 import { StormMap } from './StormMap'
-import { formatLocalTime, LOCAL_TIME_NAME } from './stormTrack'
+import { formatLocalTime, LOCAL_TIME_NAME, RISK_BAND_COLOR } from './stormTrack'
 
 /** The default screen: the advisory's track and cone, SGW's assets by risk on top, the ranked list. */
 export function StormMapScreen() {
@@ -91,7 +91,12 @@ export function StormMapScreen() {
           <section className="card" aria-label="Risk list">
             <h2>Risk list</h2>
             {shownRisk && risk.state.status !== 'error' ? (
-              <RiskList items={shownRisk.items} assetsById={assetsById} onSelect={setSelected} />
+              <RiskList
+                items={shownRisk.items}
+                assetsById={assetsById}
+                onSelect={setSelected}
+                swatchColor={(item) => RISK_BAND_COLOR[item.risk_band]}
+              />
             ) : (
               <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
             )}

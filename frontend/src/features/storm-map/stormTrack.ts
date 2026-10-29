@@ -19,7 +19,7 @@ export function formatLocalTime(iso: string): string {
 }
 
 /** Hours between labelled forecast points. */
-const LABEL_EVERY_H = 12
+export const LABEL_EVERY_H = 12
 
 const collides = (a: TrackPoint, b: TrackPoint, box: { width: number; height: number }) =>
   Math.abs(a.x_km - b.x_km) < box.width && Math.abs(a.y_km - b.y_km) < box.height

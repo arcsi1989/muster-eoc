@@ -13,6 +13,8 @@
   --land: #f4f0e3;
   --coast: #5b7a99;
   --track: #8250df;
+  /* the storm map's redraw on each advisory (CR-02 C1); useFlip reads it too */
+  --storm-transition: 300ms;
   --prepare-bg: #fff1c2;
   --prepare-text: #5c4400;
   --full-bg: #ffd8d3;
@@ -811,7 +813,7 @@ button.link {
 .storm-map-canvas .track-dot {
   stroke: var(--text);
   stroke-width: 0.6;
-  transition: transform 300ms ease-out, fill 300ms;
+  transition: transform var(--storm-transition) ease-out, fill var(--storm-transition);
 }
 
 .storm-map-canvas .time-label {
@@ -821,11 +823,23 @@ button.link {
   stroke: var(--bg);
   stroke-width: 3px;
   stroke-linejoin: round;
-  transition: transform 300ms ease-out;
+  transition: transform var(--storm-transition) ease-out;
 }
 
 .storm-redraw {
-  animation: storm-fade-in 300ms ease-out;
+  animation: storm-fade-in var(--storm-transition) ease-out;
+}
+
+.storm-fade-out {
+  opacity: 0;
+  animation: storm-fade-out var(--storm-transition) ease-in;
+  pointer-events: none;
+}
+
+@keyframes storm-fade-out {
+  from {
+    opacity: 1;
+  }
 }
 
 @keyframes storm-fade-in {
@@ -847,7 +861,7 @@ button.link {
   fill: #9aa0a6;
   stroke: #222;
   stroke-width: 0.6;
-  transition: fill 300ms;
+  transition: fill var(--storm-transition);
 }
 
 .storm-map-canvas .icon:focus-visible .asset-shape,
@@ -1002,6 +1016,7 @@ button.link {
 
 @media (prefers-reduced-motion: reduce) {
   .storm-redraw,
+  .storm-fade-out,
   .storm-map-canvas .track-dot,
   .storm-map-canvas .time-label,
   .storm-map-canvas .asset-shape {
