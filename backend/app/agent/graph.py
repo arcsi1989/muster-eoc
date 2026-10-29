@@ -42,7 +42,7 @@ from app.models import (
 )
 from app.network import load_network
 from app.playbook.activation import DECLARED_BY, DECLARED_DETAIL, LEVEL_NUMBER, PROPOSED_DETAIL
-from app.playbook.service import Playbook, store_findings, store_new_event_findings
+from app.playbook.service import Playbook, reevaluate, store_findings, store_new_event_findings
 from app.replay import service
 from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
@@ -293,7 +293,9 @@ def build_graph(
                     )
                 return Command(goto="finalise")
             if decision.get("action") == APPROVE_SITREP:
-                apply_approval(session, playbook, advisory, decision["role"], decision["text"])
+                apply_approval(session, advisory, decision["role"], decision["text"])
+                session.flush()
+                reevaluate(session, advisory, playbook, SITREP_RULE)
                 return Command(goto="await_approval")
             item = session.get(PackageItem, decision["item_id"])
             finding = session.get(Finding, item.finding_id) if item else None

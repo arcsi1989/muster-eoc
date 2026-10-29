@@ -1,4 +1,5 @@
-"""Builds the evaluation context for an advisory (plan section 2.4) and stores the findings."""
+"""The playbook: builds the rule inputs for an advisory (plan section 2.4), stores the findings
+and re-evaluates one finding after a state change."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,10 +48,19 @@ def _state(session: Session) -> dict[str, dict[str, Any]]:
     return state
 
 
-def evaluation_context(
-    session: Session, advisory: Advisory, playbook: Playbook
-) -> tuple[dict[str, Any], list[Entity]]:
-    """The event fields and one entity per asset and staging area, for the rule engine."""
+@dataclass(frozen=True)
+class RuleInputs:
+    """The namespace the playbook rules read: the event fields and one entity per asset and
+    staging area. Internal to the playbook; tests read it to catch a field-name bug directly."""
+
+    event: dict[str, Any]
+    entities: list[Entity]
+
+    def entity(self, entity_id: str) -> Entity:
+        return next(e for e in self.entities if e.id == entity_id)
+
+
+def rule_inputs(session: Session, advisory: Advisory, playbook: Playbook) -> RuleInputs:
     network = load_network(session)
     state = _state(session)
     scores = {
@@ -129,7 +139,7 @@ def evaluation_context(
                     },
                 )
             )
-    return event, entities
+    return RuleInputs(event, entities)
 
 
 def _row(advisory: Advisory, f: EngineFinding) -> Finding:
@@ -148,8 +158,8 @@ def _row(advisory: Advisory, f: EngineFinding) -> Finding:
 
 
 def store_findings(session: Session, advisory: Advisory, playbook: Playbook) -> list[EngineFinding]:
-    event, entities = evaluation_context(session, advisory, playbook)
-    findings = evaluate(playbook.rulebook, event, entities)
+    inputs = rule_inputs(session, advisory, playbook)
+    findings = evaluate(playbook.rulebook, inputs.event, inputs.entities)
     session.add_all(_row(advisory, f) for f in findings)
     return findings
 
@@ -159,7 +169,7 @@ def store_new_event_findings(
 ) -> list[Finding]:
     """After an activation declaration: the event-level findings that match now but were not
     stored at this advisory (P-7.2 once Full is declared). Stored findings are left as they are."""
-    event, _ = evaluation_context(session, advisory, playbook)
+    event = rule_inputs(session, advisory, playbook).event
     stored = {f.rule_id for f in findings(session, advisory.advisory_no) if f.entity_id == "event"}
     rows = [
         _row(advisory, f) for f in evaluate(playbook.rulebook, event, []) if f.rule_id not in stored
@@ -207,25 +217,35 @@ def finding_views(
     ]
 
 
-def refresh_event_finding(
-    session: Session, advisory: Advisory, playbook: Playbook, rule_id: str
+def reevaluate(
+    session: Session, advisory: Advisory, playbook: Playbook, rule_id: str, entity_id: str = "event"
 ) -> Finding | None:
-    """Re-evaluates one event-level rule after a state change that is not a package item (the
-    situation report approval for P-7.1) and updates its stored finding."""
-    rule = next(r for r in playbook.rulebook.rules if r.id == rule_id)
-    event, _ = evaluation_context(session, advisory, playbook)
-    single = playbook.rulebook.model_copy(update={"rules": [rule]})
-    results = evaluate(single, event, [])
+    """Re-evaluates one stored finding after a state change and updates it with the outcome
+    (status, severity, owner, cites, overdue, details). The whole rulebook runs on that one
+    entity, so a prohibition still makes it a conflict. A finding that no longer matches is
+    left as stored; with none stored, returns None."""
     stored = session.exec(
         select(Finding).where(
             Finding.advisory_no == advisory.advisory_no,
             Finding.rule_id == rule_id,
-            Finding.entity_id == "event",
+            Finding.entity_id == entity_id,
         )
     ).first()
-    if stored is None or not results:
-        return stored
-    stored.status = results[0].status
-    stored.details = results[0].details
-    session.add(stored)
+    if stored is None:
+        return None
+    inputs = rule_inputs(session, advisory, playbook)
+    entities = [] if entity_id == "event" else [inputs.entity(entity_id)]
+    result = next(
+        (
+            f
+            for f in evaluate(playbook.rulebook, inputs.event, entities)
+            if (f.rule_id, f.entity_id) == (rule_id, entity_id)
+        ),
+        None,
+    )
+    if result is not None:
+        updated = _row(advisory, result)
+        for name in ("status", "severity", "owner_role", "cites", "overdue", "details"):
+            setattr(stored, name, getattr(updated, name))
+        session.add(stored)
     return stored
