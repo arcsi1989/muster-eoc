@@ -7,7 +7,7 @@ The proposed level is the highest level whose threshold has been reached: at 72 
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 
@@ -26,8 +26,25 @@ LEVEL_NUMBER: dict[Level, int] = {"monitor": 3, "prepare": 2, FULL_ACTIVATION: 1
 
 
 # The P-2.5 finding's details: the level proposed and the level declared when it was evaluated.
-PROPOSED_DETAIL = "event.proposed_activation_level"
-DECLARED_DETAIL = "event.activation_level"
+# Internal to the playbook: callers read them through `activation_proposal`.
+_PROPOSED_DETAIL = "event.proposed_activation_level"
+_DECLARED_DETAIL = "event.activation_level"
+
+
+@dataclass(frozen=True)
+class ActivationProposal:
+    """What a P-2.5 finding proposes: the level, the level declared when it was evaluated, and
+    the role that declares the proposed level."""
+
+    proposed: Level
+    declared: Level | None
+    declared_by: DeclaringRole
+
+
+def activation_proposal(details: dict[str, Any]) -> ActivationProposal:
+    """Reads a P-2.5 finding's details."""
+    proposed: Level = details[_PROPOSED_DETAIL]
+    return ActivationProposal(proposed, details.get(_DECLARED_DETAIL), DECLARED_BY[proposed])
 
 
 @dataclass(frozen=True)

@@ -28,7 +28,6 @@ from sqlmodel import Session, col, select
 
 from app import advisory_context
 from app.agent import decisions, sitrep
-from app.agent.actions import proposed_action
 from app.agent.draft import produce_draft, sitrep_prompt
 from app.agent.draft_request import draft_request
 from app.audit.log import record
@@ -41,22 +40,21 @@ from app.models import (
     Advisory,
     DecisionPackage,
     Finding,
-    ItemKind,
     OpState,
     PackageItem,
     PackageStatus,
     Score,
     Sitrep,
 )
-from app.network import load_network
-from app.playbook.activation import (
-    DECLARED_BY,
-    DECLARED_DETAIL,
-    LEVEL_NUMBER,
-    PROPOSAL_RULE,
-    PROPOSED_DETAIL,
+from app.playbook.activation import LEVEL_NUMBER, PROPOSAL_RULE, activation_proposal
+from app.playbook.package import SITREP_RULE, package_items, satisfying_state
+from app.playbook.service import (
+    Playbook,
+    entity_names,
+    reevaluate,
+    store_findings,
+    store_new_event_findings,
 )
-from app.playbook.service import Playbook, reevaluate, store_findings, store_new_event_findings
 from app.replay import service
 from app.scoring_config import ScoringConfig
 
@@ -163,7 +161,7 @@ def package_view(
         raise NotFound(f"no decision package for advisory {advisory_no}")
     status: PackageStatus = "open" if is_open(session, cycle, advisory_no) else "closed"
     titles = {r.id: r.title for r in playbook.rulebook.rules}
-    network = load_network(session)
+    names = entity_names(session)
     findings = {
         f.id: f for f in session.exec(select(Finding).where(Finding.advisory_no == advisory_no))
     }
@@ -176,12 +174,13 @@ def package_view(
 
     def view(item: PackageItem) -> ItemView:
         finding = findings[item.finding_id]
-        described = network.describe(item.entity_id)
-        name = described[1] if described else None
-        if name is None and (area := service.staging_area_name(session, item.entity_id)):
-            name = area
         return ItemView(
-            item, titles[item.rule_id], name, finding.severity, finding.cites, finding.overdue
+            item,
+            titles[item.rule_id],
+            names.get(item.entity_id),
+            finding.severity,
+            finding.cites,
+            finding.overdue,
         )
 
     return PackageView(
@@ -283,7 +282,6 @@ class CycleSteps:
         self._config = config
         self._fallback = TemplateProvider.from_config(config)
         self._prompt = sitrep_prompt(config.draft)
-        self._rules = {r.id: r for r in playbook.rulebook.rules}
 
     def _versions(
         self, session: Session, advisory: Advisory, prompt_version: str | None = None
@@ -360,38 +358,23 @@ class CycleSteps:
     def _add_items(
         self, session: Session, advisory: Advisory, stored: Sequence[Finding]
     ) -> list[str]:
-        """One pending package item per open or conflicting finding; returns their rule IDs."""
-        network = load_network(session)
-        added = []
-        for finding in stored:
-            if finding.status == "satisfied" or finding.rule_id == sitrep.SITREP_RULE:
-                continue
-            described = network.describe(finding.entity_id)
-            label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
-            kind: ItemKind = "conflict" if finding.status == "conflict" else "gap"
-            owner_role = finding.owner_role
-            if self._rules[finding.rule_id].kind == "proposal":
-                kind = "proposal"  # declared by the role for the proposed level (P-2.5)
-                owner_role = DECLARED_BY[finding.details[PROPOSED_DETAIL]]
-            session.add(
-                PackageItem(
-                    advisory_no=advisory.advisory_no,
-                    finding_id=finding.id or 0,
-                    rule_id=finding.rule_id,
-                    entity_id=finding.entity_id,
-                    kind=kind,
-                    proposed_action=proposed_action(
-                        finding.rule_id,
-                        label,
-                        finding.details,
-                        finding.cites if finding.status == "conflict" else None,
-                    ),
-                    owner_role=owner_role,
-                    status="pending",
-                )
+        """Adds a pending item for each package item the playbook proposes for `stored`;
+        returns their rule IDs."""
+        proposals = package_items(session, self._playbook, stored)
+        session.add_all(
+            PackageItem(
+                advisory_no=advisory.advisory_no,
+                finding_id=p.finding.id or 0,
+                rule_id=p.finding.rule_id,
+                entity_id=p.finding.entity_id,
+                kind=p.kind,
+                proposed_action=p.proposed_action,
+                owner_role=p.owner_role,
+                status="pending",
             )
-            added.append(finding.rule_id)
-        return added
+            for p in proposals
+        )
+        return [p.finding.rule_id for p in proposals]
 
     def evaluate_rules(self, session: Session, advisory_no: int) -> None:
         """Evaluates the playbook and adds the package's items."""
@@ -476,7 +459,7 @@ class CycleSteps:
         if action == APPROVE_SITREP:
             sitrep.apply_approval(session, advisory, decision["role"], decision["text"])
             session.flush()
-            reevaluate(session, advisory, self._playbook, sitrep.SITREP_RULE)
+            reevaluate(session, advisory, self._playbook, SITREP_RULE)
             return False
         item = session.get(PackageItem, decision["item_id"])
         finding = session.get(Finding, item.finding_id) if item else None
@@ -519,7 +502,8 @@ class CycleSteps:
         request = decisions.DecisionRequest(
             role=decision["role"], action=decision["action"], reason=decision.get("reason")
         )
-        written = decisions.apply(session, item, request, self._rules[item.rule_id], finding)
+        satisfying = satisfying_state(self._playbook, finding)
+        written = decisions.apply(session, item, request, satisfying)
         record(
             session,
             "human",
@@ -571,7 +555,7 @@ class CycleSteps:
                 "rule_id": item.rule_id,
                 "entity_id": item.entity_id,
                 "level": declaration.level,
-                "from_level": finding.details.get(DECLARED_DETAIL),
+                "from_level": activation_proposal(finding.details).declared,
                 "reason": item.reason,
                 "state_written": written,
                 "items_added": added,
