@@ -50,3 +50,20 @@ test('after the last advisory the button is disabled', () => {
   expect(screen.getByRole('button', { name: /last advisory/i })).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Reset' })).toBeEnabled()
 })
+
+test('the header shows the level declared at the current advisory', () => {
+  const levels = ['monitor', 'prepare'] as const
+  const declared: Scenario = {
+    ...scenario(2),
+    timeline: scenario(2).timeline.map((s, i) => ({ ...s, activation_level: levels[i] ?? null })),
+  }
+  render(<ScenarioHeader scenario={declared} busy={false} actionError={null} onNext={noop} onReset={noop} />)
+
+  expect(screen.getByText('Declared: Level 2 · Prepare')).toBeInTheDocument()
+})
+
+test('before advisory 1 the header shows no declared level', () => {
+  render(<ScenarioHeader scenario={scenario(0)} busy={false} actionError={null} onNext={noop} onReset={noop} />)
+
+  expect(screen.queryByText(/Declared:/)).not.toBeInTheDocument()
+})

@@ -233,6 +233,12 @@ export interface Clause {
 }
 
 export type Role = 'incident_commander' | 'director' | 'planning' | 'operations' | 'logistics' | 'regulatory_liaison'
+export interface Declaration {
+  level: ActivationLevel
+  declared_by: Role
+  reason?: string
+}
+
 export type DecisionAction = 'approve' | 'override' | 'defer' | 'alternative'
 export type ItemStatus = 'pending' | 'approved' | 'overridden' | 'deferred' | 'alternative' | 'not_decided'
 
@@ -243,7 +249,8 @@ export interface PackageItem {
   title: string
   entity_id: string
   entity_name: string | null
-  kind: 'gap' | 'conflict'
+  /** a proposal is the P-2.5 activation proposal: only a declaration closes it */
+  kind: 'gap' | 'conflict' | 'proposal'
   proposed_action: string
   owner_role: string
   severity: string
@@ -285,7 +292,10 @@ export interface Sitrep {
 export interface DecisionPackage {
   advisory_no: number
   status: 'open' | 'closed'
+  /** the last declared level (P-2.5) */
   activation_level: ActivationLevel | null
+  /** the level the playbook's time thresholds propose */
+  proposed_activation_level: ActivationLevel | null
   decides_as_commander: 'incident_commander' | 'director'
   changes: AdvisoryChanges
   items: PackageItem[]

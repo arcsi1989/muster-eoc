@@ -179,7 +179,14 @@ function OperationsScreen() {
             </>
           )}
           {tab === 'package' && (
-            <PackagePanel advisoryNo={currentNo} role={role} assetsById={assetsById} onSelectAsset={setSelected} />
+            <PackagePanel
+              advisoryNo={currentNo}
+              role={role}
+              hoursToLandfall={current?.hours_to_landfall ?? null}
+              assetsById={assetsById}
+              onSelectAsset={setSelected}
+              onDeclared={scenario.refresh}
+            />
           )}
         </aside>
         {selected && currentNo > 0 && (
