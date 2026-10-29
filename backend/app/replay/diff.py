@@ -5,6 +5,9 @@ Reused by the advisory cycle's diff step (ticket 06).
 
 import math
 from dataclasses import dataclass, field
+from typing import Any
+
+from pydantic import TypeAdapter
 
 COMPASS = ["east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east"]
 
@@ -45,6 +48,11 @@ class AdvisoryChanges:
     top10_entered: list[str] = field(default_factory=list)
     top10_left: list[str] = field(default_factory=list)
     rank_moves: list[RankMove] = field(default_factory=list)
+
+
+def changes_from_json(data: dict[str, Any]) -> AdvisoryChanges:
+    """Changes read back from the package's JSON column (stored with `asdict`)."""
+    return TypeAdapter(AdvisoryChanges).validate_python(data)
 
 
 def compass_direction(dx_km: float, dy_km: float) -> str:
