@@ -20,7 +20,7 @@ The reasoning behind each item is in `docs/decisions.md`, by date and topic.
 
 ## Playbook and decisions
 
-- **Rules are evaluated exactly as written** in `playbook_rules.yaml`; nothing is edited. This produces many items (about 20 generator gaps from advisory 3, about 30 conflicts at advisory 5): realistic, and the reason the package is grouped.
+- **Rules are evaluated exactly as written** in `playbook_rules.yaml`; nothing is edited. This produces many items (about 10 generator gaps from advisory 3, about 20 conflicts at advisory 5): realistic, and the reason the package is grouped.
 - **Approval counts the action as done** from that moment. There is no field confirmation, no crew or generator capacity, and generators are not a pool.
 - **No authentication**: a role selector stands in for identity; the backend enforces what each role may decide. Below full activation the Director holds the Incident Commander's decisions.
 - **Activation level is derived** from hours to landfall, not declared by a person; deadlines run on scenario time.

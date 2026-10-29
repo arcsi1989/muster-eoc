@@ -42,6 +42,12 @@ class Network:
                 reached += [a.id for a in self.treatment_plants_fed(station.id)]
         return sorted(set(reached))
 
+    def serves_treatment_plant(self, asset_id: str) -> bool:
+        """A pumping station that feeds a treatment plant (P-4.3, P-4.5)."""
+        return self.assets[asset_id].type == "pump_station" and bool(
+            self.treatment_plants_fed(asset_id)
+        )
+
     def describe(self, entity_id: str) -> tuple[str, str] | None:
         """(kind, name) of an asset or facility; None if unknown."""
         if entity_id in self.assets:

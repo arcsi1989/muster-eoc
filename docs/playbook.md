@@ -50,11 +50,11 @@
 
 **P-4.2 Coastal pumping stations (from T-48).** Pre-inspect every pumping station within 5 km of the coast whose forecast P90 flood depth exceeds 0.5 m. Confirm pumps, controls and the station's flood door before crews withdraw.
 
-**P-4.3 Generator readiness (from T-72).** Logistics fuels all portable generators and confirms that the number fuelled and available is at least the number of top-25 risk assets that feed a hospital or the water treatment plant.
+**P-4.3 Generator readiness (from T-72).** Logistics fuels all portable generators and confirms that the number fuelled and available is at least the number of pumping stations in the top 25 of the risk list that serve the water treatment plant.
 
 **P-4.4 Poor-condition substations (from T-72).** Inspect every substation in the top 10 of the risk list whose condition score is 4 or 5 (poor or very poor).
 
-**P-4.5 Backup power for critical customers (from T-48).** Every asset that feeds a hospital or the water treatment plant, and whose failure probability is 20% or more, has a portable generator assigned to it.
+**P-4.5 Backup power for water supply (from T-48).** Every pumping station that serves the water treatment plant, and whose failure probability is 20% or more, has a portable generator assigned to it and staged within reach. Portable generators are not used to back up substations; hospitals and shelters rely on their own on-site emergency power (see P-6.2).
 
 **P-4.6 Staging areas (from T-36).** Crews and equipment are moved out of any staging area with a forecast P90 flood depth above zero, to an inland staging area.
 

@@ -163,9 +163,9 @@ def recent_inspection(rng: random.Random) -> date:
 
 
 # Demo seeds (plan section 2.2), placed by construction. Values: (x_km, km inland, elevation,
-# condition, install_year). The hazard-dependent facts are checked once scoring exists (ticket 04).
+# condition, install_year). The hazard-dependent facts are checked by seed_check.py.
 ASSET_SEEDS: dict[str, tuple[float, float, float, int, int]] = {
-    # Feeds HOSP-01 (Bayport General), no generator; near the converged landfall: P-4.5 gap.
+    # Feeds HOSP-01 (Bayport General), near the converged landfall.
     "SUB-07": (126.0, 6.0, 2.4, 4, 1972),
     # Poor condition near the early landfall: P-4.4 in the top 10 at advisory 2.
     "SUB-03": (84.0, 4.0, 1.6, 4, 1971),
@@ -184,6 +184,22 @@ STAGING_SEEDS = {
     "STG-03": ("Ridgeline Depot", 130.0, 100.0, None),
     "STG-04": ("Eastern Plains Depot", 205.0, 80.0, None),
     "STG-05": ("Upland Fairground", 90.0, 130.0, None),
+}
+# The pumping stations that serve the treatment plant, between the early landfall and the city,
+# just over 5 km inland (P-4.2 stays with PS-14). Values: (x_km, km inland, elevation, condition).
+# At least 8 sit in the top 25 at advisory 1 (P-4.3 gap with 6 fuelled generators); PS-09, near
+# the converged landfall, is the P-4.5 gap at advisory 3.
+WTP_PUMP_SEEDS: dict[str, tuple[float, float, float, int]] = {
+    "PS-09": (118.0, 6.0, 0.9, 5),
+    "PS-19": (72.0, 6.0, 0.9, 5),
+    "PS-42": (78.0, 6.0, 0.9, 5),
+    "PS-48": (84.0, 6.0, 0.9, 5),
+    "PS-53": (88.0, 6.0, 0.9, 5),
+    "PS-54": (92.0, 6.0, 0.9, 5),
+    "PS-60": (96.0, 6.0, 0.9, 5),
+    "PS-40": (100.0, 6.0, 0.9, 5),
+    "PS-21": (104.0, 6.0, 0.9, 5),
+    "PS-34": (110.0, 6.0, 0.9, 5),
 }
 STALE_INSPECTIONS = ["SUB-22", "SUB-58", "SUB-91", "PS-33", "PS-61"]  # over 3 years old
 NULL_ELEVATIONS = ["SUB-15", "SUB-44", "PS-27"]
@@ -208,6 +224,10 @@ def build_assets(rng: random.Random) -> list[dict[str, Any]]:
             install_year = rng.randint(1965, 2020)
             condition = condition_for(rng, install_year)
             elevation = elevation_for(rng, distance_to_coast(x, y))
+        if asset_id in WTP_PUMP_SEEDS:
+            # Placed after the random draws, so every other asset keeps its random values.
+            seed_x_km, inland, elevation, condition = WTP_PUMP_SEEDS[asset_id]
+            x, y = inland_point(seed_x_km, inland)
         if kind == "SUB":
             asset_type, name = "substation", sub_names[int(number) - 1]
             customers = rng.randint(1500, 12000)
@@ -297,7 +317,8 @@ def build_dependencies(
     assets: list[dict[str, Any]], facilities: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     """Substations feed pumping stations, the treatment plant and facilities; pumping stations
-    feed the treatment plant (plan section 2.1). Nearest substation wins, except the seeds."""
+    feed the treatment plant (plan section 2.1). Nearest substation wins, except the seeds; the
+    seeded pumping stations are the ones that serve the plant."""
     substations = [a for a in assets if a["type"] == "substation"]
     pump_stations = [a for a in assets if a["type"] == "pump_station"]
     plant = next(a for a in assets if a["type"] == "treatment_plant")
@@ -309,7 +330,7 @@ def build_dependencies(
         deps.append({"from_id": feeder["id"], "to_id": ps["id"], "to_kind": "asset"})
     for feeder in _nearest(plant, others, 2):
         deps.append({"from_id": feeder["id"], "to_id": plant["id"], "to_kind": "asset"})
-    for ps in _nearest(plant, pump_stations, 12):
+    for ps in (p for p in pump_stations if p["id"] in WTP_PUMP_SEEDS):
         deps.append({"from_id": ps["id"], "to_id": plant["id"], "to_kind": "asset"})
     for facility in facilities:
         feeder_id = "SUB-07" if facility["id"] == "HOSP-01" else _nearest(facility, others)[0]["id"]

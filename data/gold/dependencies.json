@@ -1,11 +1,6 @@
 [
   {
-    "from_id": "PS-08",
-    "to_id": "WTP-01",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "PS-17",
+    "from_id": "PS-09",
     "to_id": "WTP-01",
     "to_kind": "asset"
   },
@@ -16,11 +11,6 @@
   },
   {
     "from_id": "PS-21",
-    "to_id": "WTP-01",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "PS-22",
     "to_id": "WTP-01",
     "to_kind": "asset"
   },
@@ -80,6 +70,16 @@
     "to_kind": "asset"
   },
   {
+    "from_id": "SUB-03",
+    "to_id": "PS-42",
+    "to_kind": "asset"
+  },
+  {
+    "from_id": "SUB-03",
+    "to_id": "PS-48",
+    "to_kind": "asset"
+  },
+  {
     "from_id": "SUB-04",
     "to_id": "PS-68",
     "to_kind": "asset"
@@ -110,6 +110,26 @@
     "to_kind": "facility"
   },
   {
+    "from_id": "SUB-101",
+    "to_id": "PS-40",
+    "to_kind": "asset"
+  },
+  {
+    "from_id": "SUB-101",
+    "to_id": "PS-53",
+    "to_kind": "asset"
+  },
+  {
+    "from_id": "SUB-101",
+    "to_id": "PS-54",
+    "to_kind": "asset"
+  },
+  {
+    "from_id": "SUB-101",
+    "to_id": "PS-60",
+    "to_kind": "asset"
+  },
+  {
     "from_id": "SUB-102",
     "to_id": "PS-25",
     "to_kind": "asset"
@@ -135,24 +155,9 @@
     "to_kind": "asset"
   },
   {
-    "from_id": "SUB-104",
-    "to_id": "PS-40",
-    "to_kind": "asset"
-  },
-  {
     "from_id": "SUB-106",
     "to_id": "HOSP-06",
     "to_kind": "facility"
-  },
-  {
-    "from_id": "SUB-106",
-    "to_id": "PS-54",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "SUB-106",
-    "to_id": "PS-60",
-    "to_kind": "asset"
   },
   {
     "from_id": "SUB-106",
@@ -176,11 +181,6 @@
   },
   {
     "from_id": "SUB-110",
-    "to_id": "PS-09",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "SUB-110",
     "to_id": "SHEL-04",
     "to_kind": "facility"
   },
@@ -192,11 +192,6 @@
   {
     "from_id": "SUB-111",
     "to_id": "PS-38",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "SUB-112",
-    "to_id": "PS-34",
     "to_kind": "asset"
   },
   {
@@ -380,6 +375,11 @@
     "to_kind": "asset"
   },
   {
+    "from_id": "SUB-53",
+    "to_id": "PS-19",
+    "to_kind": "asset"
+  },
+  {
     "from_id": "SUB-57",
     "to_id": "PS-08",
     "to_kind": "asset"
@@ -388,11 +388,6 @@
     "from_id": "SUB-59",
     "to_id": "SHEL-18",
     "to_kind": "facility"
-  },
-  {
-    "from_id": "SUB-61",
-    "to_id": "PS-53",
-    "to_kind": "asset"
   },
   {
     "from_id": "SUB-61",
@@ -435,13 +430,18 @@
     "to_kind": "asset"
   },
   {
-    "from_id": "SUB-67",
-    "to_id": "PS-42",
+    "from_id": "SUB-70",
+    "to_id": "PS-09",
     "to_kind": "asset"
   },
   {
     "from_id": "SUB-70",
-    "to_id": "PS-19",
+    "to_id": "PS-21",
+    "to_kind": "asset"
+  },
+  {
+    "from_id": "SUB-70",
+    "to_id": "PS-34",
     "to_kind": "asset"
   },
   {
@@ -562,16 +562,6 @@
   {
     "from_id": "SUB-92",
     "to_id": "PS-27",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "SUB-97",
-    "to_id": "PS-21",
-    "to_kind": "asset"
-  },
-  {
-    "from_id": "SUB-97",
-    "to_id": "PS-48",
     "to_kind": "asset"
   },
   {
