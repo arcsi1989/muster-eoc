@@ -2,56 +2,30 @@
 
 load_context -> diff -> evaluate_rules -> draft -> await_approval <-> apply_decision -> finalise
 
-The thread pauses in `await_approval` until the next advisory expires it, so the package stays
-open while its advisory is current. The decision package lifecycle checks every decision before
+The graph holds only orchestration: the order of the steps, one transaction per step, and the
+pause for decisions. Each step's work and its audit event are the decision package lifecycle's
+(`CycleSteps`). The thread pauses in `await_approval` until the next advisory expires it, so the
+package stays open while its advisory is current. The lifecycle checks every decision before
 resuming; `apply_decision` applies it. Only `apply_decision` writes decided operational state
-(item decisions, situation report approvals and activation declarations), and it is deterministic:
-the LLM never writes state, never decides whether a rule is met and never changes scores. Every
-node writes an audit event. The graph state holds only the advisory number and the decision
-being applied; the package, its items and the findings live in the database.
+(item decisions, situation report approvals and activation declarations), and it is
+deterministic: the LLM never writes state, never decides whether a rule is met and never changes
+scores. The graph state holds only the advisory number and the decision being applied; the
+package, its items and the findings live in the database.
 """
 
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import asdict
-from datetime import UTC, datetime
 from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 from sqlalchemy import Engine
-from sqlmodel import Session, col, select
+from sqlmodel import Session
 
-from app import advisory_context
-from app.agent import decisions
-from app.agent.actions import proposed_action
-from app.agent.draft import produce_draft, sitrep_prompt
-from app.agent.draft_request import draft_request
-from app.agent.sitrep import SITREP_RULE, apply_approval
-from app.audit.log import record
-from app.errors import DataNotLoaded
+from app.agent.lifecycle import CycleSteps
 from app.llm.provider import LLMProvider
-from app.llm.template import TemplateProvider
-from app.models import (
-    Advisory,
-    DecisionPackage,
-    Finding,
-    ItemKind,
-    OpState,
-    PackageItem,
-    Score,
-)
-from app.network import load_network
-from app.playbook.activation import DECLARED_BY, DECLARED_DETAIL, LEVEL_NUMBER, PROPOSED_DETAIL
-from app.playbook.service import Playbook, store_findings, store_new_event_findings
-from app.replay import service
-from app.replay.diff import changes_from_json
+from app.playbook.service import Playbook
 from app.scoring_config import ScoringConfig
-
-# what resumes the approval pause besides an item decision (whose action is the person's)
-EXPIRE = "expire"
-DECLARE = "declare"
-APPROVE_SITREP = "approve_sitrep"
 
 
 class CycleState(TypedDict, total=False):
@@ -62,25 +36,7 @@ class CycleState(TypedDict, total=False):
 def build_graph(
     engine: Engine, playbook: Playbook, llm: LLMProvider, config: ScoringConfig
 ) -> StateGraph[CycleState]:
-    draft_config = config.draft
-    fallback = TemplateProvider.from_config(config)
-    prompt = sitrep_prompt(draft_config)
-
-    def versions(
-        session: Session, advisory: Advisory, prompt_version: str | None = None
-    ) -> dict[str, Any]:
-        """The versions that produced a step: the model version is the one that scored the
-        advisory; a prompt version only for the step a prompt wrote."""
-        return {
-            "rules_version": playbook.rulebook.version,
-            "model_version": service.model_version(session, advisory.advisory_no),
-            "prompt_version": prompt_version,
-        }
-
-    def provider() -> LLMProvider:
-        return llm
-
-    rules = {r.id: r for r in playbook.rulebook.rules}
+    steps = CycleSteps(playbook, llm, config)
 
     @contextmanager
     def unit() -> Iterator[Session]:
@@ -88,302 +44,45 @@ def build_graph(
             yield session
             session.commit()
 
-    def advisory_of(session: Session, state: CycleState) -> Advisory:
-        advisory = session.get(Advisory, state["advisory_no"])
-        if advisory is None:
-            raise DataNotLoaded(f"advisory {state['advisory_no']} missing")
-        return advisory
-
     def load_context(state: CycleState) -> CycleState:
         with unit() as session:
-            advisory = advisory_of(session, state)
-            top10 = session.exec(
-                select(Score.asset_id)
-                .where(Score.advisory_no == advisory.advisory_no, Score.rank <= config.risk.top_n)
-                .order_by(col(Score.rank))
-            ).all()
-            event_state = {
-                s.key: s.value
-                for s in session.exec(select(OpState).where(OpState.entity == "event"))
-            }
-            level = advisory_context.at(session, playbook.levels, advisory).activation_level
-            record(
-                session,
-                "system",
-                "context_loaded",
-                f"Advisory {advisory.advisory_no} loaded: "
-                f"{advisory.hours_to_landfall} h to landfall, {level}",
-                advisory,
-                {"top10": list(top10), "event_state": event_state, "activation_level": level},
-                versions(session, advisory),
-            )
+            steps.load_context(session, state["advisory_no"])
         return {}
 
     def diff(state: CycleState) -> CycleState:
         with unit() as session:
-            advisory = advisory_of(session, state)
-            top_n = config.risk.top_n
-            changes = asdict(service.changes(session, advisory.advisory_no, playbook.levels, top_n))
-            session.merge(
-                DecisionPackage(
-                    advisory_no=advisory.advisory_no,
-                    status="open",
-                    changes=changes,
-                    draft={},
-                    opened_at=datetime.now(UTC),
-                )
-            )
-            moves = len(changes["rank_moves"])
-            record(
-                session,
-                "system",
-                "diff",
-                f"Compared with advisory {changes['previous_advisory_no'] or '-'}: "
-                f"{moves} rank moves",
-                advisory,
-                changes,
-                versions(session, advisory),
-            )
+            steps.open_package(session, state["advisory_no"])
         return {}
-
-    def add_items(session: Session, advisory: Advisory, stored: Sequence[Finding]) -> list[str]:
-        """One pending package item per open or conflicting finding; returns their rule IDs."""
-        network = load_network(session)
-        added = []
-        for finding in stored:
-            if finding.status == "satisfied" or finding.rule_id == SITREP_RULE:
-                continue
-            described = network.describe(finding.entity_id)
-            label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
-            kind: ItemKind = "conflict" if finding.status == "conflict" else "gap"
-            owner_role = finding.owner_role
-            if rules[finding.rule_id].kind == "proposal":
-                kind = "proposal"  # declared by the role for the proposed level (P-2.5)
-                owner_role = DECLARED_BY[finding.details[PROPOSED_DETAIL]]
-            session.add(
-                PackageItem(
-                    advisory_no=advisory.advisory_no,
-                    finding_id=finding.id or 0,
-                    rule_id=finding.rule_id,
-                    entity_id=finding.entity_id,
-                    kind=kind,
-                    proposed_action=proposed_action(
-                        finding.rule_id,
-                        label,
-                        finding.details,
-                        finding.cites if finding.status == "conflict" else None,
-                    ),
-                    owner_role=owner_role,
-                    status="pending",
-                )
-            )
-            added.append(finding.rule_id)
-        return added
 
     def evaluate_rules(state: CycleState) -> CycleState:
         with unit() as session:
-            advisory = advisory_of(session, state)
-            findings = store_findings(session, advisory, playbook)
-            session.flush()
-            stored = session.exec(
-                select(Finding).where(Finding.advisory_no == advisory.advisory_no)
-            ).all()
-            add_items(session, advisory, stored)
-            counts = {
-                s: sum(1 for f in findings if f.status == s)
-                for s in ("open", "conflict", "satisfied")
-            }
-            record(
-                session,
-                "system",
-                "rules_evaluated",
-                f"Playbook evaluated: {counts['open']} gaps, {counts['conflict']} conflicts, "
-                f"{counts['satisfied']} satisfied",
-                advisory,
-                counts,
-                versions(session, advisory),
-            )
+            steps.evaluate_rules(session, state["advisory_no"])
         return {}
 
     def draft(state: CycleState) -> CycleState:
-        with unit() as session:  # read what the draft may see
-            advisory = advisory_of(session, state)
-            package = session.get(DecisionPackage, advisory.advisory_no)
-            if package is None:
-                raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-            changes = changes_from_json(package.changes)
-            request = draft_request(session, advisory, playbook, changes, draft_config)
-        # the model call runs outside any database transaction
-        outcome = produce_draft(provider(), fallback, prompt, request, 1 + draft_config.retries)
         with unit() as session:
-            advisory = advisory_of(session, state)
-            package = session.get(DecisionPackage, advisory.advisory_no)
-            if package is None:
-                raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-            package.draft = {
-                "status": "DRAFT",
-                "provider": outcome.provider,
-                "fallback": outcome.fallback,
-                "model": outcome.result.model,
-                "prompt_version": outcome.prompt_version,
-                "fallback_reason": outcome.fallback_reason,
-                "sections": outcome.result.draft.model_dump()["sections"],
-            }
-            session.add(package)
-            record(
-                session,
-                "agent",
-                "sitrep_drafted",
-                f"Draft situation report written by {outcome.provider}"
-                + (f" ({outcome.fallback_reason})" if outcome.fallback_reason else ""),
-                advisory,
-                {
-                    "provider": outcome.provider,
-                    "model": outcome.result.model,
-                    "attempts": outcome.attempts,
-                    "fallback_reason": outcome.fallback_reason,
-                    "clauses_retrieved": [c.id for c in request.clauses],
-                },
-                versions(session, advisory, outcome.prompt_version),
-            )
+            request = steps.draft_request(session, state["advisory_no"])
+        # the model call runs outside any database transaction
+        outcome = steps.write_draft(request)
+        with unit() as session:
+            steps.save_draft(session, state["advisory_no"], request, outcome)
         return {}
-
-    def pending(advisory_no: int) -> list[int]:
-        with Session(engine) as session:
-            return [
-                i.id or 0
-                for i in session.exec(
-                    select(PackageItem).where(
-                        PackageItem.advisory_no == advisory_no, PackageItem.status == "pending"
-                    )
-                )
-            ]
 
     def await_approval(state: CycleState) -> Command[str]:
         """Pauses even with every item decided: the situation report may still be approved."""
-        waiting = pending(state["advisory_no"])
-        decision = interrupt({"advisory_no": state["advisory_no"], "pending_items": len(waiting)})
+        with Session(engine) as session:  # a read: nothing to commit
+            waiting = steps.pending_count(session, state["advisory_no"])
+        decision = interrupt({"advisory_no": state["advisory_no"], "pending_items": waiting})
         return Command(goto="apply_decision", update={"decision": decision})
 
     def apply_decision(state: CycleState) -> Command[str]:
-        decision = state["decision"]
         with unit() as session:
-            advisory = advisory_of(session, state)
-            if decision.get("action") == EXPIRE:
-                items = session.exec(
-                    select(PackageItem).where(
-                        PackageItem.advisory_no == advisory.advisory_no,
-                        PackageItem.status == "pending",
-                    )
-                ).all()
-                for undecided in items:
-                    undecided.status = "not_decided"
-                    session.add(undecided)
-                if items:  # nothing to record when every item was decided
-                    record(
-                        session,
-                        "system",
-                        "items_not_decided",
-                        f"{len(items)} items closed as not decided when the next advisory arrived",
-                        advisory,
-                        {
-                            "items": [
-                                {"id": i.id, "rule_id": i.rule_id, "entity_id": i.entity_id}
-                                for i in items
-                            ]
-                        },
-                        versions(session, advisory),
-                    )
-                return Command(goto="finalise")
-            if decision.get("action") == APPROVE_SITREP:
-                apply_approval(session, playbook, advisory, decision["role"], decision["text"])
-                return Command(goto="await_approval")
-            item = session.get(PackageItem, decision["item_id"])
-            finding = session.get(Finding, item.finding_id) if item else None
-            if item is None or finding is None:
-                raise DataNotLoaded(f"package item {decision['item_id']} missing")
-            if decision.get("action") == DECLARE:
-                declare(session, advisory, item, finding, decision)
-                return Command(goto="await_approval")
-            request = decisions.DecisionRequest(
-                role=decision["role"], action=decision["action"], reason=decision.get("reason")
-            )
-            written = decisions.apply(session, item, request, rules[item.rule_id], finding)
-            record(
-                session,
-                "human",
-                "decision",
-                f"{decisions.role_label(request.role)} {item.status} "
-                f"{item.rule_id} for {item.entity_id}"
-                + (f": {item.reason}" if item.reason else ""),
-                advisory,
-                {
-                    "item_id": item.id,
-                    "role": request.role,
-                    "rule_id": item.rule_id,
-                    "entity_id": item.entity_id,
-                    "action": request.action,
-                    "reason": item.reason,
-                    "state_written": written,
-                },
-                versions(session, advisory),
-            )
-        return Command(goto="await_approval")
-
-    def declare(
-        session: Session,
-        advisory: Advisory,
-        item: PackageItem,
-        finding: Finding,
-        decision: dict[str, Any],
-    ) -> None:
-        """Declares the activation level on the P-2.5 item, then adds the event items the new
-        level brings (P-7.2 once Full is declared)."""
-        declaration = decisions.Declaration(
-            level=decision["level"], declared_by=decision["declared_by"], reason=decision["reason"]
-        )
-        written = decisions.declare(session, item, declaration, advisory)
-        session.flush()
-        added = add_items(session, advisory, store_new_event_findings(session, advisory, playbook))
-        record(
-            session,
-            "human",
-            "activation_declared",
-            f"{decisions.role_label(declaration.declared_by)} declared activation "
-            f"Level {LEVEL_NUMBER[declaration.level]} ({declaration.level})"
-            + (f": {item.reason}" if item.reason else ""),
-            advisory,
-            {
-                "item_id": item.id,
-                "role": declaration.declared_by,
-                "rule_id": item.rule_id,
-                "entity_id": item.entity_id,
-                "level": declaration.level,
-                "from_level": finding.details.get(DECLARED_DETAIL),
-                "reason": item.reason,
-                "state_written": written,
-                "items_added": added,
-            },
-            versions(session, advisory),
-        )
+            ended = steps.apply(session, state["advisory_no"], state["decision"])
+        return Command(goto="finalise" if ended else "await_approval")
 
     def finalise(state: CycleState) -> CycleState:
         with unit() as session:
-            advisory = advisory_of(session, state)
-            package = session.get(DecisionPackage, advisory.advisory_no)
-            if package is not None:
-                package.status = "closed"
-                package.closed_at = datetime.now(UTC)
-                session.add(package)
-            record(
-                session,
-                "system",
-                "package_finalised",
-                f"Decision package for advisory {advisory.advisory_no} closed",
-                advisory,
-                {},
-                versions(session, advisory),
-            )
+            steps.close(session, state["advisory_no"])
         return {}
 
     graph = StateGraph(CycleState)

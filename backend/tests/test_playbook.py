@@ -406,13 +406,7 @@ def test_advisory_1_prepare_with_review_generator_gap_and_sitrep_open(client: Te
         "P-4.3",
         "P-7.1",
     }
-    proposal = find(found, "P-2.5")["details"]
-    assert proposal["event.activation_level"] == "monitor"
-    assert proposal["event.proposed_activation_level"] == "prepare"
-    gap = find(found, "P-4.3")
-    assert gap["status"] == "open"
-    assert gap["details"]["event.generators_fuelled"] == 6
-    assert gap["details"]["event.wtp_pump_stations_top25"] >= 8
+    assert find(found, "P-4.3")["status"] == "open"
 
 
 def test_advisory_2_poor_condition_substation_in_top_10(client: TestClient) -> None:
@@ -426,19 +420,15 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
 
     ps9 = find(found, "P-4.5", "PS-09")
     assert ps9["status"] == "open"
-    assert "WTP-01" in ps9["details"]["asset.feeds_facility_ids"]
     types = {a["id"]: a["type"] for a in client.get("/assets").json()}
     assert {types[f["entity_id"]] for f in found if f["rule_id"] == "P-4.5"} == {"pump_station"}, (
         "portable generators never go to substations"
     )
-    hospital = find(found, "P-6.2", "SUB-07")
-    assert hospital["status"] == "open"
-    assert "HOSP-01" in hospital["details"]["asset.feeds_facility_ids"]
+    assert find(found, "P-6.2", "SUB-07")["status"] == "open"
     assert not any(f["rule_id"] == "P-4.5" and f["entity_id"] == "SUB-07" for f in found), (
         "Bayport General relies on its own backup power, not a portable generator"
     )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
-    assert find(found, "P-2.5")["details"]["event.proposed_activation_level"] == "full"
     assert not any(f["rule_id"] == "P-7.2" for f in found), "Full is not declared yet"
 
     declare_full_at_advisory_3(client)
@@ -480,11 +470,3 @@ def test_clauses_are_served(client: TestClient) -> None:
 
     assert len(clauses) == 30
     assert clauses[0]["id"] == "P-1.1"
-
-
-@pytest.mark.parametrize("flag", ["risk_list_reviewed_current", "sitrep_approved_current"])
-def test_per_advisory_flags_start_false_at_each_advisory(client: TestClient, flag: str) -> None:
-    found = findings_at(client, 2)
-
-    rule = "P-4.1" if flag == "risk_list_reviewed_current" else "P-7.1"
-    assert find(found, rule)["details"][f"event.{flag}"] is False

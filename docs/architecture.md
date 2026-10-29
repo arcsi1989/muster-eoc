@@ -35,6 +35,7 @@ No PRD was provided with the brief, so this maps the prototype to the implementa
 3. **Risk** (`risk/`): lognormal fragility per hazard with the condition adjustment, p_fail averaged over members, one-hop consequence (shared among feeders), risk, rank, confidence, stored factors, alerts.
 4. **Advisory cycle** (`agent/graph.py`, LangGraph `StateGraph`, one thread per advisory, SQLite checkpointer):
    `load_context → diff → evaluate_rules → draft → await_approval ⇄ apply_decision → finalise`
+   The graph holds only the step order, one transaction per step and the pause; each step's work and audit event is in the decision package lifecycle (`agent/lifecycle.py`, `CycleSteps`).
    - `evaluate_rules` runs the deterministic engine over `playbook_rules.yaml` and turns open and conflict findings into package items.
    - `draft` asks the provider for a structured situation report (findings as delimited data, BM25 context clauses), validates every citation, retries once, else uses the template.
    - `await_approval` is a LangGraph `interrupt`; each `POST /packages/{n}/items/{id}/decision` is checked (role, reason) and resumes the thread; only `apply_decision`, deterministic, writes operational state.
@@ -46,7 +47,7 @@ Every node and decision writes an audit event with scenario time, input hash and
 | Rule (CLAUDE.md) | Where |
 |---|---|
 | The LLM never decides whether a rule is met | `playbook/engine.py` decides; the provider only receives a plain-data `DraftRequest` |
-| The LLM never changes scores or writes state | Providers get no database session; only `agent/decisions.apply`, called by the `apply_decision` node, writes `op_state` |
+| The LLM never changes scores or writes state | Providers get no database session; only the decision step (`CycleSteps.apply` in `agent/lifecycle.py`, run by the `apply_decision` node) writes decided `op_state` |
 | Humans approve; the decision log records it | `agent/decisions.check` (roles: owner, Director or Incident Commander, conflicts for the Incident Commander only), `audit/log.py` |
 | Template fallback; offline demo | `llm/template.py`, `agent/draft.py`, `copilot/chat.py`; `LLM_PROVIDER=template` is the default |
 | Tunable numbers in config | `config/scoring.yaml`, `config/consequence_weights.yaml` |

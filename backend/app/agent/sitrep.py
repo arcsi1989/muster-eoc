@@ -1,6 +1,7 @@
 """Approving the situation report (P-7.1): the commanding role edits and approves the draft.
 The decision package lifecycle checks the approval; the advisory cycle's decision step applies
-it, so its state write goes through the one path that records decisions."""
+it, so its state write goes through the one path that records decisions, and re-evaluates
+P-7.1 through the playbook."""
 
 from datetime import UTC, datetime
 from typing import Any
@@ -12,7 +13,6 @@ from app.agent.decisions import DecisionRefused, Role, role_label
 from app.audit.log import record
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.models import Advisory, DecisionPackage, OpState, Sitrep
-from app.playbook.service import Playbook, refresh_event_finding
 
 SITREP_RULE = "P-7.1"
 
@@ -42,17 +42,16 @@ def check_approval(
         raise SitrepAlreadyApproved(f"the situation report for advisory {advisory_no} is approved")
     if role != lead:
         raise DecisionRefused(
-            f"The {lead.replace('_', ' ')} approves the situation report (P-3.1, P-7.1)."
+            f"The {lead.replace('_', ' ')} approves the situation report (P-3.1, {SITREP_RULE})."
         )
     if not text.strip():
         raise DecisionRefused("The approved situation report cannot be empty.")
 
 
-def apply_approval(
-    session: Session, playbook: Playbook, advisory: Advisory, role: Role, text: str
-) -> None:
-    """Records the approved report, writes the per-advisory flag and re-evaluates P-7.1. Called
-    only by the advisory cycle's decision step, after the lifecycle checked the approval."""
+def apply_approval(session: Session, advisory: Advisory, role: Role, text: str) -> None:
+    """Records the approved report and writes the per-advisory flag. Called only by the advisory
+    cycle's decision step, after the lifecycle checked the approval; that step re-evaluates
+    P-7.1."""
     package = session.get(DecisionPackage, advisory.advisory_no)
     if package is None:
         raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
@@ -68,8 +67,6 @@ def apply_approval(
         )
     )
     session.merge(OpState(entity="event", key=SITREP_FLAG, value=True, set_by=role, set_at=now))
-    session.flush()
-    refresh_event_finding(session, advisory, playbook, SITREP_RULE)
     record(
         session,
         "human",
