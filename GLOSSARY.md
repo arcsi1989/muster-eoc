@@ -35,6 +35,10 @@ _Avoid_: Section, rule text
 The machine-checkable trigger for a clause: when it applies, to which entity, and what state satisfies it.
 _Avoid_: Check, condition
 
+**Rule inputs**:
+The values the rules read at one advisory: the event fields (scenario time, declared and proposed activation level, hours since Full was declared, counts such as pumping stations in the top 25 that serve the treatment plant, the per-advisory flags) and, per asset and staging area, its data, exposure and operational state. Built by the playbook module only.
+_Avoid_: Evaluation context, facts
+
 **Prohibition**:
 A rule that forbids field work at an entity (P-4.7) instead of requiring an action. It never becomes a finding on its own; it blocks actions.
 
@@ -43,6 +47,10 @@ A rule that forbids field work at an entity (P-4.7) instead of requiring an acti
 **Finding**:
 The result of evaluating one rule against one entity at one advisory: satisfied, open, or in conflict.
 _Avoid_: Alert, issue
+
+**Re-evaluation**:
+Evaluating one stored finding again after a state change at the same advisory (P-7.1 once the situation report is approved), and updating it with the new outcome. A playbook operation, called by the one step that writes decided operational state.
+_Avoid_: Refresh, patch
 
 **Gap**:
 An open finding: the playbook requires something the current state does not show.

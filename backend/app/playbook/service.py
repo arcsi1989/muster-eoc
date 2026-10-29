@@ -8,6 +8,7 @@ from typing import Any
 from sqlmodel import Session, col, delete, select
 
 from app import advisory_context
+from app.errors import DataNotLoaded
 from app.models import Advisory, Exposure, Finding, OpState, Score, StagingArea
 from app.network import load_network
 from app.playbook.activation import ActivationLevel, load_activation_levels
@@ -57,7 +58,10 @@ class RuleInputs:
     entities: list[Entity]
 
     def entity(self, entity_id: str) -> Entity:
-        return next(e for e in self.entities if e.id == entity_id)
+        found = next((e for e in self.entities if e.id == entity_id), None)
+        if found is None:
+            raise DataNotLoaded(f"no asset or staging area {entity_id} at this advisory")
+        return found
 
 
 def rule_inputs(session: Session, advisory: Advisory, playbook: Playbook) -> RuleInputs:
@@ -140,6 +144,10 @@ def rule_inputs(session: Session, advisory: Advisory, playbook: Playbook) -> Rul
                 )
             )
     return RuleInputs(event, entities)
+
+
+# What evaluating a rule decides about a finding; re-evaluation updates exactly these.
+OUTCOME_FIELDS = ("status", "severity", "owner_role", "cites", "overdue", "details")
 
 
 def _row(advisory: Advisory, f: EngineFinding) -> Finding:
@@ -245,7 +253,7 @@ def reevaluate(
     )
     if result is not None:
         updated = _row(advisory, result)
-        for name in ("status", "severity", "owner_role", "cites", "overdue", "details"):
+        for name in OUTCOME_FIELDS:
             setattr(stored, name, getattr(updated, name))
         session.add(stored)
     return stored

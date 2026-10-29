@@ -69,6 +69,7 @@ def test_pumping_stations_serving_the_plant_are_counted_in_the_top_25(
     at_1 = inputs_at(seeded, 1)
     assert at_1.entity("PS-09").values["asset"]["risk_rank"] > 25
     assert at_1.event["wtp_pump_stations_top25"] == 8
+    assert at_1.event["generators_fuelled"] == 6, "the generator gap at advisory 1"
 
     at_3 = inputs_at(seeded, 3)
     assert at_3.entity("PS-09").values["asset"]["risk_rank"] <= 25
@@ -119,7 +120,8 @@ def test_an_event_finding_is_satisfied_after_its_state_is_written(seeded: Seeded
         "satisfied",
         {"event.sitrep_approved_current": True},
     )
-    assert stored(seeded, 1, "P-7.1", "event").status == "open", "not committed yet"
+    seeded.session.rollback()
+    assert stored(seeded, 1, "P-7.1", "event").status == "open", "the write was rolled back"
 
 
 def test_an_asset_finding_is_satisfied_after_its_state_is_written(seeded: SeededScenario) -> None:
