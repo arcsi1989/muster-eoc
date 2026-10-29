@@ -88,6 +88,21 @@ def test_same_seed_gives_the_same_numbers() -> None:
     ]
 
 
+def test_cross_track_spread_scales_with_the_cone_factor() -> None:
+    def wind_spread(factor: float) -> float:
+        ensemble = CONFIG.ensemble.model_copy(update={"sigma_cone_factor": factor})
+        config = CONFIG.model_copy(update={"ensemble": ensemble})
+        exposures = compute_exposure(*storm_and_sites(), config)
+        return float(np.mean([np.std(e.wind_members_mph) for e in exposures]))
+
+    none, narrow, configured, wide = (
+        wind_spread(f) for f in (0.0, 0.5, CONFIG.ensemble.sigma_cone_factor, 2.0)
+    )
+
+    assert none == pytest.approx(0.0)
+    assert narrow < configured < wide
+
+
 def exposure_at(client: TestClient, advisory: int) -> dict[str, dict[str, Any]]:
     while client.get("/advisories").json()["current_advisory"] < advisory:
         assert client.post("/advisories/next").status_code == 200
