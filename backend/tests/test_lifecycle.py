@@ -11,7 +11,7 @@ from app import advisory_context
 from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved, draft_text
+from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
 from app.llm.schemas import Paragraph
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
@@ -326,13 +326,15 @@ def test_a_package_goes_through_its_whole_lifecycle_without_http(
     with make_seeded(FakeProvider(draft_of(paragraph))) as seeded:
         seeded.issue_until(1)
         view = lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, 1)
-        assert (view.status, view.package.draft["provider"]) == ("open", "fake")
+        draft = view.package.draft
+        assert draft is not None
+        assert (view.status, draft.provider) == ("open", "fake")
         assert view.proposed_activation_level == "prepare"
         _, _, events_before = snapshot(seeded)
 
         lifecycle.declare(seeded.session, seeded.cycle, Declaration("prepare", "director"))
         decide(seeded, 1, item(seeded, 1, "P-4.1"), "planning", "approve")
-        sitrep = approve_sitrep(seeded, 1, "director", draft_text(view.package.draft))
+        sitrep = approve_sitrep(seeded, 1, "director", draft.text())
         seeded.issue_until(2)
 
         assert (sitrep.approved_by, sitrep.edited) == ("director", False)

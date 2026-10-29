@@ -66,7 +66,7 @@ def test_everything_the_request_shows_is_citable() -> None:
             previous_advisory_no=2,
             top10_entered=["SUB-12"],
             top10_left=["WTP-01"],
-            rank_moves=[RankMove("PS-14", 30, 12)],
+            rank_moves=[RankMove(asset_id="PS-14", from_rank=30, to_rank=12)],
         ),
         clauses=["P-6.2"],
     )
@@ -78,7 +78,11 @@ def test_everything_the_request_shows_is_citable() -> None:
 
 
 def test_a_rank_move_alone_makes_its_asset_citable() -> None:
-    moved = request(changes=AdvisoryChanges(advisory_no=3, rank_moves=[RankMove("PS-14", 30, 12)]))
+    moved = request(
+        changes=AdvisoryChanges(
+            advisory_no=3, rank_moves=[RankMove(asset_id="PS-14", from_rank=30, to_rank=12)]
+        )
+    )
 
     assert citation_problems(cites([], ["PS-14"]), moved) == []
     assert citation_problems(cites([], ["PS-14"]), request()) == [

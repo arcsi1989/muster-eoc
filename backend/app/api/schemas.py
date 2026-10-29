@@ -9,10 +9,12 @@ from app.advisory_context import Commander
 from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.llm.schemas import PackageDraft
 from app.models import ItemKind, ItemStatus, PackageStatus
 from app.playbook.activation import Level
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
+from app.replay.diff import AdvisoryChanges
 from app.risk.alerts import AlertKind
 from app.risk.confidence import Confidence
 from app.scoring_config import IntensityCategory
@@ -71,30 +73,6 @@ class ScenarioOut(BaseModel):
     current_advisory: int  # 0 before advisory 1
     timeline: list[TimelineSlotOut]
     advisories: list[AdvisoryOut]  # issued advisories only
-
-
-class LandfallShiftOut(BaseModel):
-    distance_km: float
-    direction: str
-
-
-class RankMoveOut(BaseModel):
-    asset_id: str
-    from_rank: int
-    to_rank: int
-
-
-class ChangesOut(BaseModel):
-    advisory_no: int
-    previous_advisory_no: int | None  # None at the first advisory: everything is initial
-    landfall_shift: LandfallShiftOut | None
-    max_wind_change_mph: float | None
-    peak_surge_change_m: float | None
-    activation_level_from: str | None
-    activation_level_to: str | None
-    top10_entered: list[str]
-    top10_left: list[str]
-    rank_moves: list[RankMoveOut]  # biggest move first
 
 
 class AssetOut(BaseModel):
@@ -271,27 +249,6 @@ class PackageItemOut(BaseModel):
     decided_at: datetime | None
 
 
-class DraftParagraphOut(BaseModel):
-    text: str
-    clause_ids: list[str]
-    asset_ids: list[str]
-
-
-class DraftSectionOut(BaseModel):
-    heading: str
-    paragraphs: list[DraftParagraphOut]
-
-
-class DraftOut(BaseModel):
-    status: str  # DRAFT until approved
-    provider: str  # the provider that wrote it, or "template (fallback)"
-    fallback: bool  # the template draft replaced the provider's draft
-    model: str | None
-    prompt_version: str | None  # None for template drafts: no prompt is used
-    fallback_reason: str | None
-    sections: list[DraftSectionOut]
-
-
 class SitrepOut(BaseModel):
     advisory_no: int
     approved_text: str
@@ -311,9 +268,9 @@ class PackageOut(BaseModel):
     activation_level: str | None  # declared (P-2.5)
     proposed_activation_level: str | None  # from the playbook's thresholds
     decides_as_commander: Commander
-    changes: ChangesOut
+    changes: AdvisoryChanges
     items: list[PackageItemOut]
-    draft: DraftOut | None
+    draft: PackageDraft | None
     draft_text: str | None  # the draft as editable plain text
     sitrep: SitrepOut | None  # the approved situation report, once approved
 

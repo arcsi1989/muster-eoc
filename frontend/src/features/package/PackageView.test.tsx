@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { expect, test, vi } from 'vitest'
 import { ApiError } from '../../api/client'
+import { packageResponse } from '../../test/packageResponse'
 import type { DecisionPackage, PackageItem } from '../../types/scenario'
 import { PackageView } from './PackageView'
 
@@ -188,4 +189,12 @@ test('an activation proposal shows first, outside the gaps', () => {
   )
   expect(within(card).getByRole('button', { name: 'Declare Level 1' })).toBeDisabled()
   expect(within(screen.getByRole('region', { name: 'Gaps' })).queryByText('P-2.5')).not.toBeInTheDocument()
+})
+
+test('a real package response from the backend renders (its fixture is type-checked against DecisionPackage)', () => {
+  render(<PackageView pkg={packageResponse} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={() => {}} />)
+
+  expect(within(screen.getByRole('region', { name: 'What changed' })).getByText(/Forecast landfall moved 41 km east/)).toBeInTheDocument()
+  expect(screen.getByText('Pre-inspect coastal pumping stations at flood risk · 1')).toBeInTheDocument()
+  expect(screen.getByText(/Approved by Director, as drafted/)).toBeInTheDocument()
 })

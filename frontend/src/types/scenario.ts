@@ -258,7 +258,9 @@ export interface Clause {
   text: string
 }
 
-export type Role = 'incident_commander' | 'director' | 'planning' | 'operations' | 'logistics' | 'regulatory_liaison'
+/** The role that commands: the Incident Commander at Full activation, the Director below it (P-2.3) */
+export type Commander = 'incident_commander' | 'director'
+export type Role = Commander | 'planning' | 'operations' | 'logistics' | 'regulatory_liaison'
 export interface Declaration {
   level: ActivationLevel
   declared_by: Role
@@ -295,7 +297,7 @@ export interface DraftParagraph {
 }
 
 export interface Draft {
-  status: string
+  status: 'DRAFT'
   /** the provider that wrote it, or "template (fallback)" */
   provider: string
   /** the template draft replaced the provider's draft */
@@ -322,7 +324,7 @@ export interface DecisionPackage {
   activation_level: ActivationLevel | null
   /** the level the playbook's time thresholds propose */
   proposed_activation_level: ActivationLevel | null
-  decides_as_commander: 'incident_commander' | 'director'
+  decides_as_commander: Commander
   changes: AdvisoryChanges
   items: PackageItem[]
   draft: Draft | null

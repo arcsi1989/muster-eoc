@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from datetime import timedelta
 from typing import Annotated, Any
 
@@ -10,7 +9,6 @@ from app.agent import cycle as advisory_cycle
 from app.agent import lifecycle
 from app.api.schemas import (
     AdvisoryOut,
-    ChangesOut,
     PastPositionOut,
     PointOut,
     ScenarioOut,
@@ -23,6 +21,7 @@ from app.hazard.track import cone_polygon, intensity_category
 from app.models import Advisory
 from app.playbook.activation import ActivationLevel
 from app.replay import service
+from app.replay.diff import AdvisoryChanges
 from app.scoring_config import ScoringConfig
 
 router = APIRouter(prefix="/advisories")
@@ -113,9 +112,8 @@ def reset_scenario(
     return _scenario(session, levels, config)
 
 
-@router.get("/{advisory_no}/changes", response_model=ChangesOut)
+@router.get("/{advisory_no}/changes", response_model=AdvisoryChanges)
 def get_changes(
     advisory_no: int, session: SessionDep, levels: LevelsDep, config: ConfigDep
-) -> ChangesOut:
-    changes = service.changes(session, advisory_no, levels, config.risk.top_n)
-    return ChangesOut.model_validate(asdict(changes))
+) -> AdvisoryChanges:
+    return service.changes(session, advisory_no, levels, config.risk.top_n)

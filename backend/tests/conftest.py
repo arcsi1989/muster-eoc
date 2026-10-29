@@ -23,6 +23,14 @@ from app.scoring_config import ScoringConfig, load_scoring_config
 ClientFactory = Callable[..., AbstractContextManager[TestClient]]
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--update-fixtures",
+        action="store_true",
+        help="rewrite the frontend's real response fixtures from fresh backend responses",
+    )
+
+
 def test_settings(tmp_path: Path) -> Settings:
     # _env_file=None: tests never read a local .env (CODING_STANDARDS T2).
     return Settings(  # type: ignore[call-arg]

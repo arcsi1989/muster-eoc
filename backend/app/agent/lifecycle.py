@@ -20,7 +20,7 @@ LangGraph graph keeps only the order of the steps and the pause for decisions.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -35,7 +35,7 @@ from app.audit.log import record
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
 from app.llm.grounded import GroundedOutcome
 from app.llm.provider import LLMProvider
-from app.llm.schemas import DraftRequest, DraftResult
+from app.llm.schemas import DraftRequest, DraftResult, PackageDraft
 from app.llm.template import TemplateProvider
 from app.models import (
     Advisory,
@@ -58,7 +58,6 @@ from app.playbook.activation import (
 )
 from app.playbook.service import Playbook, reevaluate, store_findings, store_new_event_findings
 from app.replay import service
-from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
 
 if TYPE_CHECKING:  # the cycle runs the graph, whose steps call back into this module
@@ -102,7 +101,6 @@ class PackageView:
     proposed_activation_level: str | None
     decides_as_commander: advisory_context.Commander
     items: list[ItemView]
-    changes: dict[str, Any]
     sitrep: Sitrep | None
 
 
@@ -193,7 +191,6 @@ def package_view(
         proposed_activation_level=context.proposed_activation_level,
         decides_as_commander=context.commander,
         items=[view(i) for i in items],
-        changes=package.changes,
         sitrep=session.get(Sitrep, advisory_no),
     )
 
@@ -340,24 +337,23 @@ class CycleSteps:
         """Opens the advisory's package with what changed since the previous advisory."""
         advisory = self._advisory(session, advisory_no)
         top_n = self._config.risk.top_n
-        changes = asdict(service.changes(session, advisory_no, self._playbook.levels, top_n))
+        changes = service.changes(session, advisory_no, self._playbook.levels, top_n)
         session.merge(
             DecisionPackage(
                 advisory_no=advisory_no,
                 status="open",
                 changes=changes,
-                draft={},
                 opened_at=datetime.now(UTC),
             )
         )
-        moves = len(changes["rank_moves"])
+        moves = len(changes.rank_moves)
         record(
             session,
             "system",
             "diff",
-            f"Compared with advisory {changes['previous_advisory_no'] or '-'}: {moves} rank moves",
+            f"Compared with advisory {changes.previous_advisory_no or '-'}: {moves} rank moves",
             advisory,
-            changes,
+            changes.model_dump(mode="json"),
             self._versions(session, advisory),
         )
 
@@ -421,7 +417,7 @@ class CycleSteps:
     def draft_request(self, session: Session, advisory_no: int) -> DraftRequest:
         """What the draft situation report may see."""
         advisory = self._advisory(session, advisory_no)
-        changes = changes_from_json(self._package(session, advisory_no).changes)
+        changes = self._package(session, advisory_no).changes
         return draft_request(session, advisory, self._playbook, changes, self._config.draft)
 
     def write_draft(self, request: DraftRequest) -> GroundedOutcome[DraftResult]:
@@ -438,15 +434,14 @@ class CycleSteps:
     ) -> None:
         advisory = self._advisory(session, advisory_no)
         package = self._package(session, advisory_no)
-        package.draft = {
-            "status": "DRAFT",
-            "provider": outcome.provider,
-            "fallback": outcome.fallback,
-            "model": outcome.result.model,
-            "prompt_version": outcome.prompt_version,
-            "fallback_reason": outcome.fallback_reason,
-            "sections": outcome.result.draft.model_dump()["sections"],
-        }
+        package.draft = PackageDraft(
+            provider=outcome.provider,
+            fallback=outcome.fallback,
+            model=outcome.result.model,
+            prompt_version=outcome.prompt_version,
+            fallback_reason=outcome.fallback_reason,
+            sections=outcome.result.draft.sections,
+        )
         session.add(package)
         record(
             session,
