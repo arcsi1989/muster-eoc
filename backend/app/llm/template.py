@@ -42,19 +42,19 @@ class TemplateProvider:
             f"Advisory {request.advisory_no}, {request.hours_to_landfall} h to landfall; "
             f"activation level {request.activation_level or 'none'}."
         )
-        shift = request.changes.get("landfall_shift")
+        shift = request.changes.landfall_shift
         if shift:
-            distance = round(shift["distance_km"])
-            situation += f" The forecast landfall moved {distance} km {shift['direction']}."
+            distance = round(shift.distance_km)
+            situation += f" The forecast landfall moved {distance} km {shift.direction}."
         named = request.top_assets[: request.template_top_assets]
-        top = ", ".join(a["id"] for a in named)
+        top = ", ".join(a.id for a in named)
         overview = [Paragraph(text=situation, clause_ids=[], asset_ids=[])]
         if top:
             overview.append(
                 Paragraph(
                     text=f"Highest risk assets: {top}.",
                     clause_ids=[],
-                    asset_ids=[a["id"] for a in named],
+                    asset_ids=[a.id for a in named],
                 )
             )
         conflicts = [

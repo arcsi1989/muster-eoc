@@ -1,10 +1,14 @@
 """The shapes every LLM provider shares: what a draft is asked from, and what comes back."""
 
+import json
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, fields
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.ids import CLAUSE_ID, SITE_ID, mentioned
+from app.replay.diff import AdvisoryChanges
 
 
 class Paragraph(BaseModel):
@@ -52,29 +56,50 @@ class RetrievedClause:
     text: str
 
 
+HIDDEN = {"shown": False}  # field metadata: kept from the model, so never citable
+
+
+@dataclass(frozen=True)
+class TopAsset:
+    id: str
+    name: str
+    rank: int
+    p_fail: float
+
+
 @dataclass(frozen=True)
 class DraftRequest:
     """Everything a provider may see: plain data only, no database session, so no provider can
-    write state (CLAUDE.md hard rules)."""
+    write state (CLAUDE.md hard rules). What it shows is exactly what a draft may cite."""
 
     advisory_no: int
     hours_to_landfall: int
     activation_level: str | None
-    changes: dict[str, Any]
+    changes: AdvisoryChanges
     items: list[DraftItem]
-    top_assets: list[dict[str, Any]]  # id, name, rank, p_fail
+    top_assets: list[TopAsset]
     clauses: list[RetrievedClause]
-    template_top_assets: int = 5
-    feedback: list[str] = field(default_factory=list)  # validation problems from the last try
+    # Not shown: the template's setting, and validation problems from the last try (a
+    # rejection, not data to cite).
+    template_top_assets: int = field(default=5, metadata=HIDDEN)
+    feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
 
+    def shown(self) -> dict[str, Any]:
+        """The data a provider shows the model."""
+        data = asdict(self)
+        return {f.name: data[f.name] for f in fields(self) if f.metadata.get("shown", True)}
 
-@dataclass(frozen=True)
-class Grounding:
-    """The clause and asset IDs a draft may cite: what its request shows (findings, retrieved
-    clauses, changes, top assets)."""
+    def _shown_text(self) -> str:
+        return json.dumps(self.shown(), default=str)
 
-    clauses: set[str]
-    assets: set[str]
+    @property
+    def citable_clauses(self) -> frozenset[str]:
+        return mentioned(CLAUSE_ID, self._shown_text())
+
+    @property
+    def citable_sites(self) -> frozenset[str]:
+        """Assets and staging areas; facilities are named in the text only (prompt sitrep-v2)."""
+        return mentioned(SITE_ID, self._shown_text())
 
 
 @dataclass(frozen=True)

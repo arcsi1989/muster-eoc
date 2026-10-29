@@ -1,15 +1,14 @@
-"""Assembles what the draft may see and cite: package items, changes, top assets, retrieved
-clauses."""
-
-from typing import Any
+"""Assembles what the draft may see, and so cite: package items, changes, top assets,
+retrieved clauses."""
 
 from sqlmodel import Session, col, select
 
 from app import advisory_context
-from app.llm.schemas import DraftItem, DraftRequest, Grounding, RetrievedClause
+from app.llm.schemas import DraftItem, DraftRequest, RetrievedClause, TopAsset
 from app.models import Advisory, Finding, PackageItem, Score
 from app.network import load_network
 from app.playbook.service import Playbook
+from app.replay.diff import AdvisoryChanges
 from app.scoring_config import DraftConfig
 
 EVENT = "event"
@@ -19,10 +18,10 @@ def draft_request(
     session: Session,
     advisory: Advisory,
     playbook: Playbook,
-    changes: dict[str, Any],
+    changes: AdvisoryChanges,
     config: DraftConfig,
-) -> tuple[DraftRequest, Grounding]:
-    """The request, plus the clause and asset IDs a grounded draft may cite."""
+) -> DraftRequest:
+    """The request; a grounded draft cites only what it shows."""
     network = load_network(session)
     items = session.exec(
         select(PackageItem)
@@ -63,27 +62,16 @@ def draft_request(
         )
         for i in items
     ]
-    request = DraftRequest(
+    return DraftRequest(
         advisory_no=advisory.advisory_no,
         hours_to_landfall=advisory.hours_to_landfall,
         activation_level=advisory_context.at(session, playbook.levels, advisory).activation_level,
         changes=changes,
         items=draft_items,
         top_assets=[
-            {
-                "id": s.asset_id,
-                "name": network.assets[s.asset_id].name,
-                "rank": s.rank,
-                "p_fail": round(s.p_fail, 2),
-            }
+            TopAsset(s.asset_id, network.assets[s.asset_id].name, s.rank, round(s.p_fail, 2))
             for s in top
         ],
         clauses=[RetrievedClause(c.id, c.title, c.text) for c in retrieved],
         template_top_assets=config.template_top_assets,
     )
-    allowed_clauses = {c for i in draft_items for c in i.cites} | {c.id for c in retrieved}
-    allowed_assets = {i.entity_id for i in draft_items if i.entity_is_citable}
-    allowed_assets |= {s.asset_id for s in top}
-    allowed_assets |= set(changes["top10_entered"]) | set(changes["top10_left"])
-    allowed_assets |= {m["asset_id"] for m in changes["rank_moves"]}
-    return request, Grounding(allowed_clauses, allowed_assets)
