@@ -166,7 +166,7 @@ def recent_inspection(rng: random.Random) -> date:
 # condition, install_year). The hazard-dependent facts are checked once scoring exists (ticket 04).
 ASSET_SEEDS: dict[str, tuple[float, float, float, int, int]] = {
     # Feeds HOSP-01 (Bayport General), no generator; near the converged landfall: P-4.5 gap.
-    "SUB-07": (126.0, 6.0, 2.4, 3, 1988),
+    "SUB-07": (126.0, 6.0, 2.4, 4, 1972),
     # Poor condition near the early landfall: P-4.4 in the top 10 at advisory 2.
     "SUB-03": (84.0, 4.0, 1.6, 4, 1971),
     # Low-lying substation near the late landfall: P-5.1 from advisory 4.
@@ -457,5 +457,17 @@ def export_schemas(out_dir: Path) -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
+    from app.datagen.seed_check import check_seeds
+    from app.scoring_config import load_scoring_config
+
     generate(REPO_ROOT / "data" / "gold")
     export_schemas(REPO_ROOT / "contracts")
+    failures = check_seeds(
+        REPO_ROOT / "data" / "gold", load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
+    )
+    if failures:
+        print("Demo seed facts that do not hold:", *failures, sep="\n  - ", file=sys.stderr)
+        sys.exit(1)
+    print("Gold data written; all demo seed facts hold.")

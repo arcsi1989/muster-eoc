@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { ApiError } from './client'
-import { getExposure, getLineage, getRisk, nextAdvisory } from './scenario'
+import { getAlerts, getExplanation, getExposure, getLineage, getRisk, nextAdvisory } from './scenario'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -50,4 +50,14 @@ test('getExposure asks for the given advisory', async () => {
   await getExposure(3)
 
   expect(fetchMock).toHaveBeenCalledWith('/api/exposure?advisory=3', expect.anything())
+})
+
+test('getExplanation and getAlerts ask for the given asset and advisory', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => json([]))
+
+  await getExplanation('SUB-07', 3)
+  await getAlerts(4)
+
+  expect(fetchMock).toHaveBeenCalledWith('/api/assets/SUB-07/explain?advisory=3', expect.anything())
+  expect(fetchMock).toHaveBeenCalledWith('/api/alerts?advisory=4', expect.anything())
 })

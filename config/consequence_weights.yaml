@@ -1,0 +1,6 @@
+# Policy weights in customer-equivalents (docs/IMPLEMENTATION_PLAN.md section 3), editable.
+# Added to an asset's consequence for each critical facility it feeds directly; the treatment plant
+# counts as a critical facility for this purpose.
+hospital: 5000
+treatment_plant: 20000
+shelter: 1000

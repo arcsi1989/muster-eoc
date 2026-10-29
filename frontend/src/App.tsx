@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
+  getAlerts,
   getAssets,
   getChanges,
   getCoastline,
@@ -9,7 +10,9 @@ import {
   getStagingAreas,
 } from './api/scenario'
 import { DisclaimerFooter } from './components/DisclaimerFooter'
+import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
+import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { TerritoryMap } from './features/map/TerritoryMap'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
@@ -61,13 +64,16 @@ function OperationsScreen() {
   const changesLoader = useCallback(() => getChanges(currentNo), [currentNo])
   const exposureLoader = useCallback(() => getExposure(currentNo), [currentNo])
   const exposure = useLoad(currentNo > 0 ? exposureLoader : null)
+  const alertsLoader = useCallback(() => getAlerts(currentNo), [currentNo])
+  const alerts = useLoad(currentNo > 0 ? alertsLoader : null)
+  const [selected, setSelected] = useState<string | null>(null)
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
 
   const assets = useMemo(() => (territory.state.status === 'ok' ? territory.state.data.assets : []), [territory.state])
   const assetsById = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets])
-  const scores = useMemo(
-    () => new Map(risk.state.status === 'ok' ? risk.state.data.items.map((i) => [i.asset_id, i.score]) : []),
+  const pFail = useMemo(
+    () => new Map(risk.state.status === 'ok' ? risk.state.data.items.map((i) => [i.asset_id, i.p_fail]) : []),
     [risk.state],
   )
 
@@ -111,10 +117,11 @@ function OperationsScreen() {
               assets={assets}
               facilities={territory.state.data.facilities}
               stagingAreas={territory.state.data.stagingAreas}
-              scores={scores}
+              pFail={pFail}
               exposure={exposureBySite}
               advisory={current}
               previous={previous}
+              onSelect={setSelected}
             />
           )}
           {exposure.state.status === 'error' && (
@@ -141,13 +148,17 @@ function OperationsScreen() {
             <>
               <AdvisoryCard advisory={current} previous={previous} />
               <ChangesPanel state={changes.state} assetsById={assetsById} onRetry={changes.retry} />
+              <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />
             </>
           )}
           <section className="card" aria-label="Risk list">
             <h2>Risk list</h2>
-            <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} />
+            <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
           </section>
         </aside>
+        {selected && currentNo > 0 && (
+          <ExplainDrawer assetId={selected} advisoryNo={currentNo} onClose={() => setSelected(null)} />
+        )}
       </main>
     </div>
   )

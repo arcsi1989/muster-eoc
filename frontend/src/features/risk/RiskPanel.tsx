@@ -6,9 +6,10 @@ interface Props {
   state: LoadState<RiskListData>
   assetsById: Map<string, Asset>
   onRetry: () => void
+  onSelect: (assetId: string) => void
 }
 
-export function RiskPanel({ state, assetsById, onRetry }: Props) {
+export function RiskPanel({ state, assetsById, onRetry, onSelect }: Props) {
   switch (state.status) {
     case 'idle':
       return <p className="hint">Issue advisory 1 to see the ranked risk list.</p>
@@ -24,6 +25,6 @@ export function RiskPanel({ state, assetsById, onRetry }: Props) {
         </div>
       )
     case 'ok':
-      return <RiskList items={state.data.items} assetsById={assetsById} />
+      return <RiskList items={state.data.items} assetsById={assetsById} onSelect={onSelect} />
   }
 }

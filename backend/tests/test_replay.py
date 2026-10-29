@@ -66,8 +66,8 @@ def test_risk_list_ranks_every_asset_for_an_issued_advisory(client: TestClient) 
     assert body["advisory_no"] == 1
     assert {item["asset_id"] for item in body["items"]} == asset_ids
     assert [item["rank"] for item in body["items"]] == list(range(1, len(asset_ids) + 1))
-    scores = [item["score"] for item in body["items"]]
-    assert scores == sorted(scores, reverse=True)
+    risks = [item["risk"] for item in body["items"]]
+    assert risks == sorted(risks, reverse=True)
 
 
 def test_risk_for_an_advisory_not_yet_issued_is_not_found(client: TestClient) -> None:

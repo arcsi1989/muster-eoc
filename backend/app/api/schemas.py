@@ -1,11 +1,14 @@
 """Response models for the HTTP API."""
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
+from app.risk.alerts import AlertKind
+from app.risk.confidence import Confidence
 
 
 class PointOut(BaseModel):
@@ -126,9 +129,12 @@ class CoastlineOut(BaseModel):
 
 class RiskItemOut(BaseModel):
     asset_id: str
-    score: float
+    p_fail: float
+    consequence: float  # customer-equivalents
+    risk: float  # p_fail x consequence
     rank: int
     previous_rank: int | None  # None at the first advisory
+    confidence: Confidence
 
 
 class RiskListOut(BaseModel):
@@ -145,3 +151,60 @@ class ExposureOut(BaseModel):
     flood_depth_p90_m: float
     tsforce_arrival_h: float | None  # median hours until tropical-storm-force wind; None if never
     elevation_imputed: bool
+
+
+class HazardFactorOut(BaseModel):
+    theta: float  # published median capacity: mph for wind, m for flood
+    theta_adjusted: float  # after the condition adjustment
+    beta: float
+    p_fail: float  # this hazard alone, mean over ensemble members
+
+
+class DownstreamAssetOut(BaseModel):
+    id: str
+    customers: float  # share counted for this asset
+    feeders: int
+
+
+class WeightedFacilityOut(BaseModel):
+    id: str
+    type: str
+    weight: float  # share counted for this asset
+    feeders: int
+
+
+class ConsequenceOut(BaseModel):
+    own_customers: int
+    downstream_assets: list[DownstreamAssetOut]
+    facilities: list[WeightedFacilityOut]
+    total: float
+
+
+class DependencyLinkOut(BaseModel):
+    id: str
+    kind: Literal["asset", "facility"]
+    name: str
+
+
+class ExplainOut(BaseModel):
+    asset: AssetOut
+    advisory_no: int
+    rank: int
+    risk: float
+    p_fail: float
+    p_wind: float
+    p_flood: float
+    wind: HazardFactorOut
+    flood: HazardFactorOut
+    exposure: ExposureOut
+    consequence: ConsequenceOut
+    confidence: Confidence
+    confidence_reasons: list[str]
+    feeds: list[DependencyLinkOut]
+    fed_by: list[DependencyLinkOut]
+
+
+class AlertOut(BaseModel):
+    asset_id: str
+    kind: AlertKind
+    message: str

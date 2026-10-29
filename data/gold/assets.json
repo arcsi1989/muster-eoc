@@ -78,12 +78,12 @@
     "y_km": 137.51
   },
   {
-    "condition_score": 3,
+    "condition_score": 4,
     "customers_served": 4400,
     "distance_to_coast_km": 5.8,
     "elevation_m": 2.4,
     "id": "SUB-07",
-    "install_year": 1988,
+    "install_year": 1972,
     "last_inspection_date": "2025-06-06",
     "name": "Medical District Substation",
     "type": "substation",

@@ -1,7 +1,7 @@
 import { CRS, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Polygon, Polyline, Tooltip } from 'react-leaflet'
-import { riskColor } from '../../lib/riskColor'
+import { FULL_RED_AT, pFailColor } from '../../lib/pFailColor'
 import type { Advisory, Asset, Coastline, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
 
 // Planar km grid with Leaflet's simple CRS: lat = y_km, lng = x_km. No tiles, no real geography.
@@ -16,10 +16,12 @@ interface Props {
   assets: Asset[]
   facilities: Facility[]
   stagingAreas: StagingArea[]
-  scores: Map<string, number>
+  /** failure probability per asset at the current advisory */
+  pFail: Map<string, number>
   exposure: Map<string, Exposure>
   advisory: Advisory | undefined
   previous: Advisory | undefined
+  onSelect: (assetId: string) => void
 }
 
 function exposureText(e: Exposure | undefined): string {
@@ -34,10 +36,11 @@ export function TerritoryMap({
   assets,
   facilities,
   stagingAreas,
-  scores,
+  pFail,
   exposure,
   advisory,
   previous,
+  onSelect,
 }: Props) {
   return (
     <div className="map-wrap">
@@ -85,7 +88,7 @@ export function TerritoryMap({
           </CircleMarker>
         ))}
         {assets.map((asset) => {
-          const score = scores.get(asset.id)
+          const score = pFail.get(asset.id)
           return (
             <CircleMarker
               key={asset.id}
@@ -94,13 +97,14 @@ export function TerritoryMap({
               pathOptions={{
                 color: '#222',
                 weight: 1,
-                fillColor: score === undefined ? '#9aa0a6' : riskColor(score),
+                fillColor: score === undefined ? '#9aa0a6' : pFailColor(score),
                 fillOpacity: 0.95,
               }}
+              eventHandlers={{ click: () => onSelect(asset.id) }}
             >
               <Tooltip>
                 {asset.id} {asset.name}
-                {score !== undefined && ` · score ${score.toFixed(2)}`}
+                {score !== undefined && ` · failure probability ${Math.round(score * 100)}%`}
                 {exposureText(exposure.get(asset.id))}
               </Tooltip>
             </CircleMarker>
@@ -122,12 +126,14 @@ export function TerritoryMap({
           <span className="legend-dot staging-swatch" aria-hidden /> staging area
         </p>
         <p className="legend-scale">
-          <span className="legend-dot" style={{ background: riskColor(0) }} aria-hidden /> low
-          <span className="legend-dot" style={{ background: riskColor(0.5) }} aria-hidden /> medium
-          <span className="legend-dot" style={{ background: riskColor(1) }} aria-hidden /> high
+          <span className="legend-dot" style={{ background: pFailColor(0) }} aria-hidden /> 0%
+          <span className="legend-dot" style={{ background: pFailColor(FULL_RED_AT / 2) }} aria-hidden />{' '}
+          {Math.round((FULL_RED_AT / 2) * 100)}%
+          <span className="legend-dot" style={{ background: pFailColor(FULL_RED_AT) }} aria-hidden /> ≥
+          {Math.round(FULL_RED_AT * 100)}%
           <span className="legend-dot" style={{ background: '#9aa0a6' }} aria-hidden /> not scored
         </p>
-        <p className="hint">Score for now = closeness to the forecast landfall. The real risk score comes next.</p>
+        <p className="hint">Asset colour = failure probability at this advisory. Click an asset to see why.</p>
       </div>
     </div>
   )

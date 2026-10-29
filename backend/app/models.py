@@ -3,8 +3,10 @@
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, String
 from sqlmodel import Field, SQLModel
+
+from app.risk.confidence import Confidence
 
 
 class Asset(SQLModel, table=True):
@@ -120,9 +122,24 @@ class Exposure(SQLModel, table=True):
 
 
 class Score(SQLModel, table=True):
-    """Placeholder score per asset and advisory, replaced by the risk score in ticket 04."""
+    """Risk per asset and advisory, with the factor breakdown that reproduces it."""
 
     asset_id: str = Field(primary_key=True, foreign_key="asset.id")
     advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
-    score: float
+    p_wind: float
+    p_flood: float
+    p_fail: float
+    consequence: float  # customer-equivalents
+    risk: float  # p_fail x consequence
     rank: int
+    confidence: Confidence = Field(sa_type=String)
+    confidence_reasons: list[str] = Field(sa_column=Column(JSON, nullable=False))
+    factors: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+
+
+class Alert(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    advisory_no: int = Field(foreign_key="advisory.advisory_no")
+    asset_id: str = Field(foreign_key="asset.id")
+    kind: str  # risk_threshold | top_n_entry | rank_jump
+    message: str

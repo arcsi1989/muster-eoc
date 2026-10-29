@@ -35,9 +35,31 @@ class HazardConfig(Strict):
     interpolation_step_hours: float
 
 
+class AlertConfig(Strict):
+    risk_threshold: float
+    top_n: int
+    rank_jump: int
+    rank_jump_within: int
+
+
+class RiskConfig(Strict):
+    condition_theta_reduction_per_step: float
+    stale_inspection_years: float
+    alert: AlertConfig
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
+    risk: RiskConfig
+    consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 
-def load_scoring_config(path: Path) -> ScoringConfig:
-    return ScoringConfig.model_validate(yaml.safe_load(path.read_text()))
+def load_scoring_config(path: Path, weights_path: Path | None = None) -> ScoringConfig:
+    """Reads scoring.yaml and, next to it, consequence_weights.yaml."""
+    weights_path = weights_path or path.with_name("consequence_weights.yaml")
+    return ScoringConfig.model_validate(
+        {
+            **yaml.safe_load(path.read_text()),
+            "consequence_weights": yaml.safe_load(weights_path.read_text()),
+        }
+    )

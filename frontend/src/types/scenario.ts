@@ -113,12 +113,19 @@ export interface Coastline {
   land: Point[]
 }
 
+export type Confidence = 'high' | 'medium' | 'low'
+
 export interface RiskItem {
   asset_id: string
-  score: number
+  p_fail: number
+  /** customer-equivalents */
+  consequence: number
+  /** p_fail x consequence */
+  risk: number
   rank: number
   /** null at the first advisory */
   previous_rank: number | null
+  confidence: Confidence
 }
 
 export interface RiskList {
@@ -136,4 +143,65 @@ export interface Exposure {
   /** median hours until tropical-storm-force wind; null if never */
   tsforce_arrival_h: number | null
   elevation_imputed: boolean
+}
+
+export interface HazardFactor {
+  /** published median capacity: mph for wind, m for flood */
+  theta: number
+  theta_adjusted: number
+  beta: number
+  /** this hazard alone, mean over ensemble members */
+  p_fail: number
+}
+
+export interface DownstreamAsset {
+  id: string
+  /** share counted for this asset: its customers divided by its feeders */
+  customers: number
+  feeders: number
+}
+
+export interface WeightedFacility {
+  id: string
+  type: string
+  /** share counted for this asset: the policy weight divided by its feeders */
+  weight: number
+  feeders: number
+}
+
+export interface Consequence {
+  own_customers: number
+  downstream_assets: DownstreamAsset[]
+  facilities: WeightedFacility[]
+  total: number
+}
+
+export interface DependencyLink {
+  id: string
+  kind: 'asset' | 'facility'
+  name: string
+}
+
+export interface Explanation {
+  asset: Asset
+  advisory_no: number
+  rank: number
+  risk: number
+  p_fail: number
+  p_wind: number
+  p_flood: number
+  wind: HazardFactor
+  flood: HazardFactor
+  exposure: Exposure
+  consequence: Consequence
+  confidence: Confidence
+  confidence_reasons: string[]
+  feeds: DependencyLink[]
+  fed_by: DependencyLink[]
+}
+
+export interface Alert {
+  asset_id: string
+  kind: 'risk_threshold' | 'top_n_entry' | 'rank_jump'
+  message: string
 }
