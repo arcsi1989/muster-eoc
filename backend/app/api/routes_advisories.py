@@ -6,6 +6,7 @@ from sqlmodel import Session
 
 from app import advisory_context
 from app.agent import cycle as advisory_cycle
+from app.agent import lifecycle
 from app.api.schemas import (
     AdvisoryOut,
     ChangesOut,
@@ -73,7 +74,7 @@ def get_scenario(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
 def next_advisory(
     session: SessionDep, levels: LevelsDep, config: ConfigDep, cycle: CycleDep
 ) -> ScenarioOut:
-    advisory_cycle.issue_next_advisory(session, config, cycle)
+    lifecycle.issue_next_advisory(session, config, cycle)
     return _scenario(session, levels)
 
 

@@ -18,8 +18,6 @@ interface Props {
   hoursToLandfall: number | null
   declareError: ApiError | null
   onDeclare: (level: ActivationLevel, reason?: string) => void
-  /** the situation report can be approved while its advisory is current */
-  sitrepOpen: boolean
   clauses: Map<string, Clause>
   sitrepError: ApiError | null
   onApproveSitrep: (text: string) => void
@@ -44,7 +42,6 @@ export function PackageView({
   hoursToLandfall,
   declareError,
   onDeclare,
-  sitrepOpen,
   clauses,
   sitrepError,
   onApproveSitrep,
@@ -112,7 +109,7 @@ export function PackageView({
           draft={pkg.draft}
           draftText={pkg.draft_text}
           sitrep={pkg.sitrep}
-          open={sitrepOpen}
+          open={open}
           clauses={clauses}
           error={sitrepError}
           busy={busy}

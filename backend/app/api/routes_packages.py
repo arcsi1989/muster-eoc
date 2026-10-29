@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.agent.decisions import DecisionRequest
-from app.agent.package import decide, package_view
+from app.agent.lifecycle import decide, package_view
 from app.api.package_out import package_out
 from app.api.schemas import DecisionIn, PackageOut
 from app.deps import CycleDep, PlaybookDep, SessionDep
@@ -10,8 +10,10 @@ router = APIRouter(prefix="/packages")
 
 
 @router.get("/{advisory_no}", response_model=PackageOut)
-def get_package(advisory_no: int, session: SessionDep, playbook: PlaybookDep) -> PackageOut:
-    return package_out(package_view(session, playbook, advisory_no))
+def get_package(
+    advisory_no: int, session: SessionDep, playbook: PlaybookDep, cycle: CycleDep
+) -> PackageOut:
+    return package_out(package_view(session, playbook, cycle, advisory_no))
 
 
 @router.post("/{advisory_no}/items/{item_id}/decision", response_model=PackageOut)
@@ -32,4 +34,4 @@ def post_decision(
         item_id,
         DecisionRequest(body.role, body.action, body.reason),
     )
-    return package_out(package_view(session, playbook, advisory_no))
+    return package_out(package_view(session, playbook, cycle, advisory_no))

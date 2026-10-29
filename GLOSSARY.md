@@ -58,6 +58,7 @@ _Avoid_: Clash, exception
 
 **Decision package**:
 Everything put before the EOC for one advisory: what changed, the gaps with their proposed actions, the conflicts, and the draft situation report.
+It is **open** from the moment its advisory is issued until the next advisory expires it; only an open package takes decisions, and items still undecided then close as not decided.
 _Avoid_: Report, briefing pack
 
 **Approval**:

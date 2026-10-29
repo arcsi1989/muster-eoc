@@ -8,7 +8,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app import advisory_context
-from app.agent.cycle import AdvisoryCycle, issue_next_advisory
+from app.agent.cycle import AdvisoryCycle
+from app.agent.lifecycle import issue_next_advisory
 from app.config import Settings
 from app.db import create_fresh_engine
 from app.ingest.loader import load_gold

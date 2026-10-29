@@ -3,7 +3,8 @@ SQLite file (ADR 0001)."""
 
 import sqlite3
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -13,7 +14,6 @@ from langgraph.types import Command
 from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
-from app import advisory_context
 from app.agent.decisions import DecisionRequest, Declaration
 from app.agent.graph import build_graph
 from app.audit.log import clear_events, record
@@ -41,7 +41,9 @@ class AdvisoryCycle:
         self._saver = SqliteSaver(self._conn)
         self._saver.setup()
         self._graph = build_graph(engine, playbook, llm, config).compile(checkpointer=self._saver)
-        self._lock = threading.Lock()  # one graph step at a time on the shared connection
+        # one graph step at a time on the shared connection; reentrant so a check that runs
+        # under it (a decision's precheck) can read between steps too
+        self._lock = threading.RLock()
 
     @staticmethod
     def _thread(advisory_no: int) -> Any:
@@ -51,9 +53,18 @@ class AdvisoryCycle:
         with self._lock:
             self._graph.invoke({"advisory_no": advisory_no}, self._thread(advisory_no))
 
+    @contextmanager
+    def between_steps(self) -> Iterator[None]:
+        """Holds the cycle between graph steps, so a read sees a step's database writes and its
+        checkpoint together."""
+        with self._lock:
+            yield
+
     def waiting(self, advisory_no: int) -> bool:
-        """True while the advisory's thread is paused for decisions."""
-        return bool(self._graph.get_state(self._thread(advisory_no)).next)
+        """True while the advisory's thread is paused for decisions. Read only by the decision
+        package lifecycle, which keeps it in step with the package record."""
+        with self._lock:
+            return bool(self._graph.get_state(self._thread(advisory_no)).next)
 
     def decide(
         self,
@@ -85,9 +96,10 @@ class AdvisoryCycle:
             self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
 
     def expire(self, advisory_no: int) -> None:
-        """Closes undecided items as not decided and finalises the package."""
+        """Resumes the paused thread to close undecided items as not decided and finalise the
+        package. Does nothing if the thread is not paused."""
         with self._lock:
-            if advisory_no and self.waiting(advisory_no):
+            if self.waiting(advisory_no):
                 self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
 
     def reset(self, session: Session) -> None:
@@ -102,17 +114,6 @@ class AdvisoryCycle:
 
     def close(self) -> None:
         self._conn.close()
-
-
-def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
-    """Expires the current advisory's open decisions, issues and scores the next advisory, and
-    runs its cycle until it pauses for decisions."""
-    cycle.expire(advisory_context.current_advisory_no(session))
-    advisory = service.advance(session, config)
-    advisory_context.reset_per_advisory_flags(session, advisory)
-    session.commit()  # one transaction: the advisory is never current with stale flags
-    cycle.start(advisory.advisory_no)
-    return advisory.advisory_no
 
 
 def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> None:
