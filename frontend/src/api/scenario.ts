@@ -1,6 +1,8 @@
 import type {
   AdvisoryChanges,
   Alert,
+  AuditActor,
+  AuditEvent,
   Clause,
   Asset,
   Coastline,
@@ -47,3 +49,5 @@ export const postDecision = (
   })
 export const approveSitrep = (advisoryNo: number, role: Role, text: string) =>
   api<Sitrep>(`/sitrep/${advisoryNo}/approve`, { method: 'POST', body: JSON.stringify({ role, text }) })
+export const getAudit = (actor?: AuditActor) =>
+  api<AuditEvent[]>(actor ? `/audit?actor=${encodeURIComponent(actor)}` : '/audit')

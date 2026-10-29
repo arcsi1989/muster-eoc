@@ -250,7 +250,12 @@ def build_graph(
                     "items_not_decided",
                     f"{len(items)} items closed as not decided when the next advisory arrived",
                     advisory,
-                    {"items": [i.id for i in items]},
+                    {
+                        "items": [
+                            {"id": i.id, "rule_id": i.rule_id, "entity_id": i.entity_id}
+                            for i in items
+                        ]
+                    },
                     versions,
                 )
                 return Command(goto="finalise")
@@ -287,6 +292,7 @@ def build_graph(
                 advisory,
                 {
                     "item_id": item.id,
+                    "role": request.role,
                     "rule_id": item.rule_id,
                     "entity_id": item.entity_id,
                     "action": request.action,

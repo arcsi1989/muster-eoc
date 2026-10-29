@@ -294,3 +294,20 @@ export interface DecisionPackage {
   draft_text: string | null
   sitrep: Sitrep | null
 }
+
+export type AuditActor = 'system' | 'agent' | 'human'
+
+export interface AuditEvent {
+  id: number
+  /** wall-clock time */
+  recorded_at: string
+  /** scenario time: the advisory in force */
+  advisory_no: number | null
+  hours_to_landfall: number | null
+  actor: AuditActor
+  type: string
+  summary: string
+  payload: Record<string, unknown>
+  input_hash: string
+  versions: Record<string, unknown>
+}

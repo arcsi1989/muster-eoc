@@ -6,9 +6,9 @@
 
 **Status:** ready-for-agent
 
-- [ ] `GET /audit` with an optional actor filter (system, agent, human), newest first
-- [ ] Audit route listing each event: scenario time, wall-clock time, actor, type, summary; details expandable (input hash, model / rules / prompt versions, payload)
-- [ ] Human decisions show role, action and reason; "not decided" closures are visible
-- [ ] Loading, error and empty states
-- [ ] API test for the filter; frontend tests for the list states
-- [ ] `./scripts/check.sh` passes
+- [x] `GET /audit` with an optional actor filter (system, agent, human), newest first
+- [x] Audit route listing each event: scenario time, wall-clock time, actor, type, summary; details expandable (input hash, model / rules / prompt versions, payload)
+- [x] Human decisions show role, action and reason; "not decided" closures are visible
+- [x] Loading, error and empty states
+- [x] API test for the filter; frontend tests for the list states
+- [x] `./scripts/check.sh` passes

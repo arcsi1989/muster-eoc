@@ -11,6 +11,7 @@ import {
 } from './api/scenario'
 import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { AlertsPanel } from './features/alerts/AlertsPanel'
+import { AuditPage } from './features/audit/AuditPage'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { PackagePanel } from './features/package/PackagePanel'
@@ -22,7 +23,7 @@ import { ChangesPanel } from './features/scenario/ChangesPanel'
 import { IntroPanel } from './features/scenario/IntroPanel'
 import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
-import { useHashRoute } from './lib/useHashRoute'
+import { PAGES, useHashRoute } from './lib/useHashRoute'
 import { useLoad } from './lib/useLoad'
 import type { Role } from './types/scenario'
 
@@ -41,14 +42,15 @@ export default function App() {
   return (
     <div className="app">
       <nav className="app-nav" aria-label="Pages">
-        <a href="#/" aria-current={route === 'operations' ? 'page' : undefined}>
-          Operations
-        </a>
-        <a href="#/data-quality" aria-current={route === 'data-quality' ? 'page' : undefined}>
-          Data quality
-        </a>
+        {PAGES.map((page) => (
+          <a key={page.route} href={page.hash} aria-current={route === page.route ? 'page' : undefined}>
+            {page.label}
+          </a>
+        ))}
       </nav>
-      {route === 'operations' ? <OperationsScreen /> : <DataQualityPage />}
+      {route === 'operations' && <OperationsScreen />}
+      {route === 'audit' && <AuditPage />}
+      {route === 'data-quality' && <DataQualityPage />}
       <DisclaimerFooter />
     </div>
   )

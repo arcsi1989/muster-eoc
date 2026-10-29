@@ -1,9 +1,16 @@
 import { useSyncExternalStore } from 'react'
 
-export type Route = 'operations' | 'data-quality'
+/** The pages, in nav order: one table drives the hash lookup and the nav links. */
+export const PAGES = [
+  { route: 'operations', hash: '#/', label: 'Operations' },
+  { route: 'audit', hash: '#/audit', label: 'Audit' },
+  { route: 'data-quality', hash: '#/data-quality', label: 'Data quality' },
+] as const
+
+export type Route = (typeof PAGES)[number]['route']
 
 function current(): Route {
-  return window.location.hash === '#/data-quality' ? 'data-quality' : 'operations'
+  return PAGES.find((p) => p.hash === window.location.hash)?.route ?? 'operations'
 }
 
 function subscribe(onChange: () => void) {
@@ -11,7 +18,7 @@ function subscribe(onChange: () => void) {
   return () => window.removeEventListener('hashchange', onChange)
 }
 
-/** Two routes don't need a router dependency: the hash picks the page. */
+/** A handful of pages don't need a router dependency: the hash picks the page. */
 export function useHashRoute(): Route {
   return useSyncExternalStore(subscribe, current)
 }

@@ -70,6 +70,7 @@ def approve_sitrep(
         + (" after editing the draft" if edited else " as drafted"),
         advisory,
         {
+            "role": role,
             "edited": edited,
             "draft_provider": package.draft.get("provider"),
             "state_written": {f"event.{SITREP_FLAG}": True},
