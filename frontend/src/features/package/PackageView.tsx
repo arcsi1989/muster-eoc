@@ -1,7 +1,8 @@
 import type { ApiError } from '../../api/client'
 import { roleLabel } from '../../lib/roles'
-import type { Asset, Clause, DecisionAction, DecisionPackage, PackageItem } from '../../types/scenario'
+import type { ActivationLevel, Asset, Clause, DecisionAction, DecisionPackage, PackageItem, Role } from '../../types/scenario'
 import { ChangeList } from '../scenario/ChangesPanel'
+import { ActivationProposalCard } from './ActivationProposalCard'
 import { ItemCard } from './ItemCard'
 import { SitrepSection } from './SitrepSection'
 
@@ -12,6 +13,11 @@ interface Props {
   error: { itemId: number; error: ApiError } | null
   busy: boolean
   onDecide: (item: PackageItem, action: DecisionAction, reason?: string) => void
+  role: Role
+  /** of the package's advisory; null while unknown */
+  hoursToLandfall: number | null
+  declareError: ApiError | null
+  onDeclare: (level: ActivationLevel, reason?: string) => void
   /** the situation report can be approved while its advisory is current */
   sitrepOpen: boolean
   clauses: Map<string, Clause>
@@ -34,6 +40,10 @@ export function PackageView({
   error,
   busy,
   onDecide,
+  role,
+  hoursToLandfall,
+  declareError,
+  onDeclare,
   sitrepOpen,
   clauses,
   sitrepError,
@@ -43,6 +53,7 @@ export function PackageView({
   const open = pkg.status === 'open'
   const conflicts = pkg.items.filter((i) => i.kind === 'conflict')
   const gaps = pkg.items.filter((i) => i.kind === 'gap')
+  const proposal = pkg.items.find((i) => i.kind === 'proposal')
   const pending = pkg.items.filter((i) => i.status === 'pending').length
   const errorFor = (item: PackageItem) => (error?.itemId === item.id ? error.error : null)
 
@@ -62,6 +73,19 @@ export function PackageView({
 
   return (
     <div className="findings">
+      {proposal && pkg.proposed_activation_level && (
+        <ActivationProposalCard
+          item={proposal}
+          proposed={pkg.proposed_activation_level}
+          declared={pkg.activation_level}
+          hoursToLandfall={hoursToLandfall}
+          role={role}
+          open={open}
+          busy={busy}
+          error={declareError}
+          onDeclare={onDeclare}
+        />
+      )}
       <p className="hint small">
         {open
           ? `${pending} of ${pkg.items.length} items await a decision. The ${roleLabel(pkg.decides_as_commander)} holds overrides at this activation level. In this prototype an approval records the action as done.`

@@ -25,6 +25,7 @@ const pkg = (items: PackageItem[], status: 'open' | 'closed' = 'open'): Decision
   advisory_no: 5,
   status,
   activation_level: 'full',
+  proposed_activation_level: 'full',
   decides_as_commander: 'incident_commander',
   changes: {
     advisory_no: 5,
@@ -58,6 +59,10 @@ const sitrepProps = {
   sitrepError: null,
   onApproveSitrep: () => {},
   onSelectAsset: () => {},
+  role: 'director' as const,
+  hoursToLandfall: 24,
+  declareError: null,
+  onDeclare: () => {},
 }
 
 const ps09 = item({
@@ -155,4 +160,25 @@ test('a closed package offers no decisions', () => {
   expect(screen.getByText(/package is closed/)).toBeInTheDocument()
   expect(screen.getByText('Not decided')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /Approve$|Override|Defer/ })).not.toBeInTheDocument()
+})
+
+test('an activation proposal shows first, outside the gaps', () => {
+  const proposal = item({ id: 3, rule_id: 'P-2.5', entity_id: 'event', kind: 'proposal', owner_role: 'incident_commander' })
+  render(
+    <PackageView
+      pkg={{ ...pkg([ps09, proposal]), activation_level: 'prepare' }}
+      assetsById={new Map()}
+      busy={false}
+      error={null}
+      {...sitrepProps}
+      onDecide={() => {}}
+    />,
+  )
+
+  const card = screen.getByRole('region', { name: 'Activation proposal' })
+  expect(card.compareDocumentPosition(screen.getByRole('region', { name: 'What changed' }))).toBe(
+    Node.DOCUMENT_POSITION_FOLLOWING,
+  )
+  expect(within(card).getByRole('button', { name: 'Declare Level 1' })).toBeDisabled()
+  expect(within(screen.getByRole('region', { name: 'Gaps' })).queryByText('P-2.5')).not.toBeInTheDocument()
 })

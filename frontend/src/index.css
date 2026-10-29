@@ -1065,3 +1065,28 @@ button.link {
   gap: 0.5rem;
   margin-top: 0.6rem;
 }
+
+/* Activation proposal (P-2.5): at the top of the decision package */
+
+.badge-monitor {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.proposal-card {
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+}
+
+.proposal-card h3 {
+  margin: 0 0 0.3rem;
+}
+
+.proposal-card button.declare {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+}

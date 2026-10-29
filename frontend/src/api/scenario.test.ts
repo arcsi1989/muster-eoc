@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { ApiError } from './client'
-import { getAlerts, getAudit, getExplanation, getExposure, getLineage, getRisk, nextAdvisory } from './scenario'
+import { getAlerts, getAudit, getExplanation, getExposure, getLineage, getRisk, nextAdvisory, postDeclaration } from './scenario'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -16,6 +16,21 @@ test('nextAdvisory posts to the proxied advisories endpoint', async () => {
 
   expect(fetchMock).toHaveBeenCalledWith('/api/advisories/next', expect.objectContaining({ method: 'POST' }))
   expect(scenario.current_advisory).toBe(1)
+})
+
+test('postDeclaration posts the declared level, the role and the reason', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ advisory_no: 3, activation_level: 'full' }))
+
+  const pkg = await postDeclaration({ level: 'full', declared_by: 'incident_commander', reason: 'on track' })
+
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/activation/declare',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ level: 'full', declared_by: 'incident_commander', reason: 'on track' }),
+    }),
+  )
+  expect(pkg.activation_level).toBe('full')
 })
 
 test('getRisk asks for the given advisory', async () => {

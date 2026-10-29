@@ -1,20 +1,24 @@
 import { useCallback, useMemo, useState } from 'react'
 import { ApiError } from '../../api/client'
-import { approveSitrep, getClauses, getPackage, postDecision } from '../../api/scenario'
+import { approveSitrep, getClauses, getPackage, postDecision, postDeclaration } from '../../api/scenario'
 import { toApiError, useLoad } from '../../lib/useLoad'
-import type { Asset, DecisionAction, PackageItem, Role } from '../../types/scenario'
+import type { ActivationLevel, Asset, DecisionAction, PackageItem, Role } from '../../types/scenario'
 import { PackageView } from './PackageView'
 
 interface Props {
   advisoryNo: number
   role: Role
+  /** of the current advisory; null while the scenario is loading */
+  hoursToLandfall: number | null
   assetsById: Map<string, Asset>
   onSelectAsset: (assetId: string) => void
+  /** a level was declared: the scenario header shows it */
+  onDeclared: () => void
 }
 
 const loadClauses = () => getClauses()
 
-export function PackagePanel({ advisoryNo, role, assetsById, onSelectAsset }: Props) {
+export function PackagePanel({ advisoryNo, role, hoursToLandfall, assetsById, onSelectAsset, onDeclared }: Props) {
   const loader = useCallback(() => getPackage(advisoryNo), [advisoryNo])
   const { state, retry, setData } = useLoad(advisoryNo > 0 ? loader : null)
   const { state: clausesState, retry: retryClauses } = useLoad(loadClauses)
@@ -23,6 +27,7 @@ export function PackagePanel({ advisoryNo, role, assetsById, onSelectAsset }: Pr
     [clausesState],
   )
   const [error, setError] = useState<{ advisoryNo: number; itemId: number; error: ApiError } | null>(null)
+  const [declareError, setDeclareError] = useState<{ advisoryNo: number; error: ApiError } | null>(null)
   const [sitrepError, setSitrepError] = useState<{ advisoryNo: number; error: ApiError } | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -35,6 +40,21 @@ export function PackagePanel({ advisoryNo, role, assetsById, onSelectAsset }: Pr
       const apiError = toApiError(e)
       setError({ advisoryNo, itemId: item.id, error: apiError })
       if (apiError.code === 'package_closed' || apiError.code === 'already_decided') retry()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onDeclare(level: ActivationLevel, reason?: string) {
+    setDeclareError(null)
+    setBusy(true)
+    try {
+      setData(await postDeclaration({ level, declared_by: role, reason }))
+      onDeclared()
+    } catch (e) {
+      const apiError = toApiError(e)
+      setDeclareError({ advisoryNo, error: apiError })
+      if (['package_closed', 'already_decided', 'no_activation_proposal'].includes(apiError.code)) retry()
     } finally {
       setBusy(false)
     }
@@ -81,6 +101,10 @@ export function PackagePanel({ advisoryNo, role, assetsById, onSelectAsset }: Pr
           error={error?.advisoryNo === advisoryNo ? error : null}
           busy={busy}
           onDecide={onDecide}
+          role={role}
+          hoursToLandfall={hoursToLandfall}
+          declareError={declareError?.advisoryNo === advisoryNo ? declareError.error : null}
+          onDeclare={onDeclare}
           sitrepOpen={state.data.advisory_no === advisoryNo}
           clauses={clauses}
           sitrepError={sitrepError?.advisoryNo === advisoryNo ? sitrepError.error : null}

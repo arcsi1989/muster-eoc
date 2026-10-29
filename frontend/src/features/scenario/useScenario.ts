@@ -31,5 +31,7 @@ export function useScenario() {
     actionError,
     next: () => run(nextAdvisory),
     reset: () => run(resetScenario),
+    /** reloads after a change made elsewhere, such as a declared activation level */
+    refresh: () => run(getScenario),
   }
 }

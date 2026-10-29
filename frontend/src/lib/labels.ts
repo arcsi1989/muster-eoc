@@ -6,6 +6,12 @@ export const LEVEL_LABEL: Record<ActivationLevel, string> = {
   full: 'Full activation',
 }
 
+/** Playbook P-2.1 to P-2.3: Level 3 is Monitor, Level 1 is Full activation. */
+export const LEVEL_NUMBER: Record<ActivationLevel, number> = { monitor: 3, prepare: 2, full: 1 }
+
+/** "Level 2 · Prepare" */
+export const levelName = (level: ActivationLevel) => `Level ${LEVEL_NUMBER[level]} · ${LEVEL_LABEL[level]}`
+
 const issuedFormat = new Intl.DateTimeFormat('en-GB', {
   day: 'numeric',
   month: 'short',
