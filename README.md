@@ -9,6 +9,8 @@ A local web app for the Emergency Operations Center (EOC) of a fictional utility
 3. assembles a **decision package**: what changed, the gaps with proposed actions, the conflicts for the Incident Commander, and a draft situation report written by Claude (or a template, offline) with checked citations;
 4. waits for people: each item is approved or overridden by role, conflicts are decided only by the Incident Commander, and every step lands in an audit trail.
 
+**Scope:** substations, pumping stations and the treatment plant, the single points of failure for critical customers; distribution assets are out of scope (PRD A10) and follow as an outage-forecast module.
+
 **The prototype prepares; it never acts.** No AI output changes operational state: only a person's recorded decision does.
 
 ![Operations screen at advisory 3](docs/screenshots/operations.jpg)
