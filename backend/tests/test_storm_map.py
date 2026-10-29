@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from app.config import REPO_ROOT
 from app.hazard.ensemble import StormInput, track_shift_sd
 from app.hazard.track import cone_circles, cone_polygon, intensity_category
+from app.risk.bands import risk_band
 from app.scoring_config import IntensityCategory, load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").hazard
@@ -169,3 +170,35 @@ def test_issuing_each_advisory_takes_under_two_seconds(client: TestClient) -> No
 
         assert response.status_code == 200
         assert elapsed < 2.0
+
+
+@pytest.mark.parametrize(
+    ("p_fail", "band"),
+    [
+        (0.0, "low"),
+        (0.099, "low"),
+        (0.1, "moderate"),
+        (0.249, "moderate"),
+        (0.25, "high"),
+        (0.399, "high"),
+        (0.4, "severe"),
+        (1.0, "severe"),
+    ],
+)
+def test_risk_band_at_each_boundary(p_fail: float, band: str) -> None:
+    thresholds = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").risk.band_min_p_fail
+
+    assert risk_band(p_fail, thresholds) == band
+
+
+def test_risk_items_carry_the_band_and_the_top_factor(client: TestClient) -> None:
+    advance_to(client, 3)
+    config = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").risk.band_min_p_fail
+
+    items = client.get("/risk", params={"advisory": 3}).json()["items"]
+    explained = client.get(f"/assets/{items[0]['asset_id']}/explain", params={"advisory": 3}).json()
+
+    assert all(i["risk_band"] == risk_band(i["p_fail"], config) for i in items)
+    assert {i["top_factor"] for i in items} <= {"wind", "flood"}
+    top = "wind" if explained["p_wind"] >= explained["p_flood"] else "flood"
+    assert items[0]["top_factor"] == top

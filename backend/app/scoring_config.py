@@ -6,6 +6,8 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict
 
+from app.risk.bands import RiskBand
+
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -54,6 +56,7 @@ class RiskConfig(Strict):
     condition_theta_reduction_per_step: float
     stale_inspection_years: float
     top_n: int
+    band_min_p_fail: dict[RiskBand, float]  # band -> lowest p_fail in it
     alert: AlertConfig
 
 
