@@ -2,7 +2,8 @@ from fastapi import APIRouter
 
 from app.agent.decisions import DecisionRequest
 from app.agent.package import PackageView, decide, package_view
-from app.api.schemas import DecisionIn, PackageItemOut, PackageOut
+from app.agent.sitrep import draft_text
+from app.api.schemas import DecisionIn, PackageItemOut, PackageOut, SitrepOut
 from app.deps import CycleDep, PlaybookDep, SessionDep
 
 router = APIRouter(prefix="/packages")
@@ -27,6 +28,8 @@ def _out(view: PackageView) -> PackageOut:
             for v in view.items
         ],
         draft=view.package.draft or None,  # type: ignore[arg-type]
+        draft_text=draft_text(view.package.draft) if view.package.draft else None,
+        sitrep=SitrepOut.model_validate(view.sitrep, from_attributes=True) if view.sitrep else None,
     )
 
 

@@ -21,16 +21,20 @@ from sqlmodel import Session, col, select
 
 from app.agent import decisions
 from app.agent.actions import proposed_action
-from app.agent.draft import PROMPT_VERSION, template_draft
+from app.agent.draft import produce_draft
+from app.agent.draft_request import draft_request
 from app.audit.log import record
 from app.errors import AppError, DataNotLoaded
+from app.llm.provider import LLMProvider
 from app.models import Advisory, DecisionPackage, Finding, OpState, PackageItem, Score
 from app.network import load_network
 from app.playbook.activation import activation_level
 from app.playbook.service import Playbook, store_findings
 from app.replay import service
+from app.scoring_config import DraftConfig
 
 SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
+TEMPLATE_FALLBACK = "template (fallback)"
 MODEL_VERSION = "published-curves"
 
 
@@ -39,12 +43,18 @@ class CycleState(TypedDict, total=False):
     decision: dict[str, Any]
 
 
-def build_graph(engine: Engine, playbook: Playbook) -> StateGraph[CycleState]:
+def build_graph(
+    engine: Engine, playbook: Playbook, llm: LLMProvider, draft_config: DraftConfig
+) -> StateGraph[CycleState]:
     versions = {
         "rules_version": playbook.rulebook.version,
         "model_version": MODEL_VERSION,
-        "prompt_version": PROMPT_VERSION,
+        "prompt_version": llm.prompt_version,
     }
+
+    def provider() -> LLMProvider:
+        return llm
+
     rules = {r.id: r for r in playbook.rulebook.rules}
 
     @contextmanager
@@ -158,24 +168,46 @@ def build_graph(engine: Engine, playbook: Playbook) -> StateGraph[CycleState]:
         return {}
 
     def draft(state: CycleState) -> CycleState:
+        with unit() as session:  # read what the draft may see
+            advisory = advisory_of(session, state)
+            package = session.get(DecisionPackage, advisory.advisory_no)
+            if package is None:
+                raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
+            request, grounding = draft_request(
+                session, advisory, playbook, package.changes, draft_config
+            )
+        # the model call runs outside any database transaction
+        outcome = produce_draft(provider(), request, grounding, draft_config.retries)
+        label = TEMPLATE_FALLBACK if outcome.fallback else outcome.result.provider
         with unit() as session:
             advisory = advisory_of(session, state)
             package = session.get(DecisionPackage, advisory.advisory_no)
             if package is None:
                 raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-            items = session.exec(
-                select(PackageItem).where(PackageItem.advisory_no == advisory.advisory_no)
-            ).all()
-            level = activation_level(advisory.hours_to_landfall, playbook.levels)
-            package.draft = template_draft(advisory, level, package.changes, list(items))
+            package.draft = {
+                "status": "DRAFT",
+                "provider": label,
+                "fallback": outcome.fallback,
+                "model": outcome.result.model,
+                "prompt_version": outcome.prompt_version,
+                "fallback_reason": outcome.fallback_reason,
+                "sections": outcome.result.draft.model_dump()["sections"],
+            }
             session.add(package)
             record(
                 session,
                 "agent",
                 "sitrep_drafted",
-                f"Draft situation report written ({package.draft['provider']})",
+                f"Draft situation report written by {label}"
+                + (f" ({outcome.fallback_reason})" if outcome.fallback_reason else ""),
                 advisory,
-                {"items": len(items)},
+                {
+                    "provider": label,
+                    "model": outcome.result.model,
+                    "attempts": outcome.attempts,
+                    "fallback_reason": outcome.fallback_reason,
+                    "clauses_retrieved": [c.id for c in request.clauses],
+                },
                 versions,
             )
         return {}

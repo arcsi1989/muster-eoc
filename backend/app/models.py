@@ -206,3 +206,14 @@ class AuditEvent(SQLModel, table=True):
     payload: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
     input_hash: str
     versions: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+
+
+class Sitrep(SQLModel, table=True):
+    """The situation report as the Incident Commander approved it (the draft stays on the
+    decision package)."""
+
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    approved_text: str
+    approved_by: str
+    approved_at: datetime
+    edited: bool  # the approver changed the draft text

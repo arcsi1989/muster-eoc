@@ -20,6 +20,7 @@ from app.models import (
     PackageItem,
     ScenarioState,
     Score,
+    Sitrep,
     StagingArea,
 )
 from app.network import load_network
@@ -142,6 +143,7 @@ def _reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:
 def reset(session: Session, data_dir: Path) -> None:
     """Returns to before advisory 1: no advisory, no decisions, the initial operational state."""
     session.exec(delete(AuditEvent))
+    session.exec(delete(Sitrep))
     session.exec(delete(PackageItem))
     session.exec(delete(DecisionPackage))
     session.exec(delete(Finding))

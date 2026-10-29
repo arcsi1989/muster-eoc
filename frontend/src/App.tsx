@@ -173,7 +173,7 @@ function OperationsScreen() {
               </section>
             </>
           ) : (
-            <PackagePanel advisoryNo={currentNo} role={role} assetsById={assetsById} />
+            <PackagePanel advisoryNo={currentNo} role={role} assetsById={assetsById} onSelectAsset={setSelected} />
           )}
         </aside>
         {selected && currentNo > 0 && (

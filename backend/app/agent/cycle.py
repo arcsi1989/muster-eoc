@@ -16,19 +16,29 @@ from sqlmodel import Session
 from app.agent.decisions import DecisionRequest
 from app.agent.graph import build_graph
 from app.audit.log import record
+from app.llm.provider import LLMProvider
 from app.playbook.service import Playbook
 from app.replay import service
-from app.scoring_config import ScoringConfig
+from app.scoring_config import DraftConfig, ScoringConfig
 
 
 class AdvisoryCycle:
-    def __init__(self, engine: Engine, playbook: Playbook, checkpoint_path: Path) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        playbook: Playbook,
+        checkpoint_path: Path,
+        llm: LLMProvider,
+        draft_config: DraftConfig,
+    ) -> None:
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
         checkpoint_path.unlink(missing_ok=True)  # every backend start begins a fresh scenario
         self._conn = sqlite3.connect(checkpoint_path, check_same_thread=False)
         self._saver = SqliteSaver(self._conn)
         self._saver.setup()
-        self._graph = build_graph(engine, playbook).compile(checkpointer=self._saver)
+        self._graph = build_graph(engine, playbook, llm, draft_config).compile(
+            checkpointer=self._saver
+        )
         self._lock = threading.Lock()  # one graph step at a time on the shared connection
 
     @staticmethod

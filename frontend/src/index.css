@@ -911,3 +911,43 @@ button.link {
   background: var(--prepare-bg);
   color: var(--prepare-text);
 }
+
+.chip-button {
+  border: none;
+  cursor: pointer;
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, var(--track) 18%, transparent);
+  color: var(--track);
+}
+
+.sitrep-text {
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.reason textarea {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.chip-clause {
+  border: none;
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+}
+
+.clause-text {
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+  border-left: 3px solid var(--accent);
+  background: var(--panel);
+}

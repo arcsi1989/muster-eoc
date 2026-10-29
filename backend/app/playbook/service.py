@@ -12,6 +12,7 @@ from app.playbook.activation import ActivationLevel, activation_level, load_acti
 from app.playbook.clauses import Clause, parse_clauses
 from app.playbook.engine import Entity, Status, evaluate
 from app.playbook.engine import Finding as EngineFinding
+from app.playbook.retrieval import ClauseIndex
 from app.playbook.rules import Rulebook, load_rulebook
 
 # The definition of event.critical_feeding_assets_top25 (P-4.3, plan section 2.4): top-25 risk
@@ -27,6 +28,7 @@ class Playbook:
     rulebook: Rulebook
     levels: list[ActivationLevel]
     clauses: list[Clause]
+    index: ClauseIndex
 
     @property
     def full_activation_from_hours(self) -> float:
@@ -34,10 +36,12 @@ class Playbook:
 
 
 def load_playbook(rules_path: Path, playbook_path: Path) -> Playbook:
+    clauses = parse_clauses(playbook_path)
     return Playbook(
         rulebook=load_rulebook(rules_path),
         levels=load_activation_levels(rules_path),
-        clauses=parse_clauses(playbook_path),
+        clauses=clauses,
+        index=ClauseIndex.build(clauses),
     )
 
 
@@ -188,3 +192,27 @@ def finding_views(
         FindingView(f, titles[f.rule_id], name(f.entity_id))
         for f in findings(session, advisory_no, status)
     ]
+
+
+def refresh_event_finding(
+    session: Session, advisory: Advisory, playbook: Playbook, rule_id: str
+) -> Finding | None:
+    """Re-evaluates one event-level rule after a state change made outside the package (the
+    situation report approval for P-7.1) and updates its stored finding."""
+    rule = next(r for r in playbook.rulebook.rules if r.id == rule_id)
+    event, _ = evaluation_context(session, advisory, playbook)
+    single = playbook.rulebook.model_copy(update={"rules": [rule]})
+    results = evaluate(single, event, [])
+    stored = session.exec(
+        select(Finding).where(
+            Finding.advisory_no == advisory.advisory_no,
+            Finding.rule_id == rule_id,
+            Finding.entity_id == "event",
+        )
+    ).first()
+    if stored is None or not results:
+        return stored
+    stored.status = results[0].status
+    stored.details = results[0].details
+    session.add(stored)
+    return stored

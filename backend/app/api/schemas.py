@@ -265,9 +265,25 @@ class DraftSectionOut(BaseModel):
 
 class DraftOut(BaseModel):
     status: str  # DRAFT until approved
-    provider: str
-    prompt_version: str
+    provider: str  # the provider that wrote it, or "template (fallback)"
+    fallback: bool  # the template draft replaced the provider's draft
+    model: str | None
+    prompt_version: str | None  # None for template drafts: no prompt is used
+    fallback_reason: str | None
     sections: list[DraftSectionOut]
+
+
+class SitrepOut(BaseModel):
+    advisory_no: int
+    approved_text: str
+    approved_by: str
+    approved_at: datetime
+    edited: bool
+
+
+class SitrepApproveIn(BaseModel):
+    role: Role
+    text: str
 
 
 class PackageOut(BaseModel):
@@ -278,6 +294,8 @@ class PackageOut(BaseModel):
     changes: ChangesOut
     items: list[PackageItemOut]
     draft: DraftOut | None
+    draft_text: str | None  # the draft as editable plain text
+    sitrep: SitrepOut | None  # the approved situation report, once approved
 
 
 class DecisionIn(BaseModel):

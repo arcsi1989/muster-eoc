@@ -263,9 +263,23 @@ export interface DraftParagraph {
 
 export interface Draft {
   status: string
+  /** the provider that wrote it, or "template (fallback)" */
   provider: string
-  prompt_version: string
+  /** the template draft replaced the provider's draft */
+  fallback: boolean
+  model: string | null
+  /** null for template drafts: no prompt is used */
+  prompt_version: string | null
+  fallback_reason: string | null
   sections: { heading: string; paragraphs: DraftParagraph[] }[]
+}
+
+export interface Sitrep {
+  advisory_no: number
+  approved_text: string
+  approved_by: string
+  approved_at: string
+  edited: boolean
 }
 
 export interface DecisionPackage {
@@ -276,4 +290,7 @@ export interface DecisionPackage {
   changes: AdvisoryChanges
   items: PackageItem[]
   draft: Draft | null
+  /** the draft as editable plain text */
+  draft_text: string | null
+  sitrep: Sitrep | null
 }

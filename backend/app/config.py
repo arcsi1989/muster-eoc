@@ -1,6 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -15,6 +17,12 @@ class Settings(BaseSettings):
     database_path: Path = REPO_ROOT / "data" / "runtime" / "sgw.sqlite"
     checkpoint_path: Path = REPO_ROOT / "data" / "runtime" / "checkpoints.sqlite"
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
+
+    # LLM (decisions.md): template by default and in tests; make dev reads backend/.env.
+    llm_provider: Literal["anthropic", "template", "azure_openai"] = "template"
+    llm_model: str = "claude-sonnet-5-5"
+    llm_timeout_s: float = 30.0
+    anthropic_api_key: SecretStr | None = None
 
 
 @lru_cache

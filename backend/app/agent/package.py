@@ -8,7 +8,7 @@ from sqlmodel import Session, col, select
 from app.agent import decisions
 from app.agent.cycle import AdvisoryCycle
 from app.errors import ConflictError, NotFound
-from app.models import DecisionPackage, Finding, PackageItem
+from app.models import DecisionPackage, Finding, PackageItem, Sitrep
 from app.network import load_network
 from app.playbook.activation import activation_level
 from app.playbook.service import Playbook
@@ -36,6 +36,7 @@ class PackageView:
     decides_as_commander: str  # incident_commander at full activation, director below
     items: list[ItemView]
     changes: dict[str, Any]
+    sitrep: Sitrep | None
 
 
 def package_view(session: Session, playbook: Playbook, advisory_no: int) -> PackageView:
@@ -71,6 +72,7 @@ def package_view(session: Session, playbook: Playbook, advisory_no: int) -> Pack
         decides_as_commander=decisions.commander(level == "full"),
         items=[view(i) for i in items],
         changes=package.changes,
+        sitrep=session.get(Sitrep, advisory_no),
     )
 
 

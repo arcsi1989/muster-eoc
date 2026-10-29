@@ -48,9 +48,19 @@ class RiskConfig(Strict):
     alert: AlertConfig
 
 
+class DraftConfig(Strict):
+    top_assets: int
+    template_top_assets: int
+    retrieval_per_query: int
+    retrieval_max_clauses: int
+    max_tokens: int
+    retries: int
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
     risk: RiskConfig
+    draft: DraftConfig
     consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 

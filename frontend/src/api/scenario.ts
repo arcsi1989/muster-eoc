@@ -14,6 +14,7 @@ import type {
   RiskList,
   Role,
   Scenario,
+  Sitrep,
   StagingArea,
 } from '../types/scenario'
 import { api } from './client'
@@ -44,3 +45,5 @@ export const postDecision = (
     method: 'POST',
     body: JSON.stringify(decision),
   })
+export const approveSitrep = (advisoryNo: number, role: Role, text: string) =>
+  api<Sitrep>(`/sitrep/${advisoryNo}/approve`, { method: 'POST', body: JSON.stringify({ role, text }) })

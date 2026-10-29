@@ -26,3 +26,11 @@ risk:
     top_n: 10
     rank_jump: 10                            # places risen since the previous advisory ...
     rank_jump_within: 25                     # ... counted only for assets ending in this top N
+
+draft:
+  top_assets: 10              # highest-risk assets the draft may mention
+  template_top_assets: 5      # how many the template draft names
+  retrieval_per_query: 2      # BM25 clauses kept per package item
+  retrieval_max_clauses: 8
+  max_tokens: 4000            # per model call
+  retries: 1                  # after a draft fails citation validation
