@@ -13,7 +13,7 @@ from typing import Literal
 from sqlmodel import Session, col, select
 
 from app.audit.log import record
-from app.errors import ConflictError, DataNotLoaded
+from app.errors import DataNotLoaded
 from app.models import Advisory, Finding, OpState, PackageItem, ScenarioState
 from app.playbook.activation import (
     DECLARED_DETAIL,
@@ -26,7 +26,7 @@ from app.playbook.activation import (
 
 Commander = Literal["incident_commander", "director"]
 COMMANDERS: tuple[Commander, Commander] = ("incident_commander", "director")
-SITREP_FLAG = "sitrep_approved_current"  # written only by approving the situation report
+SITREP_FLAG = "sitrep_approved_current"  # set true only by approving the situation report
 PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", SITREP_FLAG)
 # Operational state (entity "event") that only a declaration writes.
 ACTIVATION_LEVEL = "activation_level"
@@ -129,12 +129,6 @@ def current(session: Session, levels: Sequence[ActivationLevel]) -> AdvisoryCont
         level, declared_at = _declared(session)
         return AdvisoryContext(None, level, None, declared_at)
     return at(session, levels, advisory)
-
-
-def require_current(session: Session, advisory_no: int) -> None:
-    """Raises if a newer advisory has been issued since `advisory_no`."""
-    if advisory_no != current_advisory_no(session):
-        raise ConflictError(f"advisory {advisory_no} is no longer current")
 
 
 def reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:

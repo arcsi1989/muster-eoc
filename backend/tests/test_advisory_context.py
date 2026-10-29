@@ -9,7 +9,6 @@ from sqlmodel import select
 
 from app import advisory_context
 from app.agent.cycle import reset_scenario
-from app.errors import ConflictError
 from app.models import (
     Advisory,
     AuditEvent,
@@ -131,14 +130,6 @@ def test_an_advisory_not_yet_issued_has_no_declared_level(seeded: SeededScenario
 
     assert context.activation_level is None
     assert context.proposed_activation_level == "full"
-
-
-def test_require_current_refuses_an_earlier_advisory(seeded: SeededScenario) -> None:
-    seeded.issue_until(2)
-
-    advisory_context.require_current(seeded.session, 2)
-    with pytest.raises(ConflictError, match="advisory 1 is no longer current"):
-        advisory_context.require_current(seeded.session, 1)
 
 
 def test_a_new_advisory_resets_the_per_advisory_flags(seeded: SeededScenario) -> None:

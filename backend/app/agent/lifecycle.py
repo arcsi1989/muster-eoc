@@ -8,8 +8,9 @@ opens when its advisory is issued and stays open until the next advisory expires
 Every decision on a package takes the same path: item decisions, situation report approval and
 activation declarations are checked here, under the cycle's lock and before anything changes
 (so a refusal changes nothing), and then the cycle's decision step applies them. That step is
-the only writer of operational state; a declaration is the only code that sets the activation
-level.
+the only writer of decided operational state; besides it, only the initial load, a scenario
+reset and the per-advisory flag reset when an advisory is issued write operational state. A
+declaration is the only code that sets the activation level.
 """
 
 from dataclasses import dataclass
@@ -21,7 +22,7 @@ from app import advisory_context
 from app.agent import decisions, sitrep
 from app.agent.cycle import AdvisoryCycle
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
-from app.models import DecisionPackage, Finding, PackageItem, PackageStatus, Sitrep
+from app.models import Advisory, DecisionPackage, Finding, PackageItem, PackageStatus, Sitrep
 from app.network import load_network
 from app.playbook.activation import PROPOSAL_RULE
 from app.playbook.service import Playbook
@@ -105,6 +106,16 @@ def _require_open(session: Session, cycle: AdvisoryCycle, advisory_no: int) -> N
         raise PackageClosed(f"the decision package for advisory {advisory_no} is closed")
 
 
+def _commander_if_open(
+    session: Session, playbook: Playbook, cycle: AdvisoryCycle, advisory: Advisory
+) -> advisory_context.Commander:
+    """The role that commands at `advisory`, read fresh; raises PackageClosed if its package is
+    closed. Called under the cycle's lock, before a decision is checked."""
+    _require_open(session, cycle, advisory.advisory_no)
+    session.expire_all()
+    return advisory_context.at(session, playbook.levels, advisory).commander
+
+
 def package_view(
     session: Session, playbook: Playbook, cycle: AdvisoryCycle, advisory_no: int
 ) -> PackageView:
@@ -164,9 +175,7 @@ def decide(
         raise NotFound(f"no item {item_id} in the package for advisory {advisory_no}")
 
     def precheck() -> None:  # under the cycle's lock, so two decisions cannot both pass
-        _require_open(session, cycle, advisory_no)
-        session.refresh(item)
-        lead = advisory_context.at(session, playbook.levels, advisory).commander
+        lead = _commander_if_open(session, playbook, cycle, advisory)
         decisions.check(item, request, lead)
 
     cycle.decide(advisory_no, item_id, request, precheck)
@@ -187,9 +196,7 @@ def approve_sitrep(
     advisory = service.require_issued(session, advisory_no)
 
     def precheck() -> None:  # under the cycle's lock, so two approvals cannot both pass
-        _require_open(session, cycle, advisory_no)
-        session.expire_all()
-        lead = advisory_context.at(session, playbook.levels, advisory).commander
+        lead = _commander_if_open(session, playbook, cycle, advisory)
         sitrep.check_approval(session, advisory_no, role, text, lead)
 
     cycle.approve_sitrep(advisory_no, role, text, precheck)

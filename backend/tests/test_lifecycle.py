@@ -2,8 +2,6 @@
 package open", and the path every decision takes: item decisions, situation report approval
 and activation declarations."""
 
-import re
-from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -17,8 +15,6 @@ from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
 from tests.conftest import SeededScenario
-
-APP_DIR = Path(__file__).resolve().parents[1] / "app"
 
 
 def item(seeded: SeededScenario, advisory_no: int, rule_id: str) -> PackageItem:
@@ -243,14 +239,19 @@ def test_a_situation_report_is_approved_once(seeded: SeededScenario) -> None:
     assert snapshot(seeded) == before
 
 
-def test_a_declaration_by_the_wrong_role_is_refused(seeded: SeededScenario) -> None:
-    seeded.issue_until(1)
+@pytest.mark.parametrize(
+    ("advisory_no", "level", "role"),
+    [(1, "prepare", "incident_commander"), (3, "full", "director")],
+)
+def test_a_declaration_by_the_wrong_role_is_refused(
+    seeded: SeededScenario, advisory_no: int, level: Level, role: Any
+) -> None:
+    """The Director declares Level 3 and 2, the Incident Commander Level 1 (P-2.5)."""
+    seeded.issue_until(advisory_no)
     before = snapshot(seeded)
 
     with pytest.raises(DecisionRefused):
-        lifecycle.declare(
-            seeded.session, seeded.cycle, Declaration("prepare", "incident_commander")
-        )
+        lifecycle.declare(seeded.session, seeded.cycle, Declaration(level, role))
 
     assert snapshot(seeded) == before
 
@@ -286,30 +287,29 @@ def test_declaring_full_starts_the_p_7_2_clock(seeded: SeededScenario) -> None:
 def test_no_lifecycle_operation_but_a_declaration_sets_the_activation_level(
     seeded: SeededScenario,
 ) -> None:
-    """Item decisions, situation report approvals and issuing advisories leave the level as
-    declared; only `decisions.declare` writes it."""
+    """Every other lifecycle operation, at every advisory (item decisions, situation report
+    approvals, issuing and expiring): the level's state row is never rewritten, not even with
+    the same value."""
 
     def level() -> Any:
         seeded.session.expire_all()
-        return advisory_context.current(seeded.session, seeded.playbook.levels).activation_level
+        row = seeded.session.get(OpState, ("event", advisory_context.ACTIVATION_LEVEL))
+        assert row is not None
+        return row.value, row.set_by, row.set_at
+
+    initial = level()
+    assert initial[0] == "monitor"
 
     for advisory_no in range(1, 6):
         seeded.issue_until(advisory_no)
-        assert level() == "monitor"
+        assert level() == initial
         for v in view_items(seeded, advisory_no):
             if v.item.kind == "gap":
                 decide(seeded, advisory_no, v.item, "director", "approve")
             elif v.item.kind == "conflict":
                 decide(seeded, advisory_no, v.item, "director", "defer", "stop-work")
         approve_sitrep(seeded, advisory_no, "director", "Situation report.")
-        assert level() == "monitor"
-
-    writers = [
-        path.relative_to(APP_DIR).as_posix()
-        for path in APP_DIR.rglob("*.py")
-        if re.search(r"\bACTIVATION_LEVEL\b", path.read_text())
-    ]
-    assert sorted(writers) == ["advisory_context.py", "agent/decisions.py"]
+        assert level() == initial
 
 
 def view_items(seeded: SeededScenario, advisory_no: int) -> list[lifecycle.ItemView]:

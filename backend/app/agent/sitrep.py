@@ -1,13 +1,13 @@
 """Approving the situation report (P-7.1): the commanding role edits and approves the draft.
 The decision package lifecycle checks the approval; the advisory cycle's decision step applies
-it, so its state write goes through the one path that changes operational state."""
+it, so its state write goes through the one path that records decisions."""
 
 from datetime import UTC, datetime
 from typing import Any
 
 from sqlmodel import Session
 
-from app.advisory_context import SITREP_FLAG
+from app.advisory_context import SITREP_FLAG, Commander
 from app.agent.decisions import DecisionRefused, Role, role_label
 from app.audit.log import record
 from app.errors import ConflictError, DataNotLoaded, NotFound
@@ -30,7 +30,9 @@ def draft_text(draft: dict[str, Any]) -> str:
     return "\n\n".join(blocks)
 
 
-def check_approval(session: Session, advisory_no: int, role: Role, text: str, lead: str) -> None:
+def check_approval(
+    session: Session, advisory_no: int, role: Role, text: str, lead: Commander
+) -> None:
     """Raises unless `role` may approve `text` as the situation report for `advisory_no`, with
     `lead` the role that commands at the advisory."""
     package = session.get(DecisionPackage, advisory_no)
