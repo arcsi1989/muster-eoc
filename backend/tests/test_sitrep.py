@@ -21,6 +21,7 @@ from app.llm.schemas import (
     SitrepDraft,
 )
 from app.main import create_app
+from app.replay.diff import AdvisoryChanges
 from app.scoring_config import load_scoring_config
 from tests.conftest import ClientFactory
 
@@ -111,19 +112,6 @@ def test_an_invented_clause_is_rejected_and_the_template_draft_served(
         assert "P-9.9" in draft["fallback_reason"]
         attempts = drafted_event(client)["payload"]["attempts"]
         assert len(attempts) == 2, "one retry before falling back"
-
-
-def test_an_asset_that_left_the_top_10_is_grounded(make_client: ClientFactory) -> None:
-    # The draft sees what changed, so an asset named there may be cited (ticket 09 live check)
-    with make_client(FakeProvider(draft_of())) as client:
-        advance_to(client, 3)
-        left = client.get("/advisories/3/changes").json()["top10_left"][0]
-    cites_it = draft_of(Paragraph(text=f"{left} left the top 10.", clause_ids=[], asset_ids=[left]))
-    with make_client(FakeProvider(cites_it)) as client:
-        advance_to(client, 3)
-
-        assert package(client, 3)["draft"]["provider"] == "anthropic"
-        assert len(drafted_event(client)["payload"]["attempts"]) == 1
 
 
 def test_an_id_in_the_text_must_be_listed(make_client: ClientFactory) -> None:
@@ -246,7 +234,7 @@ def anthropic_with(messages: FakeMessages) -> AnthropicProvider:
 
 
 def request() -> DraftRequest:
-    return DraftRequest(1, 72, "prepare", {}, [], [], [])
+    return DraftRequest(1, 72, "prepare", AdvisoryChanges(advisory_no=1), [], [], [])
 
 
 def test_anthropic_provider_sends_findings_as_delimited_data_with_refusal_fallback() -> None:

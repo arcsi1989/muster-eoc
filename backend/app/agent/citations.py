@@ -1,20 +1,19 @@
-"""Every clause and asset ID in a draft must be real and match a finding or retrieved clause
-(plan section 4, validate_citations)."""
+"""Every clause and asset ID in a draft must be shown in the draft request it answered (plan
+section 4, validate_citations)."""
 
 import re
 
 from app.ids import CLAUSE_ID, SITE_ID
-from app.llm.schemas import SitrepDraft
+from app.llm.schemas import DraftRequest, SitrepDraft
 
 
 def _mentioned(pattern: re.Pattern[str], text: str) -> set[str]:
     return {m.upper() for m in pattern.findall(text)}
 
 
-def citation_problems(
-    draft: SitrepDraft, allowed_clauses: set[str], allowed_assets: set[str]
-) -> list[str]:
-    """Problems found; empty when every citation is grounded."""
+def citation_problems(draft: SitrepDraft, request: DraftRequest) -> list[str]:
+    """Problems found; empty when every citation is grounded in the request."""
+    allowed_clauses, allowed_assets = request.citable_clauses, request.citable_sites
     problems = []
     for section in draft.sections:
         for paragraph in section.paragraphs:

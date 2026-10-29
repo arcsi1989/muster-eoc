@@ -17,6 +17,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
+from pydantic import TypeAdapter
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
@@ -41,6 +42,7 @@ from app.network import load_network
 from app.playbook.activation import DECLARED_BY, DECLARED_DETAIL, LEVEL_NUMBER, PROPOSED_DETAIL
 from app.playbook.service import Playbook, store_findings, store_new_event_findings
 from app.replay import service
+from app.replay.diff import AdvisoryChanges
 from app.scoring_config import ScoringConfig
 
 SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
@@ -200,11 +202,10 @@ def build_graph(
             package = session.get(DecisionPackage, advisory.advisory_no)
             if package is None:
                 raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-            request, grounding = draft_request(
-                session, advisory, playbook, package.changes, draft_config
-            )
+            changes = TypeAdapter(AdvisoryChanges).validate_python(package.changes)
+            request = draft_request(session, advisory, playbook, changes, draft_config)
         # the model call runs outside any database transaction
-        outcome = produce_draft(provider(), request, grounding, draft_config.retries)
+        outcome = produce_draft(provider(), request, draft_config.retries)
         label = TEMPLATE_FALLBACK if outcome.fallback else outcome.result.provider
         with unit() as session:
             advisory = advisory_of(session, state)

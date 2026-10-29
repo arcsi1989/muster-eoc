@@ -1,10 +1,15 @@
 """The shapes every LLM provider shares: what a draft is asked from, and what comes back."""
 
+import json
+import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.ids import CLAUSE_ID, SITE_ID
+from app.replay.diff import AdvisoryChanges
 
 
 class Paragraph(BaseModel):
@@ -53,28 +58,43 @@ class RetrievedClause:
 
 
 @dataclass(frozen=True)
+class TopAsset:
+    id: str
+    name: str
+    rank: int
+    p_fail: float
+
+
+@dataclass(frozen=True)
 class DraftRequest:
     """Everything a provider may see: plain data only, no database session, so no provider can
-    write state (CLAUDE.md hard rules)."""
+    write state (CLAUDE.md hard rules). What it shows is exactly what a draft may cite."""
 
     advisory_no: int
     hours_to_landfall: int
     activation_level: str | None
-    changes: dict[str, Any]
+    changes: AdvisoryChanges
     items: list[DraftItem]
-    top_assets: list[dict[str, Any]]  # id, name, rank, p_fail
+    top_assets: list[TopAsset]
     clauses: list[RetrievedClause]
     template_top_assets: int = 5
     feedback: list[str] = field(default_factory=list)  # validation problems from the last try
 
+    def shown(self) -> dict[str, Any]:
+        """The data a provider shows the model; feedback is a rejection, not data to cite."""
+        return {k: v for k, v in asdict(self).items() if k != "feedback"}
 
-@dataclass(frozen=True)
-class Grounding:
-    """The clause and asset IDs a draft may cite: what its request shows (findings, retrieved
-    clauses, changes, top assets)."""
+    def _shown_ids(self, pattern: re.Pattern[str]) -> frozenset[str]:
+        return frozenset(m.upper() for m in pattern.findall(json.dumps(self.shown(), default=str)))
 
-    clauses: set[str]
-    assets: set[str]
+    @property
+    def citable_clauses(self) -> frozenset[str]:
+        return self._shown_ids(CLAUSE_ID)
+
+    @property
+    def citable_sites(self) -> frozenset[str]:
+        """Assets and staging areas; facilities are named in the text only (prompt sitrep-v2)."""
+        return self._shown_ids(SITE_ID)
 
 
 @dataclass(frozen=True)
