@@ -8,7 +8,7 @@ module never sets it. The level the thresholds propose is given alongside.
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, get_args
 
 from sqlmodel import Session, col, select
 
@@ -25,7 +25,7 @@ from app.playbook.activation import (
 )
 
 Commander = Literal["incident_commander", "director"]
-COMMANDERS: tuple[Commander, Commander] = ("incident_commander", "director")
+COMMANDERS: tuple[Commander, ...] = get_args(Commander)
 SITREP_FLAG = "sitrep_approved_current"  # set true only by approving the situation report
 PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", SITREP_FLAG)
 # Operational state (entity "event") that only a declaration writes.
