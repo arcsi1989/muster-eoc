@@ -10,7 +10,8 @@ from sqlmodel import Session
 from app.advisory_context import SITREP_FLAG, Commander
 from app.agent.decisions import DecisionRefused, Role, role_label
 from app.audit.log import record
-from app.errors import ConflictError, DataNotLoaded, NotFound
+from app.errors import ConflictError, NotFound
+from app.llm.schemas import PackageDraft
 from app.models import Advisory, DecisionPackage, OpState, Sitrep
 
 SITREP_RULE = "P-7.1"
@@ -20,14 +21,19 @@ class SitrepAlreadyApproved(ConflictError):
     code = "sitrep_already_approved"
 
 
+def _draft(session: Session, advisory_no: int) -> PackageDraft:
+    package = session.get(DecisionPackage, advisory_no)
+    if package is None or package.draft is None:
+        raise NotFound(f"no draft situation report for advisory {advisory_no}")
+    return package.draft
+
+
 def check_approval(
     session: Session, advisory_no: int, role: Role, text: str, lead: Commander
 ) -> None:
     """Raises unless `role` may approve `text` as the situation report for `advisory_no`, with
     `lead` the role that commands at the advisory."""
-    package = session.get(DecisionPackage, advisory_no)
-    if package is None or package.draft is None:
-        raise NotFound(f"no draft situation report for advisory {advisory_no}")
+    _draft(session, advisory_no)
     if session.get(Sitrep, advisory_no) is not None:
         raise SitrepAlreadyApproved(f"the situation report for advisory {advisory_no} is approved")
     if role != lead:
@@ -42,13 +48,9 @@ def apply_approval(session: Session, advisory: Advisory, role: Role, text: str) 
     """Records the approved report and writes the per-advisory flag. Called only by the advisory
     cycle's decision step, after the lifecycle checked the approval; that step re-evaluates
     P-7.1."""
-    package = session.get(DecisionPackage, advisory.advisory_no)
-    if package is None:
-        raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-    if package.draft is None:
-        raise DataNotLoaded(f"no draft situation report for advisory {advisory.advisory_no}")
+    draft = _draft(session, advisory.advisory_no)
     now = datetime.now(UTC)
-    edited = text.strip() != package.draft.text().strip()
+    edited = text.strip() != draft.text().strip()
     session.add(
         Sitrep(
             advisory_no=advisory.advisory_no,
@@ -69,8 +71,8 @@ def apply_approval(session: Session, advisory: Advisory, role: Role, text: str) 
         {
             "role": role,
             "edited": edited,
-            "draft_provider": package.draft.provider,
+            "draft_provider": draft.provider,
             "state_written": {f"event.{SITREP_FLAG}": True},
         },
-        {"prompt_version": package.draft.prompt_version},
+        {"prompt_version": draft.prompt_version},
     )

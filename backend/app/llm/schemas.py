@@ -53,9 +53,11 @@ class SitrepDraft(BaseModel):
 
 class PackageDraft(SitrepDraft):
     """The draft situation report with its metadata: one model, stored in the decision package
-    and served by the API as is."""
+    and served by the API as is. Frozen: a new draft replaces the stored one."""
 
-    status: str = "DRAFT"  # DRAFT until approved
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: Literal["DRAFT"] = "DRAFT"  # the approved report is a Sitrep; the draft stays DRAFT
     provider: str  # the provider that wrote it, or "template (fallback)"
     fallback: bool  # the template draft replaced the provider's draft
     model: str | None

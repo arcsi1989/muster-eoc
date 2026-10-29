@@ -272,7 +272,7 @@ export interface DraftParagraph {
 }
 
 export interface Draft {
-  status: string
+  status: 'DRAFT'
   /** the provider that wrote it, or "template (fallback)" */
   provider: string
   /** the template draft replaced the provider's draft */
