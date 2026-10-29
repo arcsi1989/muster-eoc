@@ -4,7 +4,6 @@ it, so its state write goes through the one path that records decisions, and re-
 P-7.1 through the playbook."""
 
 from datetime import UTC, datetime
-from typing import Any
 
 from sqlmodel import Session
 
@@ -21,22 +20,13 @@ class SitrepAlreadyApproved(ConflictError):
     code = "sitrep_already_approved"
 
 
-def draft_text(draft: dict[str, Any]) -> str:
-    """The draft as editable plain text (headings, then paragraphs)."""
-    blocks = []
-    for section in draft.get("sections", []):
-        blocks.append(section["heading"])
-        blocks.extend(p["text"] for p in section["paragraphs"])
-    return "\n\n".join(blocks)
-
-
 def check_approval(
     session: Session, advisory_no: int, role: Role, text: str, lead: Commander
 ) -> None:
     """Raises unless `role` may approve `text` as the situation report for `advisory_no`, with
     `lead` the role that commands at the advisory."""
     package = session.get(DecisionPackage, advisory_no)
-    if package is None or not package.draft:
+    if package is None or package.draft is None:
         raise NotFound(f"no draft situation report for advisory {advisory_no}")
     if session.get(Sitrep, advisory_no) is not None:
         raise SitrepAlreadyApproved(f"the situation report for advisory {advisory_no} is approved")
@@ -55,8 +45,10 @@ def apply_approval(session: Session, advisory: Advisory, role: Role, text: str) 
     package = session.get(DecisionPackage, advisory.advisory_no)
     if package is None:
         raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
+    if package.draft is None:
+        raise DataNotLoaded(f"no draft situation report for advisory {advisory.advisory_no}")
     now = datetime.now(UTC)
-    edited = text.strip() != draft_text(package.draft).strip()
+    edited = text.strip() != package.draft.text().strip()
     session.add(
         Sitrep(
             advisory_no=advisory.advisory_no,
@@ -77,8 +69,8 @@ def apply_approval(session: Session, advisory: Advisory, role: Role, text: str) 
         {
             "role": role,
             "edited": edited,
-            "draft_provider": package.draft.get("provider"),
+            "draft_provider": package.draft.provider,
             "state_written": {f"event.{SITREP_FLAG}": True},
         },
-        {"prompt_version": package.draft.get("prompt_version")},
+        {"prompt_version": package.draft.prompt_version},
     )

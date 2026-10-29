@@ -2,10 +2,11 @@
 
 import json
 from collections.abc import Callable
-from dataclasses import asdict, dataclass, field, fields
+from dataclasses import dataclass, field, fields
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic_core import to_jsonable_python
 
 from app.ids import CLAUSE_ID, SITE_ID, mentioned
 from app.replay.diff import AdvisoryChanges
@@ -48,6 +49,26 @@ class SitrepDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sections: list[Section]
+
+
+class PackageDraft(SitrepDraft):
+    """The draft situation report with its metadata: one model, stored in the decision package
+    and served by the API as is."""
+
+    status: str = "DRAFT"  # DRAFT until approved
+    provider: str  # the provider that wrote it, or "template (fallback)"
+    fallback: bool  # the template draft replaced the provider's draft
+    model: str | None
+    prompt_version: str | None  # None for template drafts: no prompt is used
+    fallback_reason: str | None
+
+    def text(self) -> str:
+        """The draft as editable plain text (headings, then paragraphs)."""
+        blocks = []
+        for section in self.sections:
+            blocks.append(section.heading)
+            blocks.extend(p.text for p in section.paragraphs)
+        return "\n\n".join(blocks)
 
 
 @dataclass(frozen=True)
@@ -96,8 +117,10 @@ class DraftRequest:
 
     def shown(self) -> dict[str, Any]:
         """The data a provider shows the model."""
-        data = asdict(self)
-        return {f.name: data[f.name] for f in fields(self) if f.metadata.get("shown", True)}
+        shown = {
+            f.name: getattr(self, f.name) for f in fields(self) if f.metadata.get("shown", True)
+        }
+        return dict(to_jsonable_python(shown))
 
     def _shown_text(self) -> str:
         return json.dumps(self.shown(), default=str)

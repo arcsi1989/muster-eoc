@@ -3,17 +3,38 @@
 from datetime import date, datetime
 from typing import Any, Literal
 
-from sqlalchemy import JSON, Column, String
+from pydantic import BaseModel
+from sqlalchemy import JSON, Column, Dialect, String
+from sqlalchemy.types import TypeDecorator
 from sqlmodel import Field, SQLModel
 
+from app.llm.schemas import PackageDraft
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
+from app.replay.diff import AdvisoryChanges
 from app.risk.confidence import Confidence
 
 ItemKind = Literal["gap", "conflict", "proposal"]
 ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
 PackageStatus = Literal["open", "closed"]
 ModelVersionStatus = Literal["proposed", "approved"]
+
+
+class Payload[M: BaseModel](TypeDecorator[M]):
+    """A JSON column written and read through one pydantic model."""
+
+    impl = JSON
+    cache_ok = True
+
+    def __init__(self, model: type[M]) -> None:
+        super().__init__()
+        self.model = model
+
+    def process_bind_param(self, value: M | None, dialect: Dialect) -> Any:
+        return None if value is None else value.model_dump(mode="json")
+
+    def process_result_value(self, value: Any, dialect: Dialect) -> M | None:
+        return None if value is None else self.model.model_validate(value)
 
 
 class Asset(SQLModel, table=True):
@@ -208,8 +229,9 @@ class DecisionPackage(SQLModel, table=True):
 
     advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
     status: PackageStatus = Field(sa_type=String)
-    changes: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
-    draft: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))  # draft situation report
+    changes: AdvisoryChanges = Field(sa_column=Column(Payload(AdvisoryChanges), nullable=False))
+    # The draft situation report; None until the cycle has written it.
+    draft: PackageDraft | None = Field(default=None, sa_column=Column(Payload(PackageDraft)))
     opened_at: datetime
     closed_at: datetime | None = None
 

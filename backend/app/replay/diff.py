@@ -4,10 +4,9 @@ Reused by the advisory cycle's diff step (ticket 06).
 """
 
 import math
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
-from pydantic import TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field
 
 COMPASS = ["east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east"]
 
@@ -23,36 +22,36 @@ class AdvisorySnapshot:
     ranks: dict[str, int]
 
 
-@dataclass(frozen=True)
-class LandfallShift:
+class LandfallShift(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     distance_km: float
     direction: str
 
 
-@dataclass(frozen=True)
-class RankMove:
+class RankMove(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     asset_id: str
     from_rank: int
     to_rank: int
 
 
-@dataclass(frozen=True)
-class AdvisoryChanges:
+class AdvisoryChanges(BaseModel):
+    """What changed: one model, stored in the decision package and served by the API as is."""
+
+    model_config = ConfigDict(frozen=True)
+
     advisory_no: int
-    previous_advisory_no: int | None = None
+    previous_advisory_no: int | None = None  # None at the first advisory: everything is initial
     landfall_shift: LandfallShift | None = None
     max_wind_change_mph: float | None = None
     peak_surge_change_m: float | None = None
     activation_level_from: str | None = None
     activation_level_to: str | None = None
-    top10_entered: list[str] = field(default_factory=list)
-    top10_left: list[str] = field(default_factory=list)
-    rank_moves: list[RankMove] = field(default_factory=list)
-
-
-def changes_from_json(data: dict[str, Any]) -> AdvisoryChanges:
-    """Changes read back from the package's JSON column (stored with `asdict`)."""
-    return TypeAdapter(AdvisoryChanges).validate_python(data)
+    top10_entered: list[str] = Field(default_factory=list)
+    top10_left: list[str] = Field(default_factory=list)
+    rank_moves: list[RankMove] = Field(default_factory=list)  # biggest move first
 
 
 def compass_direction(dx_km: float, dy_km: float) -> str:
@@ -74,13 +73,17 @@ def diff(
     dx = current.landfall_x_km - previous.landfall_x_km
     dy = current.landfall_y_km - previous.landfall_y_km
     distance = round(math.hypot(dx, dy), 1)
-    shift = LandfallShift(distance, compass_direction(dx, dy)) if distance > 0 else None
+    shift = (
+        LandfallShift(distance_km=distance, direction=compass_direction(dx, dy))
+        if distance > 0
+        else None
+    )
 
     def top(ranks: dict[str, int]) -> set[str]:
         return {asset_id for asset_id, rank in ranks.items() if rank <= top_n}
 
     moves = [
-        RankMove(asset_id, previous.ranks[asset_id], rank)
+        RankMove(asset_id=asset_id, from_rank=previous.ranks[asset_id], to_rank=rank)
         for asset_id, rank in current.ranks.items()
         if asset_id in previous.ranks and previous.ranks[asset_id] != rank
     ]
