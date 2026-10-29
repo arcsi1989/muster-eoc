@@ -3,10 +3,12 @@
 
 import re
 
+from app.ids import CLAUSE_ID, SITE_ID
 from app.llm.schemas import SitrepDraft
 
-CLAUSE_ID = re.compile(r"\bP-\d+\.\d+\b")
-ENTITY_ID = re.compile(r"\b(?:SUB|PS|WTP|STG)-\d{2,3}\b")  # assets and staging areas
+
+def _mentioned(pattern: re.Pattern[str], text: str) -> set[str]:
+    return {m.upper() for m in pattern.findall(text)}
 
 
 def citation_problems(
@@ -22,8 +24,8 @@ def citation_problems(
             for asset in paragraph.asset_ids:
                 if asset not in allowed_assets:
                     problems.append(f"asset {asset} is not in the findings, changes or top assets")
-            for clause in set(CLAUSE_ID.findall(paragraph.text)) - set(paragraph.clause_ids):
+            for clause in _mentioned(CLAUSE_ID, paragraph.text) - set(paragraph.clause_ids):
                 problems.append(f"clause {clause} is mentioned in the text but not listed")
-            for asset in set(ENTITY_ID.findall(paragraph.text)) - set(paragraph.asset_ids):
+            for asset in _mentioned(SITE_ID, paragraph.text) - set(paragraph.asset_ids):
                 problems.append(f"asset {asset} is mentioned in the text but not listed")
     return sorted(set(problems))
