@@ -1666,15 +1666,15 @@
   {
     "condition_score": 5,
     "customers_served": 1010,
-    "distance_to_coast_km": 125.98,
-    "elevation_m": 15.9,
+    "distance_to_coast_km": 5.77,
+    "elevation_m": 0.9,
     "id": "PS-09",
     "install_year": 1980,
     "last_inspection_date": "2024-11-24",
     "name": "Saltmeadow East Pumping Station",
     "type": "pump_station",
-    "x_km": 209.74,
-    "y_km": 177.72
+    "x_km": 118.0,
+    "y_km": 53.72
   },
   {
     "condition_score": 1,
@@ -1794,17 +1794,17 @@
     "y_km": 176.43
   },
   {
-    "condition_score": 4,
+    "condition_score": 5,
     "customers_served": 2768,
-    "distance_to_coast_km": 5.32,
-    "elevation_m": 0.7,
+    "distance_to_coast_km": 5.97,
+    "elevation_m": 0.9,
     "id": "PS-19",
     "install_year": 1981,
     "last_inspection_date": "2026-03-02",
     "name": "Mangrove South Pumping Station",
     "type": "pump_station",
-    "x_km": 112.07,
-    "y_km": 54.93
+    "x_km": 72.0,
+    "y_km": 64.84
   },
   {
     "condition_score": 5,
@@ -1820,17 +1820,17 @@
     "y_km": 121.94
   },
   {
-    "condition_score": 2,
+    "condition_score": 5,
     "customers_served": 2456,
-    "distance_to_coast_km": 13.81,
-    "elevation_m": 2.4,
+    "distance_to_coast_km": 5.78,
+    "elevation_m": 0.9,
     "id": "PS-21",
     "install_year": 2015,
     "last_inspection_date": "2026-04-29",
     "name": "Driftwood East Pumping Station",
     "type": "pump_station",
-    "x_km": 120.02,
-    "y_km": 61.5
+    "x_km": 104.0,
+    "y_km": 57.69
   },
   {
     "condition_score": 3,
@@ -1989,17 +1989,17 @@
     "y_km": 62.83
   },
   {
-    "condition_score": 2,
+    "condition_score": 5,
     "customers_served": 2347,
-    "distance_to_coast_km": 17.37,
-    "elevation_m": 2.7,
+    "distance_to_coast_km": 5.77,
+    "elevation_m": 0.9,
     "id": "PS-34",
     "install_year": 2004,
     "last_inspection_date": "2024-11-29",
     "name": "Eastgate Pumping Station",
     "type": "pump_station",
-    "x_km": 126.45,
-    "y_km": 63.43
+    "x_km": 110.0,
+    "y_km": 55.99
   },
   {
     "condition_score": 4,
@@ -2067,17 +2067,17 @@
     "y_km": 146.34
   },
   {
-    "condition_score": 4,
+    "condition_score": 5,
     "customers_served": 1117,
-    "distance_to_coast_km": 13.82,
-    "elevation_m": 2.3,
+    "distance_to_coast_km": 5.8,
+    "elevation_m": 0.9,
     "id": "PS-40",
     "install_year": 1994,
     "last_inspection_date": "2026-06-21",
     "name": "Dune Crest Pumping Station",
     "type": "pump_station",
-    "x_km": 79.15,
-    "y_km": 71.72
+    "x_km": 100.0,
+    "y_km": 58.81
   },
   {
     "condition_score": 3,
@@ -2095,15 +2095,15 @@
   {
     "condition_score": 5,
     "customers_served": 1938,
-    "distance_to_coast_km": 3.2,
-    "elevation_m": 0.6,
+    "distance_to_coast_km": 5.93,
+    "elevation_m": 0.9,
     "id": "PS-42",
     "install_year": 1972,
     "last_inspection_date": "2025-05-09",
     "name": "Westmoor West Pumping Station",
     "type": "pump_station",
-    "x_km": 133.36,
-    "y_km": 47.1
+    "x_km": 78.0,
+    "y_km": 63.91
   },
   {
     "condition_score": 3,
@@ -2171,17 +2171,17 @@
     "y_km": 133.55
   },
   {
-    "condition_score": 4,
+    "condition_score": 5,
     "customers_served": 1868,
-    "distance_to_coast_km": 20.26,
-    "elevation_m": 2.7,
+    "distance_to_coast_km": 5.89,
+    "elevation_m": 0.9,
     "id": "PS-48",
     "install_year": 1980,
     "last_inspection_date": "2024-12-30",
     "name": "Coral Lane South Pumping Station",
     "type": "pump_station",
-    "x_km": 114.54,
-    "y_km": 69.76
+    "x_km": 84.0,
+    "y_km": 62.75
   },
   {
     "condition_score": 3,
@@ -2238,28 +2238,28 @@
   {
     "condition_score": 5,
     "customers_served": 2912,
-    "distance_to_coast_km": 46.23,
-    "elevation_m": 5.6,
+    "distance_to_coast_km": 5.86,
+    "elevation_m": 0.9,
     "id": "PS-53",
     "install_year": 1984,
     "last_inspection_date": "2026-02-05",
     "name": "Brinemoor Run West Pumping Station",
     "type": "pump_station",
-    "x_km": 142.5,
-    "y_km": 89.15
+    "x_km": 88.0,
+    "y_km": 61.87
   },
   {
-    "condition_score": 4,
+    "condition_score": 5,
     "customers_served": 2323,
-    "distance_to_coast_km": 19.72,
-    "elevation_m": 2.7,
+    "distance_to_coast_km": 5.83,
+    "elevation_m": 0.9,
     "id": "PS-54",
     "install_year": 1977,
     "last_inspection_date": "2026-07-07",
     "name": "Sandy Flats North Pumping Station",
     "type": "pump_station",
-    "x_km": 132.19,
-    "y_km": 64.36
+    "x_km": 92.0,
+    "y_km": 60.91
   },
   {
     "condition_score": 4,
@@ -2327,17 +2327,17 @@
     "y_km": 217.91
   },
   {
-    "condition_score": 4,
+    "condition_score": 5,
     "customers_served": 2925,
-    "distance_to_coast_km": 20.55,
-    "elevation_m": 2.9,
+    "distance_to_coast_km": 5.81,
+    "elevation_m": 0.9,
     "id": "PS-60",
     "install_year": 1984,
     "last_inspection_date": "2026-02-11",
     "name": "Bluewater South Pumping Station",
     "type": "pump_station",
-    "x_km": 142.71,
-    "y_km": 62.85
+    "x_km": 96.0,
+    "y_km": 59.88
   },
   {
     "condition_score": 3,

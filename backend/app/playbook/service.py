@@ -15,10 +15,10 @@ from app.playbook.engine import Finding as EngineFinding
 from app.playbook.retrieval import ClauseIndex
 from app.playbook.rules import Rulebook, load_rulebook
 
-# The definition of event.critical_feeding_assets_top25 (P-4.3, plan section 2.4): top-25 risk
-# assets that feed a hospital or the treatment plant. Part of the field's name, not a tunable.
-CRITICAL_TYPES = {"hospital", "treatment_plant"}
-CRITICAL_TOP_N = 25
+# The definition of event.wtp_pump_stations_top25 (P-4.3, plan section 2.4): pumping stations in
+# the top 25 of the risk list that serve the treatment plant. Part of the field's name, not a
+# tunable.
+WTP_PUMP_STATIONS_TOP_N = 25
 PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", "sitrep_approved_current")
 FULL_ACTIVATION = "full"
 
@@ -80,10 +80,12 @@ def evaluation_context(
         ),
         "regulator_notified": event_state.get("regulator_notified", False),
         "generators_fuelled": event_state.get("generators_fuelled", 0),
-        "critical_feeding_assets_top25": sum(
+        "wtp_pump_stations_top25": sum(
             1
             for a, s in scores.items()
-            if s.rank <= CRITICAL_TOP_N and feeds_types[a] & CRITICAL_TYPES
+            if s.rank <= WTP_PUMP_STATIONS_TOP_N
+            and network.assets[a].type == "pump_station"
+            and "treatment_plant" in feeds_types[a]
         ),
         **{flag: event_state.get(flag, False) for flag in PER_ADVISORY_FLAGS},
     }

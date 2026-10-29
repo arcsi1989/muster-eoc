@@ -60,12 +60,12 @@ const sitrepProps = {
   onSelectAsset: () => {},
 }
 
-const sub07 = item({
+const ps09 = item({
   id: 1,
   rule_id: 'P-4.5',
-  entity_id: 'SUB-07',
-  entity_name: 'Medical District Substation',
-  proposed_action: 'Assign a portable generator to SUB-07 Medical District Substation (feeds HOSP-01)',
+  entity_id: 'PS-09',
+  entity_name: 'Saltmeadow East Pumping Station',
+  proposed_action: 'Assign a portable generator to PS-09 Saltmeadow East Pumping Station (feeds WTP-01)',
 })
 const conflict = item({
   id: 2,
@@ -79,17 +79,17 @@ const conflict = item({
 
 test('approving a gap sends the decision', async () => {
   const onDecide = vi.fn()
-  render(<PackageView pkg={pkg([sub07])} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={onDecide} />)
+  render(<PackageView pkg={pkg([ps09])} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={onDecide} />)
 
   expect(screen.getByText(/1 of 1 items await a decision/)).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Approve' }))
 
-  expect(onDecide).toHaveBeenCalledWith(sub07, 'approve', undefined)
+  expect(onDecide).toHaveBeenCalledWith(ps09, 'approve', undefined)
 })
 
 test('an override needs a reason before it can be sent', async () => {
   const onDecide = vi.fn()
-  render(<PackageView pkg={pkg([sub07])} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={onDecide} />)
+  render(<PackageView pkg={pkg([ps09])} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={onDecide} />)
 
   await userEvent.click(screen.getByRole('button', { name: 'Override…' }))
   const send = screen.getByRole('button', { name: 'Override' })
@@ -97,7 +97,7 @@ test('an override needs a reason before it can be sent', async () => {
   await userEvent.type(screen.getByLabelText('Reason'), 'crew shortage')
   await userEvent.click(send)
 
-  expect(onDecide).toHaveBeenCalledWith(sub07, 'override', 'crew shortage')
+  expect(onDecide).toHaveBeenCalledWith(ps09, 'override', 'crew shortage')
 })
 
 test('a conflict offers defer or an alternative measure, never approve', async () => {
@@ -115,7 +115,7 @@ test('a conflict offers defer or an alternative measure, never approve', async (
 })
 
 test('shows decided items, refusals, and the draft situation report', () => {
-  const decided = { ...sub07, status: 'approved' as const, decided_by: 'logistics' }
+  const decided = { ...ps09, status: 'approved' as const, decided_by: 'logistics' }
   render(
     <PackageView
       pkg={pkg([decided])}
@@ -136,7 +136,7 @@ test('shows decided items, refusals, and the draft situation report', () => {
 })
 
 test('no decision buttons while a decision is being sent', () => {
-  render(<PackageView pkg={pkg([sub07])} assetsById={new Map()} busy error={null} {...sitrepProps} onDecide={() => {}} />)
+  render(<PackageView pkg={pkg([ps09])} assetsById={new Map()} busy error={null} {...sitrepProps} onDecide={() => {}} />)
 
   expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
 })
@@ -150,7 +150,7 @@ test('conflicts are grouped by rule and the package shows what changed', () => {
 })
 
 test('a closed package offers no decisions', () => {
-  render(<PackageView pkg={pkg([{ ...sub07, status: 'not_decided' }], 'closed')} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={() => {}} />)
+  render(<PackageView pkg={pkg([{ ...ps09, status: 'not_decided' }], 'closed')} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={() => {}} />)
 
   expect(screen.getByText(/package is closed/)).toBeInTheDocument()
   expect(screen.getByText('Not decided')).toBeInTheDocument()

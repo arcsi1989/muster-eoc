@@ -66,7 +66,7 @@ rules:
     active_from_hours: 72
     when: []
     satisfied_if:
-      - {field: event.generators_fuelled, op: ge, value_field: event.critical_feeding_assets_top25}
+      - {field: event.generators_fuelled, op: ge, value_field: event.wtp_pump_stations_top25}
     requires_field_work: false
     severity: high
     owner_role: logistics
@@ -87,12 +87,13 @@ rules:
     owner_role: operations
 
   - id: P-4.5
-    title: Generator assigned to critical-feeding assets at risk
+    title: Generator assigned to at-risk pumping stations serving the treatment plant
     kind: action
     entity: asset
     active_from_hours: 48
     when:
-      - {field: asset.feeds_facility_types, op: contains_any, value: [hospital, treatment_plant]}
+      - {field: asset.type, op: eq, value: pump_station}
+      - {field: asset.feeds_facility_types, op: contains_any, value: [treatment_plant]}
       - {field: asset.p_fail, op: ge, value: 0.20}
     satisfied_if:
       - {field: state.generator_assigned, op: is_true}

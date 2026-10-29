@@ -33,7 +33,7 @@ def event(hours: int, **overrides: Any) -> dict[str, Any]:
         "hours_since_full_activation": 48 - hours if level == "full" else None,
         "regulator_notified": False,
         "generators_fuelled": 6,
-        "critical_feeding_assets_top25": 8,
+        "wtp_pump_stations_top25": 8,
         "risk_list_reviewed_current": False,
         "sitrep_approved_current": False,
     }
@@ -121,12 +121,12 @@ def test_p_4_2_coastal_pumping_station_at_flood_risk_needs_inspection() -> None:
     assert absent(findings(60, [station]), "P-4.2"), "inactive before T-48"
 
 
-def test_p_4_3_compares_fuelled_generators_with_critical_feeding_assets() -> None:
-    gap = one(findings(72, [], generators_fuelled=6, critical_feeding_assets_top25=8), "P-4.3")
-    enough = one(findings(72, [], generators_fuelled=8, critical_feeding_assets_top25=8), "P-4.3")
+def test_p_4_3_compares_fuelled_generators_with_pumping_stations_serving_the_plant() -> None:
+    gap = one(findings(72, [], generators_fuelled=6, wtp_pump_stations_top25=8), "P-4.3")
+    enough = one(findings(72, [], generators_fuelled=8, wtp_pump_stations_top25=8), "P-4.3")
 
     assert gap.status == "open"
-    assert gap.details == {"event.generators_fuelled": 6, "event.critical_feeding_assets_top25": 8}
+    assert gap.details == {"event.generators_fuelled": 6, "event.wtp_pump_stations_top25": 8}
     assert enough.status == "satisfied"
 
 
@@ -140,17 +140,36 @@ def test_p_4_4_poor_condition_substation_in_the_top_10() -> None:
     assert [f.entity_id for f in found if f.rule_id == "P-4.4"] == ["SUB-3"]
 
 
-def test_p_4_5_critical_feeding_asset_at_risk_needs_a_generator() -> None:
-    sub7 = asset(
-        "SUB-07", feeds_facility_types=["hospital"], feeds_facility_ids=["HOSP-01"], p_fail=0.25
+def test_p_4_5_pumping_station_serving_the_plant_at_risk_needs_a_generator() -> None:
+    ps9 = asset(
+        "PS-09",
+        "pump_station",
+        feeds_facility_types=["treatment_plant"],
+        feeds_facility_ids=["WTP-01"],
+        p_fail=0.25,
     )
-    low = asset("SUB-08", feeds_facility_types=["treatment_plant"], p_fail=0.19)
+    low = asset("PS-10", "pump_station", feeds_facility_types=["treatment_plant"], p_fail=0.19)
 
-    finding = one(findings(48, [sub7, low]), "P-4.5", "SUB-07")
+    finding = one(findings(48, [ps9, low]), "P-4.5", "PS-09")
 
     assert finding.status == "open"
-    assert finding.details["asset.feeds_facility_ids"] == ["HOSP-01"]
+    assert finding.details["asset.feeds_facility_ids"] == ["WTP-01"]
     assert absent(findings(48, [low]), "P-4.5")
+
+
+def test_p_4_5_never_matches_a_substation() -> None:
+    feeds_plant = asset(
+        "SUB-01",
+        feeds_facility_types=["treatment_plant"],
+        feeds_facility_ids=["WTP-01"],
+        p_fail=0.9,
+    )
+    feeds_hospital = asset(
+        "SUB-07", feeds_facility_types=["hospital"], feeds_facility_ids=["HOSP-01"], p_fail=0.9
+    )
+    hospital_only = asset("PS-20", "pump_station", feeds_facility_types=["hospital"], p_fail=0.9)
+
+    assert absent(findings(48, [feeds_plant, feeds_hospital, hospital_only]), "P-4.5")
 
 
 def test_p_4_6_flooding_staging_area_must_be_left() -> None:
@@ -340,10 +359,9 @@ def test_advisory_1_prepare_with_review_generator_gap_and_sitrep_open(client: Te
 
     assert {f["rule_id"] for f in found if f["status"] == "open"} >= {"P-4.1", "P-4.3", "P-7.1"}
     gap = find(found, "P-4.3")
-    assert (
-        gap["details"]["event.generators_fuelled"]
-        < gap["details"]["event.critical_feeding_assets_top25"]
-    )
+    assert gap["status"] == "open"
+    assert gap["details"]["event.generators_fuelled"] == 6
+    assert gap["details"]["event.wtp_pump_stations_top25"] >= 8
 
 
 def test_advisory_2_poor_condition_substation_in_top_10(client: TestClient) -> None:
@@ -355,10 +373,12 @@ def test_advisory_2_poor_condition_substation_in_top_10(client: TestClient) -> N
 def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
     found = findings_at(client, 3)
 
-    sub7 = find(found, "P-4.5", "SUB-07")
-    assert sub7["status"] == "open"
-    assert "HOSP-01" in sub7["details"]["asset.feeds_facility_ids"]
-    assert sub7["entity_name"] == "Medical District Substation"
+    ps9 = find(found, "P-4.5", "PS-09")
+    assert ps9["status"] == "open"
+    assert "WTP-01" in ps9["details"]["asset.feeds_facility_ids"]
+    assert not any(f["rule_id"] == "P-4.5" and f["entity_id"].startswith("SUB-") for f in found), (
+        "portable generators never go to substations"
+    )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
     regulator = find(found, "P-7.2")
     assert (regulator["status"], regulator["overdue"]) == ("open", False)

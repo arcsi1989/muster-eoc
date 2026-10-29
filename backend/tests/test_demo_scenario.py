@@ -50,7 +50,7 @@ def scripted_decisions_at_advisory_3(client: TestClient, inspect_ps14: bool) -> 
     advance_to(client, 3)
     pkg = package(client, 3)
     assert (
-        decide(client, 3, item(pkg, "P-4.5", "SUB-07")["id"], "logistics", "approve").status_code
+        decide(client, 3, item(pkg, "P-4.5", "PS-09")["id"], "logistics", "approve").status_code
         == 200
     )
     assert (
@@ -78,7 +78,7 @@ def test_scripted_path_ps_14_override_leads_to_a_conflict_the_ic_decides(
     conflict = item(pkg, "P-4.2", "PS-14")
     assert conflict["kind"] == "conflict"
     assert conflict["cites"] == ["P-4.2", "P-4.7", "P-8.2"]
-    assert finding(client, 5, "P-4.5", "SUB-07")["status"] == "satisfied", "generator approved at 3"
+    assert finding(client, 5, "P-4.5", "PS-09")["status"] == "satisfied", "generator approved at 3"
     assert finding(client, 5, "P-7.2")["status"] == "satisfied"
 
     refused = decide(client, 5, conflict["id"], "operations", "defer", "too windy")
@@ -133,12 +133,12 @@ def test_refused_decisions_change_nothing(
     client: TestClient, role: str, action: str, reason: str | None, why: str
 ) -> None:
     advance_to(client, 3)
-    target = item(package(client, 3), "P-4.5", "SUB-07")
+    target = item(package(client, 3), "P-4.5", "PS-09")
 
     response = decide(client, 3, target["id"], role, action, reason)
 
     assert response.status_code == 403, why
-    assert item(package(client, 3), "P-4.5", "SUB-07")["status"] == "pending"
+    assert item(package(client, 3), "P-4.5", "PS-09")["status"] == "pending"
 
 
 def test_below_full_activation_the_director_holds_the_command_role(client: TestClient) -> None:
@@ -168,7 +168,7 @@ def test_a_decided_item_cannot_be_decided_again(client: TestClient) -> None:
 def test_approval_writes_the_state_that_satisfies_the_rule(client: TestClient) -> None:
     advance_to(client, 1)
     gap = finding(client, 1, "P-4.3")
-    needed = gap["details"]["event.critical_feeding_assets_top25"]
+    needed = gap["details"]["event.wtp_pump_stations_top25"]
     decide(client, 1, item(package(client, 1), "P-4.3")["id"], "logistics", "approve")
     decide(client, 1, item(package(client, 1), "P-4.1")["id"], "planning", "approve")
 
@@ -177,7 +177,7 @@ def test_approval_writes_the_state_that_satisfies_the_rule(client: TestClient) -
     fuel = finding(client, 2, "P-4.3")
     assert fuel["details"]["event.generators_fuelled"] == needed
     assert fuel["status"] == (
-        "satisfied" if fuel["details"]["event.critical_feeding_assets_top25"] <= needed else "open"
+        "satisfied" if fuel["details"]["event.wtp_pump_stations_top25"] <= needed else "open"
     )
     assert finding(client, 2, "P-4.1")["status"] == "open", (
         "the review holds for one operational period"
@@ -208,15 +208,24 @@ def test_sitrep_rule_is_never_a_package_item(client: TestClient) -> None:
     assert finding(client, 1, "P-7.1")["status"] == "open"
 
 
+def test_the_generator_action_is_offered_on_pumping_stations_only(client: TestClient) -> None:
+    for advisory in (3, 4, 5):
+        advance_to(client, advisory)
+        generators = [i for i in package(client, advisory)["items"] if i["rule_id"] == "P-4.5"]
+
+        assert generators, f"P-4.5 items at advisory {advisory}"
+        assert all(i["entity_id"].startswith("PS-") for i in generators)
+
+
 def test_reset_restores_the_initial_state(client: TestClient) -> None:
     scripted_decisions_at_advisory_3(client, inspect_ps14=True)
 
     assert client.post("/advisories/reset").status_code == 200
     advance_to(client, 3)
 
-    assert finding(client, 3, "P-4.5", "SUB-07")["status"] == "open"
+    assert finding(client, 3, "P-4.5", "PS-09")["status"] == "open"
     assert finding(client, 3, "P-4.2", "PS-14")["status"] == "open"
-    assert item(package(client, 3), "P-4.5", "SUB-07")["status"] == "pending"
+    assert item(package(client, 3), "P-4.5", "PS-09")["status"] == "pending"
 
 
 def test_every_node_and_decision_is_audited(client: TestClient) -> None:

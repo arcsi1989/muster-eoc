@@ -28,7 +28,7 @@ def proposed_action(
     rule_id: str, entity_label: str, details: dict[str, Any], cites: list[str] | None = None
 ) -> str:
     fuelled = details.get("event.generators_fuelled", 0)
-    needed = details.get("event.critical_feeding_assets_top25", 0)
+    needed = details.get("event.wtp_pump_stations_top25", 0)
     text = ACTION_TEXT.get(rule_id, "Act on {entity} as the playbook requires").format(
         entity=entity_label,
         facilities=", ".join(details.get("asset.feeds_facility_ids", [])) or "critical facilities",

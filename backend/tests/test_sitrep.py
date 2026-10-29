@@ -75,7 +75,7 @@ def test_template_draft_is_marked_draft_and_cites_only_grounded_ids(client: Test
         None,
     )
     paragraphs = [p for s in draft["sections"] for p in s["paragraphs"]]
-    assert any("P-4.5" in p["clause_ids"] and "SUB-07" in p["asset_ids"] for p in paragraphs)
+    assert any("P-4.5" in p["clause_ids"] and "PS-09" in p["asset_ids"] for p in paragraphs)
     assert drafted_event(client)["payload"]["clauses_retrieved"], "BM25 found context clauses"
 
 
@@ -83,7 +83,7 @@ def test_a_grounded_llm_draft_is_used_and_its_call_is_logged(make_client: Client
     fake = FakeProvider(
         draft_of(
             Paragraph(
-                text="SUB-07 needs a generator (P-4.5).", clause_ids=["P-4.5"], asset_ids=["SUB-07"]
+                text="PS-09 needs a generator (P-4.5).", clause_ids=["P-4.5"], asset_ids=["PS-09"]
             )
         )
     )
