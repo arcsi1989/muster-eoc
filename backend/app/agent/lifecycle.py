@@ -1,5 +1,10 @@
-"""The decision package lifecycle: opening and expiring a package, its read side, and the entry
-point for a person's decision."""
+"""The decision package lifecycle: the one answer to "is the package for this advisory open",
+and the path every decision on its items takes.
+
+The package row's status is the record (ADR 0001); the advisory cycle's checkpoint is the
+adapter for the approval pause, and only this module reads whether it is waiting. A package
+opens when its advisory is issued and stays open until the next advisory expires it.
+"""
 
 from dataclasses import dataclass
 from typing import Any
@@ -9,7 +14,7 @@ from sqlmodel import Session, col, select
 from app import advisory_context
 from app.agent import decisions
 from app.agent.cycle import AdvisoryCycle
-from app.errors import ConflictError, DataNotLoaded, NotFound
+from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
 from app.models import DecisionPackage, Finding, PackageItem, Sitrep
 from app.network import load_network
 from app.playbook.activation import PROPOSAL_RULE
@@ -22,19 +27,14 @@ class PackageClosed(ConflictError):
     code = "package_closed"
 
 
+class PackageOutOfStep(AppError):
+    """The package record and the cycle's approval pause disagree: a bug, never a refusal."""
+
+    code = "package_out_of_step"
+
+
 class NoActivationProposal(ConflictError):
     code = "no_activation_proposal"
-
-
-def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
-    """Expires the current advisory's open decisions, issues and scores the next advisory, and
-    runs its cycle until it pauses for decisions."""
-    cycle.expire(advisory_context.current_advisory_no(session))
-    advisory = service.advance(session, config)
-    advisory_context.reset_per_advisory_flags(session, advisory)
-    session.commit()  # one transaction: the advisory is never current with stale flags
-    cycle.start(advisory.advisory_no)
-    return advisory.advisory_no
 
 
 @dataclass(frozen=True)
@@ -50,6 +50,7 @@ class ItemView:
 @dataclass(frozen=True)
 class PackageView:
     package: DecisionPackage
+    open: bool
     activation_level: str | None
     proposed_activation_level: str | None
     decides_as_commander: advisory_context.Commander
@@ -58,11 +59,52 @@ class PackageView:
     sitrep: Sitrep | None
 
 
-def package_view(session: Session, playbook: Playbook, advisory_no: int) -> PackageView:
+def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
+    """Expires the current advisory's package, issues and scores the next advisory, and opens
+    its package: the cycle runs until it pauses for decisions."""
+    expire(session, cycle, advisory_context.current_advisory_no(session))
+    advisory = service.advance(session, config)
+    advisory_context.reset_per_advisory_flags(session, advisory)
+    session.commit()  # one transaction: the advisory is never current with stale flags
+    cycle.start(advisory.advisory_no)
+    return advisory.advisory_no
+
+
+def expire(session: Session, cycle: AdvisoryCycle, advisory_no: int) -> None:
+    """Closes the package's undecided items as not decided and closes the package."""
+    if advisory_no and is_open(session, cycle, advisory_no):
+        cycle.expire(advisory_no)
+
+
+def is_open(session: Session, cycle: AdvisoryCycle, advisory_no: int) -> bool:
+    """Whether the package for `advisory_no` takes decisions. Raises PackageOutOfStep if its
+    record and the cycle disagree."""
+    package = session.get(DecisionPackage, advisory_no)
+    if package is None:
+        return False
+    session.refresh(package)
+    recorded = package.status == "open"
+    if recorded != cycle.waiting(advisory_no):
+        raise PackageOutOfStep(
+            f"the decision package for advisory {advisory_no} is recorded {package.status} but "
+            "its cycle disagrees"
+        )
+    return recorded
+
+
+def _require_open(session: Session, cycle: AdvisoryCycle, advisory_no: int) -> None:
+    if not is_open(session, cycle, advisory_no):
+        raise PackageClosed(f"the decision package for advisory {advisory_no} is closed")
+
+
+def package_view(
+    session: Session, playbook: Playbook, cycle: AdvisoryCycle, advisory_no: int
+) -> PackageView:
     advisory = service.require_issued(session, advisory_no)
     package = session.get(DecisionPackage, advisory_no)
     if package is None:
         raise NotFound(f"no decision package for advisory {advisory_no}")
+    is_package_open = is_open(session, cycle, advisory_no)
     titles = {r.id: r.title for r in playbook.rulebook.rules}
     network = load_network(session)
     findings = {
@@ -87,6 +129,7 @@ def package_view(session: Session, playbook: Playbook, advisory_no: int) -> Pack
 
     return PackageView(
         package=package,
+        open=is_package_open,
         activation_level=context.activation_level,
         proposed_activation_level=context.proposed_activation_level,
         decides_as_commander=context.commander,
@@ -104,19 +147,18 @@ def decide(
     item_id: int,
     request: decisions.DecisionRequest,
 ) -> None:
-    """Checks the decision first (so a refusal changes nothing), then resumes the cycle."""
+    """Checks the decision once, before anything changes (so a refusal changes nothing): the
+    package is open, then the decision rules for the role that commands at the advisory's
+    activation level. Then the cycle applies it."""
     advisory = service.require_issued(session, advisory_no)
     item = session.get(PackageItem, item_id)
     if item is None or item.advisory_no != advisory_no:
         raise NotFound(f"no item {item_id} in the package for advisory {advisory_no}")
-    if advisory_no != advisory_context.current_advisory_no(session) or not cycle.waiting(
-        advisory_no
-    ):
-        raise PackageClosed(f"the decision package for advisory {advisory_no} is closed")
-    lead = advisory_context.at(session, playbook.levels, advisory).commander
 
-    def precheck() -> None:
+    def precheck() -> None:  # under the cycle's lock, so two decisions cannot both pass
+        _require_open(session, cycle, advisory_no)
         session.refresh(item)
+        lead = advisory_context.at(session, playbook.levels, advisory).commander
         decisions.check(item, request, lead)
 
     cycle.decide(advisory_no, item_id, request, precheck)
@@ -127,7 +169,7 @@ def declare(session: Session, cycle: AdvisoryCycle, declaration: decisions.Decla
     """Declares an activation level on the current advisory's P-2.5 proposal: checked first (so
     a refusal changes nothing), then the cycle records it. Returns the advisory number."""
     advisory_no = advisory_context.current_advisory_no(session)
-    if not advisory_no or not cycle.waiting(advisory_no):
+    if not advisory_no or not is_open(session, cycle, advisory_no):
         raise PackageClosed("no decision package is open; a level is declared on its proposal")
     item = session.exec(
         select(PackageItem).where(
@@ -142,7 +184,8 @@ def declare(session: Session, cycle: AdvisoryCycle, declaration: decisions.Decla
     if finding is None:
         raise DataNotLoaded(f"finding {item.finding_id} missing")
 
-    def precheck() -> None:
+    def precheck() -> None:  # under the cycle's lock
+        _require_open(session, cycle, advisory_no)
         session.refresh(item)
         decisions.check_declaration(item, finding, declaration)
 

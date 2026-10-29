@@ -51,7 +51,8 @@ class AdvisoryCycle:
             self._graph.invoke({"advisory_no": advisory_no}, self._thread(advisory_no))
 
     def waiting(self, advisory_no: int) -> bool:
-        """True while the advisory's thread is paused for decisions."""
+        """True while the advisory's thread is paused for decisions. Read only by the decision
+        package lifecycle, which keeps it in step with the package record."""
         return bool(self._graph.get_state(self._thread(advisory_no)).next)
 
     def decide(
@@ -84,10 +85,10 @@ class AdvisoryCycle:
             self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
 
     def expire(self, advisory_no: int) -> None:
-        """Closes undecided items as not decided and finalises the package."""
+        """Resumes the paused thread to close undecided items as not decided and finalise the
+        package."""
         with self._lock:
-            if advisory_no and self.waiting(advisory_no):
-                self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
+            self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
 
     def reset(self, session: Session) -> None:
         """Deletes every advisory's thread and the decision packages, their items and situation

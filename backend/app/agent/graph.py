@@ -2,11 +2,13 @@
 
 load_context -> diff -> evaluate_rules -> draft -> await_approval <-> apply_decision -> finalise
 
-Only `apply_decision` changes operational state (item decisions and activation declarations),
-and it is deterministic: the LLM never writes state, never decides whether a rule is met and
-never changes scores. Every node writes an audit event. The graph state holds only the advisory
-number and the decision being applied; the package, its items and the findings live in the
-database.
+The thread pauses in `await_approval` until the next advisory expires it, so the package stays
+open while its advisory is current. The decision package lifecycle checks every decision before
+resuming; `apply_decision` applies it. Only `apply_decision` changes operational state (item
+decisions and activation declarations), and it is deterministic: the LLM never writes state,
+never decides whether a rule is met and never changes scores. Every node writes an audit
+event. The graph state holds only the advisory number and the decision being applied; the
+package, its items and the findings live in the database.
 """
 
 from collections.abc import Callable, Iterator, Sequence
@@ -26,7 +28,7 @@ from app.agent.actions import proposed_action
 from app.agent.draft import produce_draft
 from app.agent.draft_request import draft_request
 from app.audit.log import record
-from app.errors import AppError, DataNotLoaded
+from app.errors import DataNotLoaded
 from app.llm.provider import LLMProvider
 from app.models import (
     Advisory,
@@ -251,25 +253,10 @@ def build_graph(
             ]
 
     def await_approval(state: CycleState) -> Command[str]:
+        """Pauses even with every item decided: the situation report may still be approved."""
         waiting = pending(state["advisory_no"])
-        if not waiting:
-            return Command(goto="finalise")
         decision = interrupt({"advisory_no": state["advisory_no"], "pending_items": len(waiting)})
         return Command(goto="apply_decision", update={"decision": decision})
-
-    def record_refusal(
-        session: Session, advisory: Advisory, refused: AppError, payload: dict[str, Any]
-    ) -> None:
-        """Normally refused before resuming; never leave the thread stuck on a refusal."""
-        record(
-            session,
-            "system",
-            "decision_refused",
-            str(refused),
-            advisory,
-            payload,
-            versions(session, advisory),
-        )
 
     def apply_decision(state: CycleState) -> Command[str]:
         decision = state["decision"]
@@ -285,6 +272,8 @@ def build_graph(
                 for undecided in items:
                     undecided.status = "not_decided"
                     session.add(undecided)
+                if not items:
+                    return Command(goto="finalise")
                 record(
                     session,
                     "system",
@@ -310,12 +299,6 @@ def build_graph(
             request = decisions.DecisionRequest(
                 role=decision["role"], action=decision["action"], reason=decision.get("reason")
             )
-            lead = advisory_context.at(session, playbook.levels, advisory).commander
-            try:
-                decisions.check(item, request, lead)
-            except AppError as refused:
-                record_refusal(session, advisory, refused, {"item_id": item.id, **decision})
-                return Command(goto="await_approval")
             written = decisions.apply(session, item, request, rules[item.rule_id], finding)
             record(
                 session,
@@ -350,11 +333,6 @@ def build_graph(
         declaration = decisions.Declaration(
             level=decision["level"], declared_by=decision["declared_by"], reason=decision["reason"]
         )
-        try:
-            decisions.check_declaration(item, finding, declaration)
-        except AppError as refused:
-            record_refusal(session, advisory, refused, decision)
-            return
         written = decisions.declare(session, item, declaration, advisory)
         session.flush()
         added = add_items(session, advisory, store_new_event_findings(session, advisory, playbook))

@@ -16,4 +16,4 @@ def post_declaration(
     """Declare the activation level the current package proposes (P-2.5): the Director declares
     Level 3 and 2, the Incident Commander Level 1. Refusals change nothing. Returns the package."""
     advisory_no = declare(session, cycle, Declaration(body.level, body.declared_by, body.reason))
-    return package_out(package_view(session, playbook, advisory_no))
+    return package_out(package_view(session, playbook, cycle, advisory_no))

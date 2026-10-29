@@ -54,7 +54,6 @@ const pkg = (items: PackageItem[], status: 'open' | 'closed' = 'open'): Decision
 })
 
 const sitrepProps = {
-  sitrepOpen: true,
   clauses: new Map(),
   sitrepError: null,
   onApproveSitrep: () => {},
@@ -160,6 +159,14 @@ test('a closed package offers no decisions', () => {
   expect(screen.getByText(/package is closed/)).toBeInTheDocument()
   expect(screen.getByText('Not decided')).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: /Approve$|Override|Defer/ })).not.toBeInTheDocument()
+})
+
+test('the situation report can be approved while the package is open, and not once it closes', () => {
+  const { rerender } = render(<PackageView pkg={pkg([{ ...ps09, status: 'approved' }])} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={() => {}} />)
+  expect(screen.getByRole('button', { name: 'Approve situation report' })).toBeEnabled()
+
+  rerender(<PackageView pkg={pkg([{ ...ps09, status: 'approved' }], 'closed')} assetsById={new Map()} busy={false} error={null} {...sitrepProps} onDecide={() => {}} />)
+  expect(screen.queryByRole('button', { name: 'Approve situation report' })).not.toBeInTheDocument()
 })
 
 test('an activation proposal shows first, outside the gaps', () => {
