@@ -4,14 +4,18 @@
 
 **Blocked by:** 13 (Decision package lifecycle: one answer to "is it open")
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Situation report approval is a lifecycle operation behind the same gate as item decisions
-- [ ] Approval on a closed package refused with the "package closed" error
-- [ ] Flag write and P-7.1 re-evaluation go through the single state-writing path; the module docs state this and are true
-- [ ] Activation declaration is a lifecycle operation through the same path; it closes the P-2.5 proposal
-- [ ] Test: no code path sets the activation level except a declaration
-- [ ] Audit event types and summaries for situation report approval and declaration unchanged
-- [ ] Seeded-session tests: approve on open package; refuse on closed package; wrong role refused; finding P-7.1 satisfied after approval; declaration by the wrong role refused; declaring Full starts the P-7.2 clock
-- [ ] Choice of when the package closes recorded in `docs/decisions.md` if it changes
-- [ ] End-to-end demo test green and not edited by this ticket; `./scripts/check.sh` passes
+- [x] Situation report approval is a lifecycle operation behind the same gate as item decisions
+- [x] Approval on a closed package refused with the "package closed" error
+- [x] Flag write and P-7.1 re-evaluation go through the single state-writing path; the module docs state this and are true
+- [x] Activation declaration is a lifecycle operation through the same path; it closes the P-2.5 proposal
+- [x] Test: no code path sets the activation level except a declaration
+- [x] Audit event types and summaries for situation report approval and declaration unchanged
+- [x] Seeded-session tests: approve on open package; refuse on closed package; wrong role refused; finding P-7.1 satisfied after approval; declaration by the wrong role refused; declaring Full starts the P-7.2 clock
+- [x] Choice of when the package closes recorded in `docs/decisions.md` if it changes
+- [x] End-to-end demo test green and not edited by this ticket; `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as 07884ac after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 9/9 ticked.

@@ -210,7 +210,7 @@ def finding_views(
 def refresh_event_finding(
     session: Session, advisory: Advisory, playbook: Playbook, rule_id: str
 ) -> Finding | None:
-    """Re-evaluates one event-level rule after a state change made outside the package (the
+    """Re-evaluates one event-level rule after a state change that is not a package item (the
     situation report approval for P-7.1) and updates its stored finding."""
     rule = next(r for r in playbook.rulebook.rules if r.id == rule_id)
     event, _ = evaluation_context(session, advisory, playbook)

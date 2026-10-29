@@ -14,8 +14,8 @@ from langgraph.types import Command
 from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
-from app.agent.decisions import DecisionRequest, Declaration
-from app.agent.graph import build_graph
+from app.agent.decisions import DecisionRequest, Declaration, Role
+from app.agent.graph import APPROVE_SITREP, DECLARE, EXPIRE, build_graph
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT
@@ -85,7 +85,14 @@ class AdvisoryCycle:
         precheck: Callable[[], None],
     ) -> None:
         """Like `decide`, for an activation declaration on the P-2.5 item."""
-        resume = {"item_id": item_id, "action": "declare", **asdict(declaration)}
+        resume = {"item_id": item_id, "action": DECLARE, **asdict(declaration)}
+        self._resume(advisory_no, resume, precheck)
+
+    def approve_sitrep(
+        self, advisory_no: int, role: Role, text: str, precheck: Callable[[], None]
+    ) -> None:
+        """Like `decide`, for approving the advisory's situation report."""
+        resume = {"action": APPROVE_SITREP, "role": role, "text": text}
         self._resume(advisory_no, resume, precheck)
 
     def _resume(
@@ -100,7 +107,7 @@ class AdvisoryCycle:
         package. Does nothing if the thread is not paused."""
         with self._lock:
             if self.waiting(advisory_no):
-                self._graph.invoke(Command(resume={"action": "expire"}), self._thread(advisory_no))
+                self._graph.invoke(Command(resume={"action": EXPIRE}), self._thread(advisory_no))
 
     def reset(self, session: Session) -> None:
         """Deletes every advisory's thread and the decision packages, their items and situation

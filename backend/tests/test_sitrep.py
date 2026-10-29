@@ -195,10 +195,9 @@ def test_approving_the_draft_unchanged_is_not_an_edit_and_holds_one_period(
     assert again.status_code == 409
     findings = client.get("/findings", params={"advisory": 2}).json()
     assert next(f for f in findings if f["rule_id"] == "P-7.1")["status"] == "open"
-    assert (
-        client.post("/sitrep/1/approve", json={"role": "director", "text": "late"}).status_code
-        == 409
-    )
+    late = client.post("/sitrep/1/approve", json={"role": "director", "text": "late"})
+    assert late.status_code == 409
+    assert late.json()["error"]["code"] == "package_closed"
 
 
 def test_anthropic_without_a_key_fails_at_startup(tmp_path: Path) -> None:
