@@ -84,8 +84,8 @@ def test_explanation_shows_fragility_condition_and_dependencies(client: TestClie
 
     body = client.get("/assets/SUB-07/explain", params={"advisory": 3}).json()
 
-    assert body["asset"]["condition_score"] == 4
-    assert body["wind"]["theta_adjusted"] == pytest.approx(body["wind"]["theta"] * (1 - 3 * STEP))
+    assert body["asset"]["condition_score"] == 5
+    assert body["wind"]["theta_adjusted"] == pytest.approx(body["wind"]["theta"] * (1 - 4 * STEP))
     assert {"id": "HOSP-01", "kind": "facility", "name": "Bayport General Hospital"} in body[
         "feeds"
     ]

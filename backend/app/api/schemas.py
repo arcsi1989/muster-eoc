@@ -369,7 +369,8 @@ class BacktestOut(BaseModel):
     assets: int
     failures: int
     brier: float
-    top_decile_capture: float  # share of failures among the top 10 % predicted
+    top_fraction: float  # of assets, by predicted probability (calibration.top_fraction)
+    top_capture: float  # share of all failures among them (top-decile capture at 0.10)
     reliability: list[ReliabilityBinOut]
 
 

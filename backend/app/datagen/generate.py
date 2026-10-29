@@ -18,7 +18,7 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel
 
-from app.calibration.backtest import Observation, best_track_exposure, predict
+from app.calibration.backtest import BestTrack, Observation, best_track_exposure, predict
 from app.config import REPO_ROOT
 from app.geo import distance_to_polyline
 from app.hazard.ensemble import Site, impute_elevations
@@ -176,7 +176,7 @@ def recent_inspection(rng: random.Random) -> date:
 # condition, install_year). The hazard-dependent facts are checked by seed_check.py.
 ASSET_SEEDS: dict[str, tuple[float, float, float, int, int]] = {
     # Feeds HOSP-01 (Bayport General), near the converged landfall.
-    "SUB-07": (126.0, 6.0, 2.4, 4, 1972),
+    "SUB-07": (126.0, 6.0, 2.4, 5, 1972),
     # Poor condition near the early landfall: P-4.4 in the top 10 at advisory 2.
     "SUB-03": (84.0, 4.0, 1.6, 4, 1971),
     # Low-lying substation near the late landfall: P-5.1 from advisory 4.
@@ -482,10 +482,12 @@ def build_storm_delta_outcomes(
     ]
     line, land = (f["geometry"]["coordinates"] for f in coastline["features"])
     exposures = best_track_exposure(
-        storm["track"],
-        storm["landfall_t_hours"],
-        (storm["landfall"]["x_km"], storm["landfall"]["y_km"]),
-        storm["peak_surge_m"],
+        BestTrack(
+            storm["track"],
+            storm["landfall_t_hours"],
+            (storm["landfall"]["x_km"], storm["landfall"]["y_km"]),
+            storm["peak_surge_m"],
+        ),
         sites,
         [tuple(p) for p in line],
         [tuple(p) for p in land[0]],

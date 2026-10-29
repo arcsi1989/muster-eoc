@@ -67,11 +67,11 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
         raise ScenarioComplete(f"all {state.current_advisory} advisories have been issued")
 
     exposures = store_exposure(session, advisory, config.hazard)
-    model = versions.in_use(session)
+    model_version = versions.in_use(session)
     scores = score_assets(
         [e for e in exposures if e.kind == "asset"],
         load_network(session),
-        model.curves,
+        model_version.curves,
         config,
         advisory.issued_at.date(),
     )
@@ -80,7 +80,7 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
         Score(
             asset_id=s.asset_id,
             advisory_no=advisory.advisory_no,
-            model_version=model.id,
+            model_version=model_version.id,
             p_wind=s.p_wind,
             p_flood=s.p_flood,
             p_fail=s.p_fail,

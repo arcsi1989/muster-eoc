@@ -321,7 +321,7 @@ def build_graph(
                 session,
                 "human",
                 "decision",
-                f"{request.role.replace('_', ' ').capitalize()} {item.status} "
+                f"{decisions.role_label(request.role)} {item.status} "
                 f"{item.rule_id} for {item.entity_id}"
                 + (f": {item.reason}" if item.reason else ""),
                 advisory,
@@ -362,7 +362,7 @@ def build_graph(
             session,
             "human",
             "activation_declared",
-            f"{declaration.declared_by.replace('_', ' ').capitalize()} declared activation "
+            f"{decisions.role_label(declaration.declared_by)} declared activation "
             f"Level {LEVEL_NUMBER[declaration.level]} ({declaration.level})"
             + (f": {item.reason}" if item.reason else ""),
             advisory,

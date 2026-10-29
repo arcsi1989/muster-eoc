@@ -6,7 +6,7 @@ from typing import Any
 from sqlmodel import Session
 
 from app import advisory_context
-from app.agent.decisions import DecisionRefused, Role
+from app.agent.decisions import DecisionRefused, Role, role_label
 from app.audit.log import record
 from app.errors import ConflictError, NotFound
 from app.models import DecisionPackage, OpState, Sitrep
@@ -65,7 +65,7 @@ def approve_sitrep(
         session,
         "human",
         "sitrep_approved",
-        f"{role.replace('_', ' ').capitalize()} approved the situation report"
+        f"{role_label(role)} approved the situation report"
         + (" after editing the draft" if edited else " as drafted"),
         advisory,
         {

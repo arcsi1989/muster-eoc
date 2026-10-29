@@ -18,6 +18,11 @@ Action = Literal["approve", "override", "defer", "alternative"]
 DECIDED = {"approved", "overridden", "deferred", "alternative", "not_decided"}
 
 
+def role_label(role: str) -> str:
+    """A role as audit summaries write it: "incident_commander" -> "Incident commander"."""
+    return role.replace("_", " ").capitalize()
+
+
 class DecisionRefused(AppError):
     status = 403
     code = "decision_refused"

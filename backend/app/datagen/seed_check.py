@@ -1,5 +1,7 @@
 """Replays all five advisories against the gold data and checks every demo seed fact (plan
-section 2.2). `make data` fails loudly if one does not hold."""
+section 2.2), first with the published curves, then again with the curves calibrated on Storm
+Delta approved, so the demo holds before and after calibration. `make data` fails loudly if one
+does not hold."""
 
 import tempfile
 from pathlib import Path
@@ -7,6 +9,8 @@ from pathlib import Path
 from sqlmodel import Session, select
 
 from app.calibration import service as calibration
+from app.calibration import versions
+from app.calibration.service import CalibrationRun
 from app.db import create_fresh_engine
 from app.errors import DataNotLoaded
 from app.ingest.loader import load_gold
@@ -23,10 +27,39 @@ def check_seeds(data_dir: Path, config: ScoringConfig) -> list[str]:
         Session(create_fresh_engine(Path(tmp) / "seed.sqlite")) as session,
     ):
         load_gold(session, data_dir)
-        for _ in range(service.total_advisories(session)):
-            service.advance(session, config)
-            session.commit()
-        return _failures(session, config)
+        failures = _replay_failures(session, config)
+        calibrated = calibration.run(session, config)  # writes a proposed version: a scratch db
+        failures += _storm_delta_failures(session, config, calibrated)
+        if calibrated.proposed.id is not None:
+            versions.approve(session, calibrated.proposed.id, "planning")
+        service.reset(session, data_dir)
+        failures += [f"with the calibrated curves: {f}" for f in _replay_failures(session, config)]
+        return failures
+
+
+def _replay_failures(session: Session, config: ScoringConfig) -> list[str]:
+    for _ in range(service.total_advisories(session)):
+        service.advance(session, config)
+        session.commit()
+    return _failures(session, config)
+
+
+def _storm_delta_failures(
+    session: Session, config: ScoringConfig, calibrated: CalibrationRun
+) -> list[str]:
+    outcomes = list(
+        session.exec(select(StormOutcome).where(StormOutcome.storm == config.calibration.storm))
+    )
+    failure_rate = sum(o.failed for o in outcomes) / max(1, len(outcomes))
+    assets = {a.id for a in session.exec(select(Asset))}
+    checks = {
+        "Storm Delta has an outcome for every asset": {o.asset_id for o in outcomes} == assets,
+        "10-50 % of assets failed in Storm Delta": 0.10 <= failure_rate <= 0.50,
+        "calibration on Storm Delta lowers the Brier score": (
+            calibrated.after.brier < calibrated.before.brier
+        ),
+    }
+    return [name for name, holds in checks.items() if not holds]
 
 
 def _failures(session: Session, config: ScoringConfig) -> list[str]:
@@ -59,12 +92,6 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         for a in session.exec(select(Asset))
         if (first_issued - a.last_inspection_date).days > stale_days
     ]
-
-    outcomes = list(
-        session.exec(select(StormOutcome).where(StormOutcome.storm == config.calibration.storm))
-    )
-    failure_rate = sum(o.failed for o in outcomes) / max(1, len(outcomes))
-    calibrated = calibration.run(session, config)
 
     ps14 = assets["PS-14"]
     ps14_arrival = {n: exposure("PS-14", n).tsforce_arrival_h for n in (3, 4, 5)}
@@ -101,10 +128,5 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         ),
         "3 null elevations": sum(a.elevation_m is None for a in assets.values()) == 3,
         "5 inspections over 3 years old": len(stale) == 5,
-        "Storm Delta has an outcome for every asset": {o.asset_id for o in outcomes} == set(assets),
-        "10-50 % of assets failed in Storm Delta": 0.10 <= failure_rate <= 0.50,
-        "calibration on Storm Delta lowers the Brier score": (
-            calibrated.after.brier < calibrated.before.brier
-        ),
     }
     return [name for name, holds in checks.items() if not holds]

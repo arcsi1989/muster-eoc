@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from sqlmodel import Session, col, select
 
 from app import advisory_context
-from app.agent.decisions import DecisionRefused, Role
+from app.agent.decisions import DecisionRefused, Role, role_label
 from app.audit.log import record
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.models import Advisory, FragilityCurve, ModelVersion
@@ -21,7 +21,7 @@ class AlreadyApproved(ConflictError):
 
 
 @dataclass(frozen=True)
-class InUse:
+class ActiveModelVersion:
     id: int
     label: str
     curves: list[FragilityCurve]
@@ -31,7 +31,7 @@ def all_versions(session: Session) -> list[ModelVersion]:
     return list(session.exec(select(ModelVersion).order_by(col(ModelVersion.id))))
 
 
-def in_use(session: Session) -> InUse:
+def in_use(session: Session) -> ActiveModelVersion:
     """The latest approved version: the one the next advisory is scored with."""
     query = (
         select(ModelVersion)
@@ -41,7 +41,7 @@ def in_use(session: Session) -> InUse:
     version = session.exec(query).first()
     if version is None or version.id is None:
         raise DataNotLoaded("no approved model version; the gold data was not loaded")
-    return InUse(version.id, version.label, curves(version))
+    return ActiveModelVersion(version.id, version.label, curves(version))
 
 
 def curves(version: ModelVersion) -> list[FragilityCurve]:
@@ -54,12 +54,12 @@ def approve(session: Session, version_id: int, role: Role) -> ModelVersion:
     version = session.get(ModelVersion, version_id)
     if version is None:
         raise NotFound(f"model version {version_id} does not exist")
-    if version.status == "approved":
-        raise AlreadyApproved(f"model version {version_id} is already approved")
     if role not in APPROVERS:
         raise DecisionRefused(
             "A model version is approved by Planning, the Director or the Incident Commander."
         )
+    if version.status == "approved":
+        raise AlreadyApproved(f"model version {version_id} is already approved")
     version.status = "approved"
     version.approved_by = role
     version.approved_at = datetime.now(UTC)
@@ -69,7 +69,7 @@ def approve(session: Session, version_id: int, role: Role) -> ModelVersion:
         session,
         "human",
         APPROVED_EVENT,
-        f"{role.replace('_', ' ').capitalize()} approved model version {version_id} "
+        f"{role_label(role)} approved model version {version_id} "
         f"({version.label}); scoring uses it from the next advisory",
         session.get(Advisory, current) if current else None,
         {"model_version": version_id, "approved_by": role, "curves": version.curves},

@@ -49,7 +49,8 @@ from app.models import (
 )
 
 INITIAL_STATE_SOURCE = "initial_state"
-PUBLISHED = "published"  # model version 1: the published curves, in use from the start
+PUBLISHED = "published"  # who approved the published curves
+PUBLISHED_VERSION = 1  # model version of the published curves: in use from the start, the prior
 
 
 class GoldDataMissing(RuntimeError):
@@ -198,7 +199,7 @@ def load_gold(session: Session, data_dir: Path) -> None:
     session.add_all(FragilityCurve(**c.model_dump()) for c in curves)
     session.add(
         ModelVersion(
-            id=1,
+            id=PUBLISHED_VERSION,
             label="Published curves",
             status="approved",
             curves=[c.model_dump() for c in curves],

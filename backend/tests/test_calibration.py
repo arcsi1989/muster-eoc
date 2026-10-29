@@ -142,7 +142,8 @@ def test_calibration_back_tests_storm_delta_before_and_after_and_proposes_a_vers
         assert metrics["failures"] > 0
         assert len(metrics["reliability"]) == 10
         assert sum(b["count"] for b in metrics["reliability"]) == 196
-        assert 0 <= metrics["top_decile_capture"] <= 1
+        assert 0 <= metrics["top_capture"] <= 1
+        assert metrics["top_fraction"] == CONFIG.calibration.top_fraction
     assert after["brier"] < before["brier"]
     assert before["model_version"] == 1
     version = result["model_version"]
@@ -217,6 +218,15 @@ def test_a_version_is_approved_once(client: TestClient) -> None:
 
     assert again.status_code == 409
     assert approve(client, 1, "planning").status_code == 409  # the published curves
+
+
+def test_a_role_that_may_not_approve_is_refused_even_on_an_approved_version(
+    client: TestClient,
+) -> None:
+    response = approve(client, 1, "logistics")
+
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "decision_refused"
 
 
 def test_approving_an_unknown_version_is_not_found(client: TestClient) -> None:

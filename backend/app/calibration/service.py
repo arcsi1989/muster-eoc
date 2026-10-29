@@ -11,11 +11,18 @@ from sqlmodel import Session, select
 from app import advisory_context
 from app.audit.log import record
 from app.calibration import versions
-from app.calibration.backtest import BacktestMetrics, Observation, best_track_exposure, evaluate
+from app.calibration.backtest import (
+    BacktestMetrics,
+    BestTrack,
+    Observation,
+    best_track_exposure,
+    evaluate,
+)
 from app.calibration.backtest import predict as predict_failures
 from app.calibration.fit import fit_map
 from app.errors import DataNotLoaded
 from app.hazard.service import sites
+from app.ingest.loader import PUBLISHED_VERSION
 from app.models import (
     Advisory,
     Asset,
@@ -28,7 +35,6 @@ from app.models import (
 from app.scoring_config import ScoringConfig
 
 CALIBRATION_EVENT = "calibration_run"
-PUBLISHED_VERSION = 1  # the prior's centre
 
 
 @dataclass(frozen=True)
@@ -52,10 +58,12 @@ def observations(session: Session, config: ScoringConfig) -> list[Observation]:
     }
     assets = {a.id: a for a in session.exec(select(Asset))}
     exposures = best_track_exposure(
-        storm.track,
-        storm.landfall_t_hours,
-        (storm.landfall_x_km, storm.landfall_y_km),
-        storm.peak_surge_m,
+        BestTrack(
+            storm.track,
+            storm.landfall_t_hours,
+            (storm.landfall_x_km, storm.landfall_y_km),
+            storm.peak_surge_m,
+        ),
         [s for s in sites(session, config.hazard) if s.id in failed],
         [(x, y) for x, y in coastline.coastline],
         [(x, y) for x, y in coastline.land],
@@ -75,25 +83,29 @@ def observations(session: Session, config: ScoringConfig) -> list[Observation]:
 
 
 def run(session: Session, config: ScoringConfig) -> CalibrationRun:
-    cal = config.calibration
+    calibration = config.calibration
     step = config.risk.condition_theta_reduction_per_step
     observed = observations(session, config)
     failed = np.array([o.failed for o in observed])
 
     def backtest(curves: list[FragilityCurve]) -> BacktestMetrics:
         p = predict_failures(observed, curves, step)
-        return evaluate(p, failed, cal.reliability_bins, cal.top_fraction)
+        return evaluate(p, failed, calibration.reliability_bins, calibration.top_fraction)
 
     current = versions.in_use(session)
     published = session.get(ModelVersion, PUBLISHED_VERSION)
     if published is None:
         raise DataNotLoaded("the published model version is missing")
     fitted = fit_map(
-        observed, versions.curves(published), step, cal.prior_sd_log_theta, cal.prior_sd_log_beta
+        observed,
+        versions.curves(published),
+        step,
+        calibration.prior_sd_log_theta,
+        calibration.prior_sd_log_beta,
     )
     before, after = backtest(current.curves), backtest(fitted)
     proposed = ModelVersion(
-        label=f"Calibrated on {cal.storm}",
+        label=f"Calibrated on {calibration.storm}",
         status="proposed",
         curves=[
             {"asset_type": c.asset_type, "hazard": c.hazard, "theta": c.theta, "beta": c.beta}
@@ -101,7 +113,7 @@ def run(session: Session, config: ScoringConfig) -> CalibrationRun:
         ],
         created_at=datetime.now(UTC),
         backtest={
-            "storm": cal.storm,
+            "storm": calibration.storm,
             "before_version": current.id,
             "before": asdict(before),
             "after": asdict(after),
@@ -114,7 +126,7 @@ def run(session: Session, config: ScoringConfig) -> CalibrationRun:
         session,
         "system",
         CALIBRATION_EVENT,
-        f"Calibrated on {cal.storm}: Brier score {before.brier:.3f} -> {after.brier:.3f}; "
+        f"Calibrated on {calibration.storm}: Brier score {before.brier:.3f} -> {after.brier:.3f}; "
         f"model version {proposed.id} proposed, awaiting approval",
         session.get(Advisory, advisory_no) if advisory_no else None,
         {
@@ -122,11 +134,11 @@ def run(session: Session, config: ScoringConfig) -> CalibrationRun:
             "before_version": current.id,
             "brier_before": before.brier,
             "brier_after": after.brier,
-            "top_decile_capture_before": before.top_decile_capture,
-            "top_decile_capture_after": after.top_decile_capture,
+            "top_capture_before": before.top_capture,
+            "top_capture_after": after.top_capture,
         },
         {"model_version": current.id},
     )
     session.commit()
     session.refresh(proposed)
-    return CalibrationRun(cal.storm, current.id, before, after, proposed)
+    return CalibrationRun(calibration.storm, current.id, before, after, proposed)

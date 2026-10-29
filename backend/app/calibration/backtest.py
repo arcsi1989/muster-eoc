@@ -33,6 +33,16 @@ class Observation:
 
 
 @dataclass(frozen=True)
+class BestTrack:
+    """A past storm's observed track: `landfall_t_hours` is the track time of landfall."""
+
+    track: list[dict[str, Any]]
+    landfall_t_hours: float
+    landfall: Point
+    peak_surge_m: float
+
+
+@dataclass(frozen=True)
 class ReliabilityBin:
     lower: float
     upper: float
@@ -46,15 +56,13 @@ class BacktestMetrics:
     assets: int
     failures: int
     brier: float
-    top_decile_capture: float
+    top_fraction: float  # of assets, by predicted probability (0.10: the top decile)
+    top_capture: float  # share of all failures among them
     reliability: list[ReliabilityBin]
 
 
 def best_track_exposure(
-    track: list[dict[str, Any]],
-    landfall_t_hours: float,
-    landfall: Point,
-    peak_surge_m: float,
+    storm: BestTrack,
     sites: list[Site],
     coastline: list[Point],
     land: list[Point],
@@ -65,15 +73,15 @@ def best_track_exposure(
     one_member = config.model_copy(
         update={"ensemble": config.ensemble.model_copy(update={"members": 1})}
     )
-    storm = StormInput(
+    known = StormInput(
         advisory_no=0,
-        hours_to_landfall=math.ceil(landfall_t_hours),
-        track=track,
+        hours_to_landfall=math.ceil(storm.landfall_t_hours),
+        track=storm.track,
         cone_radius_km={"0": 0.0},  # no forecast uncertainty: the shift is always zero
-        landfall=landfall,
-        peak_surge_m=peak_surge_m,
+        landfall=storm.landfall,
+        peak_surge_m=storm.peak_surge_m,
     )
-    return compute_exposure(storm, sites, coastline, land, one_member)
+    return compute_exposure(known, sites, coastline, land, one_member)
 
 
 def predict(
@@ -137,6 +145,7 @@ def evaluate(p: FloatArray, failed: BoolArray, bins: int, top_fraction: float) -
         assets=len(p),
         failures=int(failed.sum()),
         brier=brier_score(p, failed),
-        top_decile_capture=top_capture(p, failed, top_fraction),
+        top_fraction=top_fraction,
+        top_capture=top_capture(p, failed, top_fraction),
         reliability=reliability(p, failed, bins),
     )
