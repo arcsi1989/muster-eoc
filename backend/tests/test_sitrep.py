@@ -10,13 +10,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT, Settings
-from app.llm.anthropic_provider import AnthropicProvider, CopilotPrompt
+from app.llm.anthropic_provider import AnthropicProvider
 from app.llm.factory import LLMConfigError, build_provider
 from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     LLMUnavailable,
     Paragraph,
+    Prompt,
     Section,
     SitrepDraft,
 )
@@ -46,20 +47,20 @@ class FakeProvider:
 
     name = "fake"
     model: str | None = "fake-model"
-    prompt_version: str | None = "fake-prompt-v1"
 
     def __init__(self, *outputs: SitrepDraft | Exception) -> None:
         self.outputs = list(outputs)
         self.requests: list[DraftRequest] = []
+        self.prompts: list[Prompt] = []
 
-    def draft_sitrep(self, request: DraftRequest) -> DraftResult:
+    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
         self.requests.append(request)
+        self.prompts.append(prompt)
         output = self.outputs.pop(0) if len(self.outputs) > 1 else self.outputs[0]
         if isinstance(output, Exception):
             raise output
-        return DraftResult(
-            output, self.name, self.model, 42, {"input_tokens": 100, "output_tokens": 50}
-        )
+        usage = {"input_tokens": 100, "output_tokens": 50}
+        return DraftResult(output, self.name, self.model, prompt.version, 42, usage)
 
 
 def drafted_event(client: TestClient) -> dict[str, Any]:
@@ -231,17 +232,11 @@ class FakeMessages:
 
 def anthropic_with(messages: FakeMessages) -> AnthropicProvider:
     client = SimpleNamespace(beta=SimpleNamespace(messages=messages))
-    copilot = CopilotPrompt(
-        system="copilot prompt", version="copilot-v1", max_tokens=2000, max_tool_rounds=3
-    )
-    return AnthropicProvider(
-        client,  # type: ignore[arg-type]  # a fake with the same beta.messages surface
-        "claude-sonnet-5-5",
-        "system prompt",
-        "sitrep-v2",
-        4000,
-        copilot,
-    )
+    # a fake with the same beta.messages surface
+    return AnthropicProvider(client, "claude-sonnet-5-5")  # type: ignore[arg-type]
+
+
+PROMPT = Prompt("sitrep-v9", "system prompt", max_tokens=4000)
 
 
 def request() -> DraftRequest:
@@ -256,13 +251,15 @@ def test_anthropic_provider_sends_findings_as_delimited_data_with_refusal_fallba
     )  # fmt: skip
     messages = FakeMessages(response)
 
-    result = anthropic_with(messages).draft_sitrep(request())
+    result = anthropic_with(messages).draft_sitrep(request(), PROMPT)
 
     call = messages.calls[0]
     assert call["model"] == "claude-sonnet-5-5"
     assert call["output_format"] is SitrepDraft
     assert call["fallbacks"] == "default" and call["betas"] == ["server-side-fallback-2026-07-01"]
     assert call["messages"][0]["content"].startswith("<findings>")
+    assert (call["system"], call["max_tokens"]) == ("system prompt", 4000), "the prompt it is sent"
+    assert result.prompt_version == "sitrep-v9"
     assert "temperature" not in call
     assert result.usage == {"input_tokens": 10, "output_tokens": 5}
 
@@ -275,11 +272,11 @@ def test_anthropic_refusal_and_errors_become_llm_unavailable() -> None:
         usage=SimpleNamespace(input_tokens=1, output_tokens=0),
     )
     with pytest.raises(LLMUnavailable, match="declined"):
-        anthropic_with(FakeMessages(refusal)).draft_sitrep(request())
+        anthropic_with(FakeMessages(refusal)).draft_sitrep(request(), PROMPT)
 
     error = anthropic.APIConnectionError(request=None)  # type: ignore[arg-type]
     with pytest.raises(LLMUnavailable, match="reach"):
-        anthropic_with(FakeMessages(error=error)).draft_sitrep(request())
+        anthropic_with(FakeMessages(error=error)).draft_sitrep(request(), PROMPT)
 
 
 def test_approving_a_report_for_an_advisory_not_issued_is_not_found(client: TestClient) -> None:
@@ -296,7 +293,7 @@ def test_a_failed_call_records_latency_and_model(make_client: ClientFactory) -> 
 
     assert attempt["error"] == "model provider error 503"
     assert attempt["model"] == "fake-model"
-    assert attempt["prompt_version"] == "fake-prompt-v1"
+    assert attempt["prompt_version"] == "sitrep-v2", "the prompt the situation report task loads"
     assert "latency_ms" in attempt
 
 

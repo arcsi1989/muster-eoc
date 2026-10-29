@@ -25,7 +25,7 @@ from sqlmodel import Session, col, select
 from app import advisory_context
 from app.agent import decisions
 from app.agent.actions import proposed_action
-from app.agent.draft import produce_draft
+from app.agent.draft import produce_draft, sitrep_prompt
 from app.agent.draft_request import draft_request
 from app.agent.sitrep import SITREP_RULE, apply_approval
 from app.audit.log import record
@@ -64,14 +64,17 @@ def build_graph(
 ) -> StateGraph[CycleState]:
     draft_config = config.draft
     fallback = TemplateProvider.from_config(config)
+    prompt = sitrep_prompt(draft_config)
 
-    def versions(session: Session, advisory: Advisory) -> dict[str, Any]:
+    def versions(
+        session: Session, advisory: Advisory, prompt_version: str | None = None
+    ) -> dict[str, Any]:
         """The versions that produced a step: the model version is the one that scored the
-        advisory."""
+        advisory; a prompt version only for the step a prompt wrote."""
         return {
             "rules_version": playbook.rulebook.version,
             "model_version": service.model_version(session, advisory.advisory_no),
-            "prompt_version": llm.prompt_version,
+            "prompt_version": prompt_version,
         }
 
     def provider() -> LLMProvider:
@@ -211,7 +214,7 @@ def build_graph(
             changes = changes_from_json(package.changes)
             request = draft_request(session, advisory, playbook, changes, draft_config)
         # the model call runs outside any database transaction
-        outcome = produce_draft(provider(), fallback, request, 1 + draft_config.retries)
+        outcome = produce_draft(provider(), fallback, prompt, request, 1 + draft_config.retries)
         with unit() as session:
             advisory = advisory_of(session, state)
             package = session.get(DecisionPackage, advisory.advisory_no)
@@ -241,7 +244,7 @@ def build_graph(
                     "fallback_reason": outcome.fallback_reason,
                     "clauses_retrieved": [c.id for c in request.clauses],
                 },
-                versions(session, advisory),
+                versions(session, advisory, outcome.prompt_version),
             )
         return {}
 

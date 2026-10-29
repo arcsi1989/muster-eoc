@@ -7,6 +7,7 @@ from app.llm.schemas import (
     DraftItem,
     DraftRequest,
     Paragraph,
+    Prompt,
     RetrievedClause,
     Section,
     SitrepDraft,
@@ -120,7 +121,10 @@ def test_the_template_draft_is_grounded_in_its_request() -> None:
 
     assert (
         citation_problems(
-            TemplateProvider(top_risks=5, top_assets=5).draft_sitrep(shown).draft, shown
+            TemplateProvider(top_risks=5, top_assets=5)
+            .draft_sitrep(shown, Prompt("unused", "", max_tokens=1))
+            .draft,
+            shown,
         )
         == []
     )

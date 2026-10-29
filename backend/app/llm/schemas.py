@@ -3,12 +3,33 @@
 import json
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, fields
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.ids import CLAUSE_ID, SITE_ID, mentioned
 from app.replay.diff import AdvisoryChanges
+
+
+@dataclass(frozen=True)
+class Prompt:
+    """A task's prompt and its settings, sent to a provider in the same shape for every task. The
+    task that owns a prompt loads it; providers only send it."""
+
+    version: str
+    system: str
+    max_tokens: int
+    max_tool_rounds: int = 0  # model turns that may call tools before an answer is required
+    deadline_s: float | None = None  # the whole answer, across tool rounds
+
+    @classmethod
+    def from_file(
+        cls, path: Path, max_tokens: int, max_tool_rounds: int = 0, deadline_s: float | None = None
+    ) -> "Prompt":
+        """A prompt file's version is its name: sitrep_v2.md is sitrep-v2."""
+        version = path.stem.replace("_", "-")
+        return cls(version, path.read_text(), max_tokens, max_tool_rounds, deadline_s)
 
 
 class Paragraph(BaseModel):
@@ -105,6 +126,7 @@ class DraftResult:
     draft: SitrepDraft
     provider: str
     model: str | None
+    prompt_version: str | None  # the prompt the draft was written with; None for the template
     latency_ms: int
     usage: dict[str, int]
 
@@ -130,6 +152,6 @@ class ChatResult:
     model: (
         str | None
     )  # the model that answered (a refusal fallback can differ from the configured one)
-    prompt_version: str | None  # the copilot prompt's version; None for the template
+    prompt_version: str | None  # the prompt the answer was written with; None for the template
     latency_ms: int
     usage: dict[str, int]

@@ -10,6 +10,7 @@ from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     Paragraph,
+    Prompt,
     Section,
     SitrepDraft,
     ToolRunner,
@@ -33,7 +34,6 @@ def _paragraph(text: str, clause_ids: list[str], asset_ids: list[str]) -> Paragr
 class TemplateProvider:
     name = "template"
     model: str | None = None
-    prompt_version: str | None = None
 
     def __init__(self, top_risks: int, top_assets: int) -> None:
         self._top_risks = top_risks  # the copilot's default number of top risks
@@ -50,10 +50,13 @@ class TemplateProvider:
         history: list[ChatTurn],
         tools: list[dict[str, Any]],
         run_tool: ToolRunner,
+        prompt: Prompt,
     ) -> ChatResult:
+        """Answers from the tools without a model, so `prompt` is not used."""
         return template_chat(question, run_tool, self._top_risks)
 
-    def draft_sitrep(self, request: DraftRequest) -> DraftResult:
+    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
+        """Writes the draft from the request without a model, so `prompt` is not used."""
         situation = (
             f"Advisory {request.advisory_no}, {request.hours_to_landfall} h to landfall; "
             f"activation level {request.activation_level or 'none'}."
@@ -98,4 +101,4 @@ class TemplateProvider:
             )
         if gaps:
             sections.append(Section(heading="Playbook actions", paragraphs=gaps))
-        return DraftResult(SitrepDraft(sections=sections), self.name, None, 0, {})
+        return DraftResult(SitrepDraft(sections=sections), self.name, None, None, 0, {})
