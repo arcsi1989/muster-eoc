@@ -10,6 +10,7 @@ import type {
   Coastline,
   DecisionAction,
   DecisionPackage,
+  Declaration,
   Explanation,
   Exposure,
   Facility,
@@ -49,6 +50,9 @@ export const postDecision = (
     method: 'POST',
     body: JSON.stringify(decision),
   })
+/** Declares the level the current package proposes (P-2.5); returns the updated package. */
+export const postDeclaration = (declaration: Declaration) =>
+  api<DecisionPackage>('/activation/declare', { method: 'POST', body: JSON.stringify(declaration) })
 export const approveSitrep = (advisoryNo: number, role: Role, text: string) =>
   api<Sitrep>(`/sitrep/${advisoryNo}/approve`, { method: 'POST', body: JSON.stringify({ role, text }) })
 export const getAudit = (actor?: AuditActor) =>

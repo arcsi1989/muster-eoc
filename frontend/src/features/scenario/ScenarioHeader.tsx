@@ -1,5 +1,5 @@
 import type { ApiError } from '../../api/client'
-import { LEVEL_LABEL } from '../../lib/labels'
+import { LEVEL_LABEL, levelName } from '../../lib/labels'
 import type { Scenario, TimelineSlot } from '../../types/scenario'
 
 interface Props {
@@ -23,6 +23,7 @@ function phases(timeline: TimelineSlot[]) {
 
 export function ScenarioHeader({ scenario, busy, actionError, onNext, onReset }: Props) {
   const atEnd = scenario.current_advisory >= scenario.total_advisories
+  const declared = scenario.timeline.find((s) => s.advisory_no === scenario.current_advisory)?.activation_level
   const columns = { gridTemplateColumns: `repeat(${scenario.timeline.length}, minmax(0, 1fr))` }
 
   return (
@@ -56,6 +57,7 @@ export function ScenarioHeader({ scenario, busy, actionError, onNext, onReset }:
         </div>
       </div>
       <div className="scenario-actions">
+        {declared && <span className={`badge badge-${declared}`}>Declared: {levelName(declared)}</span>}
         <button type="button" onClick={onNext} disabled={busy || atEnd}>
           {atEnd ? 'Landfall reached: last advisory' : `Issue advisory ${scenario.current_advisory + 1} ▶`}
         </button>
