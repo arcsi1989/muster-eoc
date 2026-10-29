@@ -29,7 +29,7 @@ from sqlmodel import Session, col, select
 from app import advisory_context
 from app.agent import decisions, sitrep
 from app.agent.actions import proposed_action
-from app.agent.draft import produce_draft
+from app.agent.draft import produce_draft, sitrep_prompt
 from app.agent.draft_request import draft_request
 from app.audit.log import record
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
@@ -285,15 +285,18 @@ class CycleSteps:
         self._llm = llm
         self._config = config
         self._fallback = TemplateProvider.from_config(config)
+        self._prompt = sitrep_prompt(config.draft)
         self._rules = {r.id: r for r in playbook.rulebook.rules}
 
-    def _versions(self, session: Session, advisory: Advisory) -> dict[str, Any]:
+    def _versions(
+        self, session: Session, advisory: Advisory, prompt_version: str | None = None
+    ) -> dict[str, Any]:
         """The versions that produced a step: the model version is the one that scored the
-        advisory."""
+        advisory; a prompt version only for the step a prompt wrote."""
         return {
             "rules_version": self._playbook.rulebook.version,
             "model_version": service.model_version(session, advisory.advisory_no),
-            "prompt_version": self._llm.prompt_version,
+            "prompt_version": prompt_version,
         }
 
     @staticmethod
@@ -423,7 +426,8 @@ class CycleSteps:
 
     def write_draft(self, request: DraftRequest) -> GroundedOutcome[DraftResult]:
         """The provider's grounded draft, else the template's. Runs outside any transaction."""
-        return produce_draft(self._llm, self._fallback, request, 1 + self._config.draft.retries)
+        attempts = 1 + self._config.draft.retries
+        return produce_draft(self._llm, self._fallback, self._prompt, request, attempts)
 
     def save_draft(
         self,
@@ -458,7 +462,7 @@ class CycleSteps:
                 "fallback_reason": outcome.fallback_reason,
                 "clauses_retrieved": [c.id for c in request.clauses],
             },
-            self._versions(session, advisory),
+            self._versions(session, advisory, outcome.prompt_version),
         )
 
     @staticmethod

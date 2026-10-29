@@ -44,6 +44,7 @@ copilot:
   max_tokens: 2000
   deadline_s: 60              # whole answer, across tool rounds
   history_max: 20             # earlier messages accepted with a question
+  retries: 0                  # after an answer fails grounding; 0: the template answers at once
 
 calibration:
   storm: Storm Delta          # the past storm the back-test replays (data/gold/history/)
