@@ -1,6 +1,6 @@
 """The decision package as the API serves it; shared by the package and activation routes."""
 
-from app.agent.package import PackageView
+from app.agent.lifecycle import PackageView
 from app.agent.sitrep import draft_text
 from app.api.schemas import PackageItemOut, PackageOut, SitrepOut
 

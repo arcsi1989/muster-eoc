@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.agent.decisions import DecisionRequest
-from app.agent.package import decide, package_view
+from app.agent.lifecycle import decide, package_view
 from app.api.package_out import package_out
 from app.api.schemas import DecisionIn, PackageOut
 from app.deps import CycleDep, PlaybookDep, SessionDep

@@ -13,7 +13,6 @@ from langgraph.types import Command
 from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
-from app import advisory_context
 from app.agent.decisions import DecisionRequest, Declaration
 from app.agent.graph import build_graph
 from app.audit.log import clear_events, record
@@ -102,17 +101,6 @@ class AdvisoryCycle:
 
     def close(self) -> None:
         self._conn.close()
-
-
-def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
-    """Expires the current advisory's open decisions, issues and scores the next advisory, and
-    runs its cycle until it pauses for decisions."""
-    cycle.expire(advisory_context.current_advisory_no(session))
-    advisory = service.advance(session, config)
-    advisory_context.reset_per_advisory_flags(session, advisory)
-    session.commit()  # one transaction: the advisory is never current with stale flags
-    cycle.start(advisory.advisory_no)
-    return advisory.advisory_no
 
 
 def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> None:

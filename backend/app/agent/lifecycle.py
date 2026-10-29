@@ -1,4 +1,5 @@
-"""Read side of the decision package, and the entry point for a person's decision."""
+"""The decision package lifecycle: opening and expiring a package, its read side, and the entry
+point for a person's decision."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -14,6 +15,7 @@ from app.network import load_network
 from app.playbook.activation import PROPOSAL_RULE
 from app.playbook.service import Playbook
 from app.replay import service
+from app.scoring_config import ScoringConfig
 
 
 class PackageClosed(ConflictError):
@@ -22,6 +24,17 @@ class PackageClosed(ConflictError):
 
 class NoActivationProposal(ConflictError):
     code = "no_activation_proposal"
+
+
+def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
+    """Expires the current advisory's open decisions, issues and scores the next advisory, and
+    runs its cycle until it pauses for decisions."""
+    cycle.expire(advisory_context.current_advisory_no(session))
+    advisory = service.advance(session, config)
+    advisory_context.reset_per_advisory_flags(session, advisory)
+    session.commit()  # one transaction: the advisory is never current with stale flags
+    cycle.start(advisory.advisory_no)
+    return advisory.advisory_no
 
 
 @dataclass(frozen=True)
