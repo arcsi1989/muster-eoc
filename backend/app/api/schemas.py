@@ -22,10 +22,23 @@ class PointOut(BaseModel):
 
 class TrackPointOut(BaseModel):
     t_hours: float
+    valid_at: datetime  # issue time + t_hours
     x_km: float
     y_km: float
     vmax_mph: float
     rmax_km: float
+    category: str  # Saffir-Simpson category from vmax_mph (config/scoring.yaml)
+
+
+class PastPositionOut(BaseModel):
+    """Where the storm was when an earlier advisory was issued."""
+
+    advisory_no: int
+    valid_at: datetime
+    x_km: float
+    y_km: float
+    vmax_mph: float
+    category: str
 
 
 class AdvisoryOut(BaseModel):
@@ -36,8 +49,9 @@ class AdvisoryOut(BaseModel):
     max_wind_mph: float
     peak_surge_m: float
     landfall: PointOut
-    track: list[TrackPointOut]
-    cone: list[PointOut]  # outline of the forecast cone
+    track: list[TrackPointOut]  # forecast points
+    past_positions: list[PastPositionOut]  # earlier advisories, oldest first
+    cone: list[PointOut]  # outline of the NHC-style forecast cone
 
 
 class TimelineSlotOut(BaseModel):

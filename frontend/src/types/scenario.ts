@@ -9,10 +9,31 @@ export interface Point {
   y_km: number
 }
 
+/** Saffir-Simpson category from the 1-minute sustained wind (config/scoring.yaml) */
+export type IntensityCategory =
+  | 'tropical_depression'
+  | 'tropical_storm'
+  | 'cat_1'
+  | 'cat_2'
+  | 'cat_3'
+  | 'cat_4'
+  | 'cat_5'
+
 export interface TrackPoint extends Point {
   t_hours: number
+  /** issue time + t_hours */
+  valid_at: string
   vmax_mph: number
   rmax_km: number
+  category: IntensityCategory
+}
+
+/** Where the storm was when an earlier advisory was issued. */
+export interface PastPosition extends Point {
+  advisory_no: number
+  valid_at: string
+  vmax_mph: number
+  category: IntensityCategory
 }
 
 export interface Advisory {
@@ -23,8 +44,11 @@ export interface Advisory {
   max_wind_mph: number
   peak_surge_m: number
   landfall: Point
+  /** forecast points */
   track: TrackPoint[]
-  /** outline of the forecast cone */
+  /** earlier advisories, oldest first */
+  past_positions: PastPosition[]
+  /** outline of the NHC-style forecast cone */
   cone: Point[]
 }
 
