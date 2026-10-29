@@ -6,16 +6,14 @@ from typing import Literal
 
 from sqlmodel import Session
 
+from app.advisory_context import COMMANDERS, Commander
 from app.agent.actions import approval_state
 from app.errors import AppError, ConflictError
 from app.models import Finding, OpState, PackageItem
 from app.playbook.rules import Rule
 
-Role = Literal[
-    "incident_commander", "director", "planning", "operations", "logistics", "regulatory_liaison"
-]
+Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
 Action = Literal["approve", "override", "defer", "alternative"]
-COMMANDERS: dict[bool, Role] = {True: "incident_commander", False: "director"}
 DECIDED = {"approved", "overridden", "deferred", "alternative", "not_decided"}
 
 
@@ -35,17 +33,12 @@ class DecisionRequest:
     reason: str | None = None
 
 
-def commander(full_activation: bool) -> Role:
-    """The Incident Commander at full activation; the Director below it (P-2.3)."""
-    return COMMANDERS[full_activation]
-
-
-def check(item: PackageItem, request: DecisionRequest, full_activation: bool) -> None:
-    """Raises if this role may not take this decision on this item."""
+def check(item: PackageItem, request: DecisionRequest, lead: Commander) -> None:
+    """Raises if this role may not take this decision on this item, with `lead` the role that
+    commands at the advisory."""
     if item.status in DECIDED:
         raise AlreadyDecided(f"item {item.id} was already decided ({item.status})")
-    lead = commander(full_activation)
-    other_lead = commander(not full_activation)
+    other_lead = next(role for role in COMMANDERS if role != lead)
     if request.role == other_lead:
         raise DecisionRefused(
             "The Incident Commander is appointed at full activation (P-2.3); below it the "

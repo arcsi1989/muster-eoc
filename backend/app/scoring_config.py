@@ -37,7 +37,6 @@ class HazardConfig(Strict):
 
 class AlertConfig(Strict):
     risk_threshold: float
-    top_n: int
     rank_jump: int
     rank_jump_within: int
 
@@ -45,6 +44,7 @@ class AlertConfig(Strict):
 class RiskConfig(Strict):
     condition_theta_reduction_per_step: float
     stale_inspection_years: float
+    top_n: int
     alert: AlertConfig
 
 

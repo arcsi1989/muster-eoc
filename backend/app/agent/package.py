@@ -5,12 +5,12 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
+from app import advisory_context
 from app.agent import decisions
 from app.agent.cycle import AdvisoryCycle
 from app.errors import ConflictError, NotFound
 from app.models import DecisionPackage, Finding, PackageItem, Sitrep
 from app.network import load_network
-from app.playbook.activation import activation_level
 from app.playbook.service import Playbook
 from app.replay import service
 
@@ -33,7 +33,7 @@ class ItemView:
 class PackageView:
     package: DecisionPackage
     activation_level: str | None
-    decides_as_commander: str  # incident_commander at full activation, director below
+    decides_as_commander: advisory_context.Commander
     items: list[ItemView]
     changes: dict[str, Any]
     sitrep: Sitrep | None
@@ -54,7 +54,7 @@ def package_view(session: Session, playbook: Playbook, advisory_no: int) -> Pack
         .where(PackageItem.advisory_no == advisory_no)
         .order_by(col(PackageItem.id))
     ).all()
-    level = activation_level(advisory.hours_to_landfall, playbook.levels)
+    context = advisory_context.at(session, playbook.levels, advisory)
 
     def view(item: PackageItem) -> ItemView:
         finding = findings[item.finding_id]
@@ -68,8 +68,8 @@ def package_view(session: Session, playbook: Playbook, advisory_no: int) -> Pack
 
     return PackageView(
         package=package,
-        activation_level=level,
-        decides_as_commander=decisions.commander(level == "full"),
+        activation_level=context.activation_level,
+        decides_as_commander=context.commander,
         items=[view(i) for i in items],
         changes=package.changes,
         sitrep=session.get(Sitrep, advisory_no),
@@ -89,13 +89,15 @@ def decide(
     item = session.get(PackageItem, item_id)
     if item is None or item.advisory_no != advisory_no:
         raise NotFound(f"no item {item_id} in the package for advisory {advisory_no}")
-    if advisory_no != service.current_advisory(session) or not cycle.waiting(advisory_no):
+    if advisory_no != advisory_context.current_advisory_no(session) or not cycle.waiting(
+        advisory_no
+    ):
         raise PackageClosed(f"the decision package for advisory {advisory_no} is closed")
-    full = activation_level(advisory.hours_to_landfall, playbook.levels) == "full"
+    lead = advisory_context.at(session, playbook.levels, advisory).commander
 
     def precheck() -> None:
         session.refresh(item)
-        decisions.check(item, request, full)
+        decisions.check(item, request, lead)
 
     cycle.decide(advisory_no, item_id, request, precheck)
     session.expire_all()

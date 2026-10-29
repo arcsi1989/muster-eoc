@@ -8,13 +8,13 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
+from app import advisory_context
 from app.errors import AppError
 from app.ids import CLAUSE_ID
 from app.models import DecisionPackage, PackageItem, Score
 from app.network import load_network
 from app.playbook import service as playbook_service
 from app.playbook.service import Playbook
-from app.replay import service
 from app.risk.explain import explain_asset
 from app.scoring_config import CopilotConfig
 
@@ -117,7 +117,7 @@ class CopilotTools:
         }
 
     def _advisory(self, advisory: int | None) -> int:
-        number = advisory or service.current_advisory(self._session)
+        number = advisory or advisory_context.current_advisory_no(self._session)
         if number < 1:
             raise ToolError("no advisory has been issued yet")
         return number

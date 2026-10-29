@@ -19,6 +19,7 @@ from langgraph.types import Command, interrupt
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
+from app import advisory_context
 from app.agent import decisions
 from app.agent.actions import proposed_action
 from app.agent.draft import produce_draft
@@ -28,10 +29,9 @@ from app.errors import AppError, DataNotLoaded
 from app.llm.provider import LLMProvider
 from app.models import Advisory, DecisionPackage, Finding, OpState, PackageItem, Score
 from app.network import load_network
-from app.playbook.activation import activation_level
 from app.playbook.service import Playbook, store_findings
 from app.replay import service
-from app.scoring_config import DraftConfig
+from app.scoring_config import ScoringConfig
 
 SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
 TEMPLATE_FALLBACK = "template (fallback)"
@@ -44,8 +44,9 @@ class CycleState(TypedDict, total=False):
 
 
 def build_graph(
-    engine: Engine, playbook: Playbook, llm: LLMProvider, draft_config: DraftConfig
+    engine: Engine, playbook: Playbook, llm: LLMProvider, config: ScoringConfig
 ) -> StateGraph[CycleState]:
+    draft_config = config.draft
     versions = {
         "rules_version": playbook.rulebook.version,
         "model_version": MODEL_VERSION,
@@ -74,14 +75,14 @@ def build_graph(
             advisory = advisory_of(session, state)
             top10 = session.exec(
                 select(Score.asset_id)
-                .where(Score.advisory_no == advisory.advisory_no, Score.rank <= 10)
+                .where(Score.advisory_no == advisory.advisory_no, Score.rank <= config.risk.top_n)
                 .order_by(col(Score.rank))
             ).all()
             event_state = {
                 s.key: s.value
                 for s in session.exec(select(OpState).where(OpState.entity == "event"))
             }
-            level = activation_level(advisory.hours_to_landfall, playbook.levels)
+            level = advisory_context.at(session, playbook.levels, advisory).activation_level
             record(
                 session,
                 "system",
@@ -97,7 +98,8 @@ def build_graph(
     def diff(state: CycleState) -> CycleState:
         with unit() as session:
             advisory = advisory_of(session, state)
-            changes = asdict(service.changes(session, advisory.advisory_no, playbook.levels))
+            top_n = config.risk.top_n
+            changes = asdict(service.changes(session, advisory.advisory_no, playbook.levels, top_n))
             session.merge(
                 DecisionPackage(
                     advisory_no=advisory.advisory_no,
@@ -266,9 +268,9 @@ def build_graph(
             request = decisions.DecisionRequest(
                 role=decision["role"], action=decision["action"], reason=decision.get("reason")
             )
-            level = activation_level(advisory.hours_to_landfall, playbook.levels)
+            lead = advisory_context.at(session, playbook.levels, advisory).commander
             try:
-                decisions.check(item, request, level == "full")
+                decisions.check(item, request, lead)
             except AppError as refused:
                 # Normally refused before resuming; never leave the thread stuck on a refusal.
                 record(

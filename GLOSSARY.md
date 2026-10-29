@@ -17,6 +17,10 @@ _Avoid_: Real time, current time
 The EOC's readiness stage, derived from hours to landfall: Monitor (T-120 to T-72), Prepare (T-72 to T-48), Full (T-48 to landfall). A boundary hour belongs to the later, higher level.
 _Avoid_: Phase, alert level
 
+**Advisory context**:
+What holds at the current advisory: which advisory is current (none before advisory 1), its scenario time, its activation level, whether the EOC is at Full activation, and who commands (Incident Commander or Director). A new advisory starts a new operational period, which resets the per-advisory flags (risk list reviewed, situation report approved).
+_Avoid_: Current state, session state
+
 ## Playbook
 
 **Clause**:

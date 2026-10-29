@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, delete, select
 
+from app import advisory_context
 from app.models import Advisory, Exposure, Finding, OpState, Score, StagingArea
 from app.network import load_network
-from app.playbook.activation import ActivationLevel, activation_level, load_activation_levels
+from app.playbook.activation import ActivationLevel, load_activation_levels
 from app.playbook.clauses import Clause, parse_clauses
 from app.playbook.engine import Entity, Status, evaluate
 from app.playbook.engine import Finding as EngineFinding
@@ -19,8 +20,6 @@ from app.playbook.rules import Rulebook, load_rulebook
 # assets that feed a hospital or the treatment plant. Part of the field's name, not a tunable.
 CRITICAL_TYPES = {"hospital", "treatment_plant"}
 CRITICAL_TOP_N = 25
-PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", "sitrep_approved_current")
-FULL_ACTIVATION = "full"
 
 
 @dataclass(frozen=True)
@@ -29,10 +28,6 @@ class Playbook:
     levels: list[ActivationLevel]
     clauses: list[Clause]
     index: ClauseIndex
-
-    @property
-    def full_activation_from_hours(self) -> float:
-        return next(lvl.from_hours for lvl in self.levels if lvl.name == FULL_ACTIVATION)
 
 
 def load_playbook(rules_path: Path, playbook_path: Path) -> Playbook:
@@ -66,18 +61,14 @@ def evaluation_context(
         e.site_id: e
         for e in session.exec(select(Exposure).where(Exposure.advisory_no == advisory.advisory_no))
     }
-    level = activation_level(advisory.hours_to_landfall, playbook.levels)
+    context = advisory_context.at(session, playbook.levels, advisory)
     feeds_types = {a: network.feeds_facility_types(a) for a in network.assets}
 
     event_state = state.get("event", {})
     event = {
         "hours_to_landfall": advisory.hours_to_landfall,
-        "activation_level": level,
-        "hours_since_full_activation": (
-            playbook.full_activation_from_hours - advisory.hours_to_landfall
-            if level == FULL_ACTIVATION
-            else None
-        ),
+        "activation_level": context.activation_level,
+        "hours_since_full_activation": context.hours_since_full_activation,
         "regulator_notified": event_state.get("regulator_notified", False),
         "generators_fuelled": event_state.get("generators_fuelled", 0),
         "critical_feeding_assets_top25": sum(
@@ -85,7 +76,7 @@ def evaluation_context(
             for a, s in scores.items()
             if s.rank <= CRITICAL_TOP_N and feeds_types[a] & CRITICAL_TYPES
         ),
-        **{flag: event_state.get(flag, False) for flag in PER_ADVISORY_FLAGS},
+        **{flag: event_state.get(flag, False) for flag in advisory_context.PER_ADVISORY_FLAGS},
     }
 
     def exposure_values(site_id: str) -> dict[str, Any]:
@@ -159,6 +150,11 @@ def store_findings(session: Session, advisory: Advisory, playbook: Playbook) -> 
         for f in findings
     )
     return findings
+
+
+def clear_findings(session: Session) -> None:
+    """Deletes every stored finding (scenario reset)."""
+    session.exec(delete(Finding))
 
 
 def findings(session: Session, advisory_no: int, status: Status | None = None) -> list[Finding]:

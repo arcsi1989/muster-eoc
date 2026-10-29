@@ -6,7 +6,6 @@ Reused by the advisory cycle's diff step (ticket 06).
 import math
 from dataclasses import dataclass, field
 
-TOP_N = 10
 COMPASS = ["east", "north-east", "north", "north-west", "west", "south-west", "south", "south-east"]
 
 
@@ -54,8 +53,11 @@ def compass_direction(dx_km: float, dy_km: float) -> str:
     return COMPASS[round(angle / 45) % 8]
 
 
-def diff(current: AdvisorySnapshot, previous: AdvisorySnapshot | None) -> AdvisoryChanges:
-    """Changes since the previous advisory. At the first advisory everything is initial."""
+def diff(
+    current: AdvisorySnapshot, previous: AdvisorySnapshot | None, top_n: int
+) -> AdvisoryChanges:
+    """Changes since the previous advisory, with the top `top_n` compared. At the first advisory
+    everything is initial."""
     if previous is None:
         return AdvisoryChanges(
             advisory_no=current.advisory_no, activation_level_to=current.activation_level
@@ -67,7 +69,7 @@ def diff(current: AdvisorySnapshot, previous: AdvisorySnapshot | None) -> Adviso
     shift = LandfallShift(distance, compass_direction(dx, dy)) if distance > 0 else None
 
     def top(ranks: dict[str, int]) -> set[str]:
-        return {asset_id for asset_id, rank in ranks.items() if rank <= TOP_N}
+        return {asset_id for asset_id, rank in ranks.items() if rank <= top_n}
 
     moves = [
         RankMove(asset_id, previous.ranks[asset_id], rank)
