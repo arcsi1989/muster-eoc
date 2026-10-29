@@ -85,11 +85,11 @@ def test_an_empty_message_is_a_validation_error(client: TestClient) -> None:
 
 
 class FakeChat:
-    """A model stand-in: calls the given tools, then answers with the given text."""
+    """A fake provider: calls the given tools, then answers with the given text."""
 
-    name = "anthropic"
-    model: str | None = "claude-sonnet-5-5"
-    prompt_version: str | None = "sitrep-v2"
+    name = "fake"
+    model: str | None = "fake-model"
+    prompt_version: str | None = "fake-prompt-v1"
 
     def __init__(self, calls: list[tuple[str, dict[str, Any]]], text: str | Exception) -> None:
         self.calls, self.text = calls, text
@@ -114,7 +114,7 @@ class FakeChat:
             self.text,
             [n for n, _ in self.calls],
             self.model,
-            "copilot-v1",
+            self.prompt_version,
             900,
             {"input_tokens": 500, "output_tokens": 80},
         )
@@ -133,7 +133,7 @@ def test_a_model_answer_cites_only_ids_its_tools_returned(make_client: ClientFac
             [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}],
         )
 
-    assert (reply["provider"], reply["fallback"]) == ("anthropic", False)
+    assert (reply["provider"], reply["fallback"]) == ("fake", False)
     assert reply["citations"] == [{"id": top, "kind": "asset"}]
     assert [t.content for t in fake.history] == ["hi", "hello"]
 
@@ -175,7 +175,7 @@ def test_each_answer_is_audited_with_model_latency_and_tokens(make_client: Clien
     assert event["payload"]["attempt"]["latency_ms"] == 900
     assert event["payload"]["tools_used"] == ["get_asset"]
     assert event["payload"]["citations"] == ["SUB-07"]
-    assert event["versions"]["prompt_version"] == "copilot-v1"
+    assert event["versions"]["prompt_version"] == "fake-prompt-v1"
 
 
 def test_tools_cannot_be_used_to_change_anything(make_client: ClientFactory) -> None:

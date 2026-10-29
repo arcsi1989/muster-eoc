@@ -31,6 +31,7 @@ from app.agent.sitrep import SITREP_RULE, apply_approval
 from app.audit.log import record
 from app.errors import DataNotLoaded
 from app.llm.provider import LLMProvider
+from app.llm.template import TemplateProvider
 from app.models import (
     Advisory,
     DecisionPackage,
@@ -47,7 +48,6 @@ from app.replay import service
 from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
 
-TEMPLATE_FALLBACK = "template (fallback)"
 # what resumes the approval pause besides an item decision (whose action is the person's)
 EXPIRE = "expire"
 DECLARE = "declare"
@@ -63,6 +63,7 @@ def build_graph(
     engine: Engine, playbook: Playbook, llm: LLMProvider, config: ScoringConfig
 ) -> StateGraph[CycleState]:
     draft_config = config.draft
+    fallback = TemplateProvider.from_config(config)
 
     def versions(session: Session, advisory: Advisory) -> dict[str, Any]:
         """The versions that produced a step: the model version is the one that scored the
@@ -210,8 +211,7 @@ def build_graph(
             changes = changes_from_json(package.changes)
             request = draft_request(session, advisory, playbook, changes, draft_config)
         # the model call runs outside any database transaction
-        outcome = produce_draft(provider(), request, draft_config.retries)
-        label = TEMPLATE_FALLBACK if outcome.fallback else outcome.result.provider
+        outcome = produce_draft(provider(), fallback, request, 1 + draft_config.retries)
         with unit() as session:
             advisory = advisory_of(session, state)
             package = session.get(DecisionPackage, advisory.advisory_no)
@@ -219,7 +219,7 @@ def build_graph(
                 raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
             package.draft = {
                 "status": "DRAFT",
-                "provider": label,
+                "provider": outcome.provider,
                 "fallback": outcome.fallback,
                 "model": outcome.result.model,
                 "prompt_version": outcome.prompt_version,
@@ -231,11 +231,11 @@ def build_graph(
                 session,
                 "agent",
                 "sitrep_drafted",
-                f"Draft situation report written by {label}"
+                f"Draft situation report written by {outcome.provider}"
                 + (f" ({outcome.fallback_reason})" if outcome.fallback_reason else ""),
                 advisory,
                 {
-                    "provider": label,
+                    "provider": outcome.provider,
                     "model": outcome.result.model,
                     "attempts": outcome.attempts,
                     "fallback_reason": outcome.fallback_reason,

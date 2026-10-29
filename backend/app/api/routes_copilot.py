@@ -14,7 +14,7 @@ def chat(
 ) -> ChatOut:
     """A follow-up question, answered from read-only tools with cited asset and clause IDs."""
     history = [ChatTurn(t.role, t.content) for t in body.history]
-    result = answer(session, playbook, llm, body.message, history, config.copilot)
+    result = answer(session, playbook, llm, body.message, history, config)
     return ChatOut(
         answer=result.text,
         citations=[CitationOut(id=c.id, kind=c.kind) for c in result.citations],
