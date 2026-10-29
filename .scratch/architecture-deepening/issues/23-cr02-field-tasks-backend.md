@@ -11,5 +11,6 @@
 - [ ] Done and Blocked are lifecycle operations through the single state-writing path, with audit events by `field_supervisor`; the field-work mapping and stop-work come from the playbook module, not re-derived
 - [ ] Done refused under P-4.7 stop-work; a Blocked note appears as a gap in the next package
 - [ ] Tests: marking the PS-14 inspection done at advisory 3 removes the P-4.2 finding and prevents the advisory-5 conflict; Blocked shows in the next package; Done refused under stop-work; unapproved items never listed
+- [ ] A Blocked note is human free text: it reaches any LLM input only as delimited, quoted data, never as instructions (CR-03 tests it as a prompt-injection case)
 - [ ] `GLOSSARY.md`: Field task, Field supervisor
 - [ ] `./scripts/check.sh` passes
