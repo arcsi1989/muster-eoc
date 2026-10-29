@@ -13,20 +13,20 @@ interface Props {
   /** of the package's advisory; null while the scenario is loading */
   hoursToLandfall: number | null
   role: Role
-  /** the package is open: a level can be declared */
-  open: boolean
+  /** a level can be declared while the package is open */
+  packageOpen: boolean
   busy: boolean
   error: ApiError | null
   onDeclare: (level: ActivationLevel, reason?: string) => void
 }
 
 /** The P-2.5 activation proposal. The engine proposes; only a person's declaration changes the level. */
-export function ActivationProposalCard({ item, proposed, declared, hoursToLandfall, role, open, busy, error, onDeclare }: Props) {
+export function ActivationProposalCard({ item, proposed, declared, hoursToLandfall, role, packageOpen, busy, error, onDeclare }: Props) {
   const [reason, setReason] = useState('')
   const number = LEVEL_NUMBER[proposed]
   const declarer = item.owner_role
   const isDeclared = item.status === 'approved'
-  const when = hoursToLandfall === null ? '' : ` at T-${hoursToLandfall} h`
+  const scenarioTimeSuffix = hoursToLandfall === null ? '' : ` at T-${hoursToLandfall} h`
 
   return (
     <section className={`proposal-card severity-${item.severity}`} aria-label="Activation proposal">
@@ -41,12 +41,12 @@ export function ActivationProposalCard({ item, proposed, declared, hoursToLandfa
         <p className="finding-meta">
           Declared by {roleLabel(item.decided_by ?? declarer)}
           {item.decided_at && ` on ${formatIssuedAt(item.decided_at)}`}
-          {when}
+          {scenarioTimeSuffix}
           {item.reason && ` · “${item.reason}”`}
         </p>
       )}
-      {!isDeclared && !open && <p className="hint small">The package is closed; the level was not declared.</p>}
-      {!isDeclared && open && (
+      {!isDeclared && !packageOpen && <p className="hint small">The package is closed; the level was not declared.</p>}
+      {!isDeclared && packageOpen && (
         <div className="item-actions">
           {role === declarer ? (
             <label className="reason">

@@ -28,7 +28,7 @@ const props = {
   proposed: 'full' as const,
   declared: 'prepare' as const,
   hoursToLandfall: 48,
-  open: true,
+  packageOpen: true,
   busy: false,
   error: null,
   onDeclare: () => {},
@@ -95,7 +95,7 @@ test('no button while the declaration is being sent or once the package is close
   const { rerender } = render(<ActivationProposalCard {...props} role="incident_commander" busy />)
   expect(screen.getByRole('button', { name: 'Declare Level 1' })).toBeDisabled()
 
-  rerender(<ActivationProposalCard {...props} role="incident_commander" open={false} />)
+  rerender(<ActivationProposalCard {...props} role="incident_commander" packageOpen={false} />)
   expect(screen.queryByRole('button', { name: /Declare/ })).not.toBeInTheDocument()
   expect(screen.getByText(/not declared/)).toBeInTheDocument()
 })

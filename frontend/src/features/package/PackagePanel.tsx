@@ -18,6 +18,15 @@ interface Props {
 
 const loadClauses = () => getClauses()
 
+/** Errors that mean the package on screen is stale: reload it. */
+const STALE_PACKAGE = new Set(['package_closed', 'already_decided', 'no_activation_proposal'])
+
+/** An error is shown only while its advisory is the current one. */
+interface AdvisoryError {
+  advisoryNo: number
+  error: ApiError
+}
+
 export function PackagePanel({ advisoryNo, role, hoursToLandfall, assetsById, onSelectAsset, onDeclared }: Props) {
   const loader = useCallback(() => getPackage(advisoryNo), [advisoryNo])
   const { state, retry, setData } = useLoad(advisoryNo > 0 ? loader : null)
@@ -26,51 +35,55 @@ export function PackagePanel({ advisoryNo, role, hoursToLandfall, assetsById, on
     () => new Map(clausesState.status === 'ok' ? clausesState.data.map((c) => [c.id, c]) : []),
     [clausesState],
   )
-  const [error, setError] = useState<{ advisoryNo: number; itemId: number; error: ApiError } | null>(null)
-  const [declareError, setDeclareError] = useState<{ advisoryNo: number; error: ApiError } | null>(null)
-  const [sitrepError, setSitrepError] = useState<{ advisoryNo: number; error: ApiError } | null>(null)
+  const [error, setError] = useState<(AdvisoryError & { itemId: number }) | null>(null)
+  const [declareError, setDeclareError] = useState<AdvisoryError | null>(null)
+  const [sitrepError, setSitrepError] = useState<AdvisoryError | null>(null)
   const [busy, setBusy] = useState(false)
 
-  async function onDecide(item: PackageItem, action: DecisionAction, reason?: string) {
-    setError(null)
+  /** Sends one action with no second click; a failure goes to `onError` and a stale package reloads. */
+  async function send(action: () => Promise<void>, onError: (error: ApiError) => void) {
     setBusy(true)
     try {
-      setData(await postDecision(advisoryNo, item.id, { role, action, reason }))
+      await action()
     } catch (e) {
       const apiError = toApiError(e)
-      setError({ advisoryNo, itemId: item.id, error: apiError })
-      if (apiError.code === 'package_closed' || apiError.code === 'already_decided') retry()
+      onError(apiError)
+      if (STALE_PACKAGE.has(apiError.code)) retry()
     } finally {
       setBusy(false)
     }
+  }
+
+  async function onDecide(item: PackageItem, action: DecisionAction, reason?: string) {
+    setError(null)
+    await send(
+      async () => {
+        setData(await postDecision(advisoryNo, item.id, { role, action, reason }))
+      },
+      (e) => setError({ advisoryNo, itemId: item.id, error: e }),
+    )
   }
 
   async function onDeclare(level: ActivationLevel, reason?: string) {
     setDeclareError(null)
-    setBusy(true)
-    try {
-      setData(await postDeclaration({ level, declared_by: role, reason }))
-      onDeclared()
-    } catch (e) {
-      const apiError = toApiError(e)
-      setDeclareError({ advisoryNo, error: apiError })
-      if (['package_closed', 'already_decided', 'no_activation_proposal'].includes(apiError.code)) retry()
-    } finally {
-      setBusy(false)
-    }
+    await send(
+      async () => {
+        setData(await postDeclaration({ level, declared_by: role, reason }))
+        onDeclared()
+      },
+      (e) => setDeclareError({ advisoryNo, error: e }),
+    )
   }
 
   async function onApproveSitrep(text: string) {
     setSitrepError(null)
-    setBusy(true)
-    try {
-      await approveSitrep(advisoryNo, role, text)
-      retry()
-    } catch (e) {
-      setSitrepError({ advisoryNo, error: toApiError(e) })
-    } finally {
-      setBusy(false)
-    }
+    await send(
+      async () => {
+        await approveSitrep(advisoryNo, role, text)
+        retry()
+      },
+      (e) => setSitrepError({ advisoryNo, error: e }),
+    )
   }
 
   return (

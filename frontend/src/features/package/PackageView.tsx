@@ -80,7 +80,7 @@ export function PackageView({
           declared={pkg.activation_level}
           hoursToLandfall={hoursToLandfall}
           role={role}
-          open={open}
+          packageOpen={open}
           busy={busy}
           error={declareError}
           onDeclare={onDeclare}

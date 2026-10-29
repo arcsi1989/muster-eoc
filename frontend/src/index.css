@@ -319,6 +319,11 @@ button:focus-visible {
   border-radius: 4px;
 }
 
+.badge-monitor {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
 .phase-prepare,
 .badge-prepare {
   background: var(--prepare-bg);
@@ -1067,11 +1072,6 @@ button.link {
 }
 
 /* Activation proposal (P-2.5): at the top of the decision package */
-
-.badge-monitor {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  color: var(--accent);
-}
 
 .proposal-card {
   padding: 0.6rem 0.7rem;
