@@ -15,7 +15,10 @@ ACTION_TEXT = {
     "P-5.1": "Install temporary flood barriers at {entity}",
     "P-5.2": "Confirm backup power and remote monitoring at {entity}",
     "P-5.3": "Confirm 7 days of treatment chemicals and a ready boil-water notice at {entity}",
-    "P-6.2": "Contact the hospitals fed by {entity} ({facilities}) and record who and when",
+    "P-6.2": (
+        "Contact the hospitals fed by {entity} ({facilities}); confirm on-site backup power "
+        "is tested with 96 hours of fuel, and record who, when and what was confirmed"
+    ),
     "P-7.2": "Notify the state utility commission and record the time of notification",
 }
 CONFLICT_TEXT = (

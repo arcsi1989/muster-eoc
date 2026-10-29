@@ -53,6 +53,10 @@ def scripted_decisions_at_advisory_3(client: TestClient, inspect_ps14: bool) -> 
         decide(client, 3, item(pkg, "P-4.5", "PS-09")["id"], "logistics", "approve").status_code
         == 200
     )
+    hospital = decide(
+        client, 3, item(pkg, "P-6.2", "SUB-07")["id"], "regulatory_liaison", "approve"
+    )
+    assert hospital.status_code == 200, hospital.text
     assert (
         decide(client, 3, item(pkg, "P-7.2")["id"], "regulatory_liaison", "approve").status_code
         == 200
@@ -79,6 +83,16 @@ def test_scripted_path_ps_14_override_leads_to_a_conflict_the_ic_decides(
     assert conflict["kind"] == "conflict"
     assert conflict["cites"] == ["P-4.2", "P-4.7", "P-8.2"]
     assert finding(client, 5, "P-4.5", "PS-09")["status"] == "satisfied", "generator approved at 3"
+    assert finding(client, 5, "P-6.2", "SUB-07")["status"] == "satisfied", "hospital confirmed at 3"
+    recorded = next(
+        e["payload"]["state_written"]
+        for e in client.get("/audit", params={"actor": "human"}).json()
+        if e["payload"].get("rule_id") == "P-6.2"
+    )
+    assert recorded == {
+        "SUB-07.critical_customer_contacted": True,
+        "SUB-07.hospital_backup_confirmed": True,
+    }
     assert finding(client, 5, "P-7.2")["status"] == "satisfied"
 
     refused = decide(client, 5, conflict["id"], "operations", "defer", "too windy")

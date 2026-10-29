@@ -72,7 +72,7 @@
 
 **P-6.1 Restoration priority.** After landfall, restore in this order: hospitals; the water treatment plant and the pumping stations that serve it; emergency shelters; registered life-support customers; then by number of customers affected.
 
-**P-6.2 Critical customer contact (from T-48).** Contact every hospital whose supply depends on an asset in the top 25 of the risk list. Record who was contacted and when.
+**P-6.2 Critical customer readiness (from T-48).** Contact every hospital whose supply depends on an asset in the top 25 of the risk list. Confirm that its on-site emergency power has been tested and has at least 96 hours of fuel, and share the asset's risk and the restoration priority under P-6.1. Record who was contacted, when, and what was confirmed.
 
 ## 7. Communications and notifications
 

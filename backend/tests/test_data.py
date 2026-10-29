@@ -55,13 +55,15 @@ def test_asset_mix_follows_the_plan() -> None:
     assert types.count("treatment_plant") == 1
 
 
-def test_sub_07_feeds_bayport_general_and_has_no_generator() -> None:
+def test_sub_07_feeds_bayport_general_not_yet_contacted() -> None:
     deps = gold("dependencies.json")
     hospital = next(f for f in gold("critical_facilities.json") if f["id"] == "HOSP-01")
+    sub07 = gold("initial_state.json")["entities"]["SUB-07"]
 
     assert {"from_id": "SUB-07", "to_id": "HOSP-01", "to_kind": "facility"} in deps
     assert hospital["name"] == "Bayport General Hospital"
-    assert gold("initial_state.json")["entities"]["SUB-07"]["generator_assigned"] is False
+    assert sub07["critical_customer_contacted"] is False
+    assert sub07["hospital_backup_confirmed"] is False
 
 
 def test_ps_14_is_a_coastal_pumping_station() -> None:

@@ -7,6 +7,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-02": {
@@ -16,6 +17,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-03": {
@@ -25,6 +27,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-04": {
@@ -34,6 +37,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-05": {
@@ -43,6 +47,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-06": {
@@ -52,6 +57,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-07": {
@@ -61,6 +67,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-08": {
@@ -70,6 +77,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-09": {
@@ -79,6 +87,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-10": {
@@ -88,6 +97,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-11": {
@@ -97,6 +107,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-12": {
@@ -106,6 +117,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-13": {
@@ -115,6 +127,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-14": {
@@ -124,6 +137,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-15": {
@@ -133,6 +147,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-16": {
@@ -142,6 +157,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-17": {
@@ -151,6 +167,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-18": {
@@ -160,6 +177,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-19": {
@@ -169,6 +187,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-20": {
@@ -178,6 +197,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-21": {
@@ -187,6 +207,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-22": {
@@ -196,6 +217,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-23": {
@@ -205,6 +227,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-24": {
@@ -214,6 +237,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-25": {
@@ -223,6 +247,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-26": {
@@ -232,6 +257,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-27": {
@@ -241,6 +267,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-28": {
@@ -250,6 +277,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-29": {
@@ -259,6 +287,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-30": {
@@ -268,6 +297,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-31": {
@@ -277,6 +307,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-32": {
@@ -286,6 +317,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-33": {
@@ -295,6 +327,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-34": {
@@ -304,6 +337,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-35": {
@@ -313,6 +347,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-36": {
@@ -322,6 +357,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-37": {
@@ -331,6 +367,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-38": {
@@ -340,6 +377,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-39": {
@@ -349,6 +387,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-40": {
@@ -358,6 +397,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-41": {
@@ -367,6 +407,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-42": {
@@ -376,6 +417,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-43": {
@@ -385,6 +427,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-44": {
@@ -394,6 +437,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-45": {
@@ -403,6 +447,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-46": {
@@ -412,6 +457,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-47": {
@@ -421,6 +467,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-48": {
@@ -430,6 +477,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-49": {
@@ -439,6 +487,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-50": {
@@ -448,6 +497,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-51": {
@@ -457,6 +507,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-52": {
@@ -466,6 +517,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-53": {
@@ -475,6 +527,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-54": {
@@ -484,6 +537,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-55": {
@@ -493,6 +547,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-56": {
@@ -502,6 +557,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-57": {
@@ -511,6 +567,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-58": {
@@ -520,6 +577,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-59": {
@@ -529,6 +587,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-60": {
@@ -538,6 +597,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-61": {
@@ -547,6 +607,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-62": {
@@ -556,6 +617,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-63": {
@@ -565,6 +627,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-64": {
@@ -574,6 +637,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-65": {
@@ -583,6 +647,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-66": {
@@ -592,6 +657,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-67": {
@@ -601,6 +667,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-68": {
@@ -610,6 +677,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-69": {
@@ -619,6 +687,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-70": {
@@ -628,6 +697,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-71": {
@@ -637,6 +707,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-72": {
@@ -646,6 +717,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-73": {
@@ -655,6 +727,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-74": {
@@ -664,6 +737,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "PS-75": {
@@ -673,6 +747,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "STG-01": {
@@ -697,6 +772,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-02": {
@@ -706,6 +782,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-03": {
@@ -715,6 +792,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-04": {
@@ -724,6 +802,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-05": {
@@ -733,6 +812,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-06": {
@@ -742,6 +822,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-07": {
@@ -751,6 +832,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-08": {
@@ -760,6 +842,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-09": {
@@ -769,6 +852,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-10": {
@@ -778,6 +862,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-100": {
@@ -787,6 +872,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-101": {
@@ -796,6 +882,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-102": {
@@ -805,6 +892,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-103": {
@@ -814,6 +902,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-104": {
@@ -823,6 +912,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-105": {
@@ -832,6 +922,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-106": {
@@ -841,6 +932,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-107": {
@@ -850,6 +942,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-108": {
@@ -859,6 +952,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-109": {
@@ -868,6 +962,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-11": {
@@ -877,6 +972,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-110": {
@@ -886,6 +982,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-111": {
@@ -895,6 +992,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-112": {
@@ -904,6 +1002,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-113": {
@@ -913,6 +1012,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-114": {
@@ -922,6 +1022,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-115": {
@@ -931,6 +1032,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-116": {
@@ -940,6 +1042,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-117": {
@@ -949,6 +1052,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-118": {
@@ -958,6 +1062,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-119": {
@@ -967,6 +1072,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-12": {
@@ -976,6 +1082,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-120": {
@@ -985,6 +1092,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-13": {
@@ -994,6 +1102,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-14": {
@@ -1003,6 +1112,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-15": {
@@ -1012,6 +1122,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-16": {
@@ -1021,6 +1132,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-17": {
@@ -1030,6 +1142,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-18": {
@@ -1039,6 +1152,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-19": {
@@ -1048,6 +1162,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-20": {
@@ -1057,6 +1172,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-21": {
@@ -1066,6 +1182,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-22": {
@@ -1075,6 +1192,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-23": {
@@ -1084,6 +1202,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-24": {
@@ -1093,6 +1212,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-25": {
@@ -1102,6 +1222,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-26": {
@@ -1111,6 +1232,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-27": {
@@ -1120,6 +1242,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-28": {
@@ -1129,6 +1252,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-29": {
@@ -1138,6 +1262,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-30": {
@@ -1147,6 +1272,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-31": {
@@ -1156,6 +1282,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-32": {
@@ -1165,6 +1292,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-33": {
@@ -1174,6 +1302,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-34": {
@@ -1183,6 +1312,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-35": {
@@ -1192,6 +1322,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-36": {
@@ -1201,6 +1332,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-37": {
@@ -1210,6 +1342,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-38": {
@@ -1219,6 +1352,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-39": {
@@ -1228,6 +1362,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-40": {
@@ -1237,6 +1372,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-41": {
@@ -1246,6 +1382,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-42": {
@@ -1255,6 +1392,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-43": {
@@ -1264,6 +1402,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-44": {
@@ -1273,6 +1412,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-45": {
@@ -1282,6 +1422,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-46": {
@@ -1291,6 +1432,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-47": {
@@ -1300,6 +1442,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-48": {
@@ -1309,6 +1452,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-49": {
@@ -1318,6 +1462,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-50": {
@@ -1327,6 +1472,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-51": {
@@ -1336,6 +1482,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-52": {
@@ -1345,6 +1492,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-53": {
@@ -1354,6 +1502,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-54": {
@@ -1363,6 +1512,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-55": {
@@ -1372,6 +1522,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-56": {
@@ -1381,6 +1532,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-57": {
@@ -1390,6 +1542,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-58": {
@@ -1399,6 +1552,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-59": {
@@ -1408,6 +1562,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-60": {
@@ -1417,6 +1572,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-61": {
@@ -1426,6 +1582,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-62": {
@@ -1435,6 +1592,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-63": {
@@ -1444,6 +1602,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-64": {
@@ -1453,6 +1612,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-65": {
@@ -1462,6 +1622,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-66": {
@@ -1471,6 +1632,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-67": {
@@ -1480,6 +1642,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-68": {
@@ -1489,6 +1652,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-69": {
@@ -1498,6 +1662,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-70": {
@@ -1507,6 +1672,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-71": {
@@ -1516,6 +1682,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-72": {
@@ -1525,6 +1692,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-73": {
@@ -1534,6 +1702,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-74": {
@@ -1543,6 +1712,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-75": {
@@ -1552,6 +1722,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-76": {
@@ -1561,6 +1732,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-77": {
@@ -1570,6 +1742,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-78": {
@@ -1579,6 +1752,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-79": {
@@ -1588,6 +1762,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-80": {
@@ -1597,6 +1772,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-81": {
@@ -1606,6 +1782,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-82": {
@@ -1615,6 +1792,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-83": {
@@ -1624,6 +1802,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-84": {
@@ -1633,6 +1812,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-85": {
@@ -1642,6 +1822,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-86": {
@@ -1651,6 +1832,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-87": {
@@ -1660,6 +1842,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-88": {
@@ -1669,6 +1852,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-89": {
@@ -1678,6 +1862,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-90": {
@@ -1687,6 +1872,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-91": {
@@ -1696,6 +1882,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-92": {
@@ -1705,6 +1892,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-93": {
@@ -1714,6 +1902,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-94": {
@@ -1723,6 +1912,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-95": {
@@ -1732,6 +1922,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-96": {
@@ -1741,6 +1932,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-97": {
@@ -1750,6 +1942,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-98": {
@@ -1759,6 +1952,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "SUB-99": {
@@ -1768,6 +1962,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     },
     "WTP-01": {
@@ -1777,6 +1972,7 @@
       "chem_stock_confirmed": false,
       "critical_customer_contacted": false,
       "generator_assigned": false,
+      "hospital_backup_confirmed": false,
       "inspection_completed": false
     }
   },

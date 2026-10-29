@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import get_settings
+from app.datagen.generate import STATE_KEYS_ASSET
 from app.playbook.clauses import parse_clauses
 from app.playbook.engine import Entity, Finding, evaluate, holds
 from app.playbook.rules import Predicate, load_rulebook
@@ -14,15 +15,7 @@ from app.playbook.rules import Predicate, load_rulebook
 SETTINGS = get_settings()
 RULEBOOK = load_rulebook(SETTINGS.playbook_rules_path)
 
-FALSE_STATE = {
-    "inspection_completed": False,
-    "generator_assigned": False,
-    "barrier_installed": False,
-    "backup_power_confirmed": False,
-    "chem_stock_confirmed": False,
-    "boil_water_notice_ready": False,
-    "critical_customer_contacted": False,
-}
+FALSE_STATE = dict.fromkeys(STATE_KEYS_ASSET, False)
 
 
 def event(hours: int, **overrides: Any) -> dict[str, Any]:
@@ -265,6 +258,17 @@ def test_p_6_2_contact_hospitals_fed_by_top_25_assets() -> None:
     assert [f.entity_id for f in found if f.rule_id == "P-6.2"] == ["SUB-07"]
 
 
+def test_p_6_2_needs_both_contact_and_confirmed_on_site_backup() -> None:
+    def status(**state: bool) -> str:
+        sub07 = asset("SUB-07", state=state, feeds_facility_types=["hospital"], risk_rank=16)
+        return one(findings(48, [sub07]), "P-6.2", "SUB-07").status
+
+    assert status() == "open"
+    assert status(critical_customer_contacted=True) == "open"
+    assert status(hospital_backup_confirmed=True) == "open"
+    assert status(critical_customer_contacted=True, hospital_backup_confirmed=True) == "satisfied"
+
+
 def test_p_7_1_situation_report_approved_this_period() -> None:
     assert one(findings(72, []), "P-7.1").status == "open"
     assert one(findings(72, [], sitrep_approved_current=True), "P-7.1").status == "satisfied"
@@ -379,6 +383,12 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
     types = {a["id"]: a["type"] for a in client.get("/assets").json()}
     assert {types[f["entity_id"]] for f in found if f["rule_id"] == "P-4.5"} == {"pump_station"}, (
         "portable generators never go to substations"
+    )
+    hospital = find(found, "P-6.2", "SUB-07")
+    assert hospital["status"] == "open"
+    assert "HOSP-01" in hospital["details"]["asset.feeds_facility_ids"]
+    assert not any(f["rule_id"] == "P-4.5" and f["entity_id"] == "SUB-07" for f in found), (
+        "Bayport General relies on its own backup power, not a portable generator"
     )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
     regulator = find(found, "P-7.2")
