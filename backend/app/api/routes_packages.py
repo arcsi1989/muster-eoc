@@ -14,7 +14,7 @@ def _out(view: PackageView) -> PackageOut:
         advisory_no=view.package.advisory_no,
         status=view.package.status,
         activation_level=view.activation_level,
-        decides_as_commander=view.decides_as_commander,  # type: ignore[arg-type]
+        decides_as_commander=view.decides_as_commander,
         changes=view.changes,  # type: ignore[arg-type]  # validated into ChangesOut
         items=[
             PackageItemOut(

@@ -6,7 +6,7 @@ import json
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, delete, select
 
 from app.models import Advisory, AuditEvent
 
@@ -48,3 +48,8 @@ def events(session: Session, actor: Actor | None = None) -> list[AuditEvent]:
     if actor:
         query = query.where(AuditEvent.actor == actor)
     return list(session.exec(query))
+
+
+def clear_events(session: Session) -> None:
+    """Empties the audit log (scenario reset)."""
+    session.exec(delete(AuditEvent))

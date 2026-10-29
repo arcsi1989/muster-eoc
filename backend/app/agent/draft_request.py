@@ -5,10 +5,10 @@ from typing import Any
 
 from sqlmodel import Session, col, select
 
+from app import advisory_context
 from app.llm.schemas import DraftItem, DraftRequest, Grounding, RetrievedClause
 from app.models import Advisory, Finding, PackageItem, Score
 from app.network import load_network
-from app.playbook.activation import activation_level
 from app.playbook.service import Playbook
 from app.scoring_config import DraftConfig
 
@@ -66,7 +66,7 @@ def draft_request(
     request = DraftRequest(
         advisory_no=advisory.advisory_no,
         hours_to_landfall=advisory.hours_to_landfall,
-        activation_level=activation_level(advisory.hours_to_landfall, playbook.levels),
+        activation_level=advisory_context.at(session, playbook.levels, advisory).activation_level,
         changes=changes,
         items=draft_items,
         top_assets=[

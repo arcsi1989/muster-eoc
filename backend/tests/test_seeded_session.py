@@ -5,18 +5,18 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
+from app import advisory_context
 from app.api.schemas import FindingOut
 from app.playbook.service import finding_views
-from app.replay import service
 from tests.conftest import SeededScenario
 
 
 def test_issue_until_makes_the_advisory_current(seeded: SeededScenario) -> None:
-    assert service.current_advisory(seeded.session) == 0
+    assert advisory_context.current_advisory_no(seeded.session) == 0
 
     seeded.issue_until(2)
 
-    assert service.current_advisory(seeded.session) == 2
+    assert advisory_context.current_advisory_no(seeded.session) == 2
 
 
 def test_findings_match_what_the_api_serves(seeded: SeededScenario, client: TestClient) -> None:

@@ -21,6 +21,7 @@ import { TerritoryMap } from './features/map/TerritoryMap'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
 import { ChangesPanel } from './features/scenario/ChangesPanel'
+import { currentAdvisories } from './features/scenario/currentAdvisory'
 import { IntroPanel } from './features/scenario/IntroPanel'
 import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
@@ -61,10 +62,7 @@ function OperationsScreen() {
   const scenario = useScenario()
   const territory = useLoad(loadTerritory)
 
-  const issued = scenario.state.status === 'ok' ? scenario.state.data.advisories : []
-  const current = issued.at(-1)
-  const previous = issued.at(-2)
-  const currentNo = current?.advisory_no ?? 0
+  const { currentNo, current, previous } = currentAdvisories(scenario.state.status === 'ok' ? scenario.state.data : null)
 
   const riskLoader = useCallback(() => getRisk(currentNo), [currentNo])
   const changesLoader = useCallback(() => getChanges(currentNo), [currentNo])

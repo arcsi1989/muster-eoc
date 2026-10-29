@@ -23,7 +23,7 @@ class RaisedAlert:
 
 
 def raise_alerts(
-    current: list[RankedRisk], previous: dict[str, RankedRisk], config: AlertConfig
+    current: list[RankedRisk], previous: dict[str, RankedRisk], config: AlertConfig, top_n: int
 ) -> list[RaisedAlert]:
     """Risk crossing the threshold, entering the top N, or rising rank_jump+ places into the top
     rank_jump_within. At the first advisory (no previous) only threshold crossings are raised: the
@@ -43,12 +43,12 @@ def raise_alerts(
             )
         if before is None:
             continue
-        if now.rank <= config.top_n < before.rank:
+        if now.rank <= top_n < before.rank:
             alerts.append(
                 RaisedAlert(
                     now.asset_id,
                     "top_n_entry",
-                    f"Entered the top {config.top_n} (rank {before.rank} → {now.rank})",
+                    f"Entered the top {top_n} (rank {before.rank} → {now.rank})",
                 )
             )
         if before.rank - now.rank >= config.rank_jump and now.rank <= config.rank_jump_within:

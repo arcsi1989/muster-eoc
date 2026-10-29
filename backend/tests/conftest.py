@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
+from app import advisory_context
 from app.agent.cycle import AdvisoryCycle, issue_next_advisory
 from app.config import Settings
 from app.db import create_fresh_engine
@@ -15,7 +16,6 @@ from app.llm.factory import build_provider
 from app.llm.provider import LLMProvider
 from app.main import create_app
 from app.playbook.service import Playbook, load_playbook
-from app.replay import service
 from app.scoring_config import ScoringConfig, load_scoring_config
 
 ClientFactory = Callable[..., AbstractContextManager[TestClient]]
@@ -61,7 +61,7 @@ class SeededScenario:
         """Issues advisories until `advisory_no` is current, through the app's own replay and
         advisory cycle (scoring, findings, decision package). Past the last advisory it raises
         ScenarioComplete, as the API does."""
-        while service.current_advisory(self.session) < advisory_no:
+        while advisory_context.current_advisory_no(self.session) < advisory_no:
             issue_next_advisory(self.session, self.scoring, self.cycle)
             self.session.expire_all()  # the cycle writes through its own sessions
 
@@ -84,7 +84,7 @@ def make_seeded(tmp_path: Path) -> SeededFactory:
         playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
         engine = create_fresh_engine(settings.database_path)
         provider = llm or build_provider(settings, scoring)
-        cycle = AdvisoryCycle(engine, playbook, settings.checkpoint_path, provider, scoring.draft)
+        cycle = AdvisoryCycle(engine, playbook, settings.checkpoint_path, provider, scoring)
         try:
             with Session(engine) as session:
                 load_gold(session, settings.data_dir)
