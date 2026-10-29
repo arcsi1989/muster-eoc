@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
+from app.agent import cycle as advisory_cycle
 from app.api.schemas import (
     AdvisoryOut,
     ChangesOut,
@@ -12,7 +13,7 @@ from app.api.schemas import (
     TimelineSlotOut,
     TrackPointOut,
 )
-from app.deps import PlaybookDep, SessionDep, get_activation_levels, get_scoring_config
+from app.deps import CycleDep, SessionDep, SettingsDep, get_activation_levels, get_scoring_config
 from app.hazard.track import cone_polygon
 from app.playbook.activation import ActivationLevel, activation_level
 from app.replay import service
@@ -64,15 +65,17 @@ def get_scenario(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
 
 @router.post("/next", response_model=ScenarioOut)
 def next_advisory(
-    session: SessionDep, levels: LevelsDep, config: ConfigDep, playbook: PlaybookDep
+    session: SessionDep, levels: LevelsDep, config: ConfigDep, cycle: CycleDep
 ) -> ScenarioOut:
-    service.advance(session, config, playbook)
+    advisory_cycle.issue_next_advisory(session, config, cycle)
     return _scenario(session, levels)
 
 
 @router.post("/reset", response_model=ScenarioOut)
-def reset_scenario(session: SessionDep, levels: LevelsDep) -> ScenarioOut:
-    service.reset(session)
+def reset_scenario(
+    session: SessionDep, levels: LevelsDep, cycle: CycleDep, settings: SettingsDep
+) -> ScenarioOut:
+    advisory_cycle.reset_scenario(session, cycle, settings.data_dir)
     return _scenario(session, levels)
 
 

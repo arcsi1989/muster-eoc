@@ -14,6 +14,7 @@ import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { PackagePanel } from './features/package/PackagePanel'
+import { RoleSelector } from './features/package/RoleSelector'
 import { TerritoryMap } from './features/map/TerritoryMap'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
@@ -23,6 +24,7 @@ import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
 import { useHashRoute } from './lib/useHashRoute'
 import { useLoad } from './lib/useLoad'
+import type { Role } from './types/scenario'
 
 const loadTerritory = async () => {
   const [assets, coastline, facilities, stagingAreas] = await Promise.all([
@@ -69,6 +71,7 @@ function OperationsScreen() {
   const alerts = useLoad(currentNo > 0 ? alertsLoader : null)
   const [selected, setSelected] = useState<string | null>(null)
   const [tab, setTab] = useState<'risk' | 'package'>('risk')
+  const [role, setRole] = useState<Role>('director')
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
 
@@ -100,6 +103,7 @@ function OperationsScreen() {
             onReset={scenario.reset}
           />
         )}
+        <RoleSelector role={role} onChange={setRole} />
         {scenario.state.status === 'loading' && <p className="hint">Loading the scenario…</p>}
         {scenario.state.status === 'error' && (
           <div role="alert">
@@ -169,7 +173,7 @@ function OperationsScreen() {
               </section>
             </>
           ) : (
-            <PackagePanel advisoryNo={currentNo} />
+            <PackagePanel advisoryNo={currentNo} role={role} assetsById={assetsById} />
           )}
         </aside>
         {selected && currentNo > 0 && (

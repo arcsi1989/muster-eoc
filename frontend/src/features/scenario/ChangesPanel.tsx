@@ -28,7 +28,7 @@ export function ChangesPanel({ state, assetsById, onRetry }: Props) {
   )
 }
 
-function ChangeList({ changes, assetsById }: { changes: AdvisoryChanges; assetsById: Map<string, Asset> }) {
+export function ChangeList({ changes, assetsById }: { changes: AdvisoryChanges; assetsById: Map<string, Asset> }) {
   if (changes.previous_advisory_no === null) {
     return <p className="hint">First advisory: this is the initial forecast and the initial ranking.</p>
   }

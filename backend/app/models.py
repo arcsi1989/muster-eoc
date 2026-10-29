@@ -1,7 +1,7 @@
 """SQLite tables (SQLModel). The schema grows per ticket; see the plan, section 2.3."""
 
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import JSON, Column, String
 from sqlmodel import Field, SQLModel
@@ -9,6 +9,10 @@ from sqlmodel import Field, SQLModel
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.risk.confidence import Confidence
+
+ItemKind = Literal["gap", "conflict"]
+ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
+PackageStatus = Literal["open", "closed"]
 
 
 class Asset(SQLModel, table=True):
@@ -161,3 +165,44 @@ class Alert(SQLModel, table=True):
     asset_id: str = Field(foreign_key="asset.id")
     kind: str  # risk_threshold | top_n_entry | rank_jump
     message: str
+
+
+class DecisionPackage(SQLModel, table=True):
+    """Everything put before the EOC for one advisory (glossary: decision package)."""
+
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    status: PackageStatus = Field(sa_type=String)
+    changes: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+    draft: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))  # draft situation report
+    opened_at: datetime
+    closed_at: datetime | None = None
+
+
+class PackageItem(SQLModel, table=True):
+    """One gap with its proposed action, or one conflict, awaiting a person's decision."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    advisory_no: int = Field(foreign_key="decisionpackage.advisory_no")
+    finding_id: int = Field(foreign_key="finding.id")
+    rule_id: str
+    entity_id: str
+    kind: ItemKind = Field(sa_type=String)
+    proposed_action: str
+    owner_role: str
+    status: ItemStatus = Field(sa_type=String)
+    decided_by: str | None = None
+    reason: str | None = None
+    decided_at: datetime | None = None
+
+
+class AuditEvent(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    recorded_at: datetime  # wall-clock time
+    advisory_no: int | None  # scenario time: the advisory in force
+    hours_to_landfall: int | None
+    actor: str  # system | agent | human
+    type: str
+    summary: str
+    payload: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+    input_hash: str
+    versions: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))

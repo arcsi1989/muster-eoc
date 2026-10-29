@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     playbook_rules_path: Path = REPO_ROOT / "data" / "playbook" / "playbook_rules.yaml"
     playbook_path: Path = REPO_ROOT / "docs" / "playbook.md"
     database_path: Path = REPO_ROOT / "data" / "runtime" / "sgw.sqlite"
+    checkpoint_path: Path = REPO_ROOT / "data" / "runtime" / "checkpoints.sqlite"
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
 
 

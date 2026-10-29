@@ -1,42 +1,58 @@
-import { useCallback, useMemo } from 'react'
-import { getClauses, getFindings } from '../../api/scenario'
-import { useLoad } from '../../lib/useLoad'
-import { FindingsList } from './FindingsList'
+import { useCallback, useState } from 'react'
+import { ApiError } from '../../api/client'
+import { getPackage, postDecision } from '../../api/scenario'
+import { toApiError, useLoad } from '../../lib/useLoad'
+import type { Asset, DecisionAction, PackageItem, Role } from '../../types/scenario'
+import { PackageView } from './PackageView'
 
-const loadClauses = () => getClauses()
+interface Props {
+  advisoryNo: number
+  role: Role
+  assetsById: Map<string, Asset>
+}
 
-export function PackagePanel({ advisoryNo }: { advisoryNo: number }) {
-  const findingsLoader = useCallback(() => getFindings(advisoryNo), [advisoryNo])
-  const findings = useLoad(advisoryNo > 0 ? findingsLoader : null)
-  const { state: clausesState, retry: retryClauses } = useLoad(loadClauses)
-  const clauses = useMemo(
-    () => new Map(clausesState.status === 'ok' ? clausesState.data.map((c) => [c.id, c]) : []),
-    [clausesState],
-  )
+export function PackagePanel({ advisoryNo, role, assetsById }: Props) {
+  const loader = useCallback(() => getPackage(advisoryNo), [advisoryNo])
+  const { state, retry, setData } = useLoad(advisoryNo > 0 ? loader : null)
+  const [error, setError] = useState<{ advisoryNo: number; itemId: number; error: ApiError } | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function onDecide(item: PackageItem, action: DecisionAction, reason?: string) {
+    setError(null)
+    setBusy(true)
+    try {
+      setData(await postDecision(advisoryNo, item.id, { role, action, reason }))
+    } catch (e) {
+      const apiError = toApiError(e)
+      setError({ advisoryNo, itemId: item.id, error: apiError })
+      if (apiError.code === 'package_closed' || apiError.code === 'already_decided') retry()
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <section className="card" aria-label="Decision package">
-      <h2>Playbook findings</h2>
-      <p className="hint small">Evaluated by the rule engine against playbook EOP-HUR-01. Decisions come next.</p>
-      {clausesState.status === 'error' && (
-        <p role="alert" className="error-text small">
-          Clause titles unavailable: {clausesState.error.message}{' '}
-          <button type="button" className="link" onClick={retryClauses}>
-            Retry
-          </button>
-        </p>
-      )}
-      {findings.state.status === 'idle' && <p className="hint">Issue advisory 1 to evaluate the playbook.</p>}
-      {findings.state.status === 'loading' && <p className="hint">Evaluating the playbook…</p>}
-      {findings.state.status === 'error' && (
+      <h2>Decision package</h2>
+      {state.status === 'idle' && <p className="hint">Issue advisory 1 to receive the first decision package.</p>}
+      {state.status === 'loading' && <p className="hint">Loading the decision package…</p>}
+      {state.status === 'error' && (
         <div role="alert">
-          <p className="error-text">Could not load the findings: {findings.state.error.message}</p>
-          <button type="button" onClick={findings.retry}>
+          <p className="error-text">Could not load the decision package: {state.error.message}</p>
+          <button type="button" onClick={retry}>
             Retry
           </button>
         </div>
       )}
-      {findings.state.status === 'ok' && <FindingsList findings={findings.state.data} clauses={clauses} />}
+      {state.status === 'ok' && (
+        <PackageView
+          pkg={state.data}
+          assetsById={assetsById}
+          error={error?.advisoryNo === advisoryNo ? error : null}
+          busy={busy}
+          onDecide={onDecide}
+        />
+      )}
     </section>
   )
 }

@@ -1,22 +1,30 @@
 """Replays the advisories one at a time and scores each one as it is issued."""
 
+from pathlib import Path
+
 from sqlmodel import Session, col, delete, select
 
+from app.audit.log import record
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.hazard.service import store_exposure
+from app.ingest.loader import restore_initial_state
 from app.models import (
     Advisory,
     Alert,
+    AuditEvent,
+    DecisionPackage,
     Exposure,
     Finding,
     FragilityCurve,
     OpState,
+    PackageItem,
     ScenarioState,
     Score,
+    StagingArea,
 )
 from app.network import load_network
 from app.playbook.activation import ActivationLevel, activation_level
-from app.playbook.service import PER_ADVISORY_FLAGS, Playbook, store_findings
+from app.playbook.service import PER_ADVISORY_FLAGS
 from app.replay.diff import AdvisoryChanges, AdvisorySnapshot, diff
 from app.risk.alerts import RankedRisk, raise_alerts
 from app.risk.score import score_assets
@@ -58,9 +66,10 @@ def max_wind_mph(advisory: Advisory) -> float:
     return max(float(point["vmax_mph"]) for point in advisory.track)
 
 
-def advance(session: Session, config: ScoringConfig, playbook: Playbook) -> None:
-    """Issues the next advisory: computes hazard exposure, scores and ranks every asset, raises
-    alerts against the previous advisory, and evaluates the playbook rules."""
+def advance(session: Session, config: ScoringConfig) -> None:
+    """Issues the next advisory: computes hazard exposure, scores and ranks every asset, and
+    raises alerts against the previous advisory. The advisory cycle (agent) evaluates the
+    playbook next."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
@@ -102,8 +111,6 @@ def advance(session: Session, config: ScoringConfig, playbook: Playbook) -> None
         for a in raise_alerts(current, previous, config.risk.alert)
     )
     _reset_per_advisory_flags(session, advisory)
-    session.flush()
-    store_findings(session, advisory, playbook)
     state.current_advisory = advisory.advisory_no
     session.add(state)
     session.commit()
@@ -111,6 +118,15 @@ def advance(session: Session, config: ScoringConfig, playbook: Playbook) -> None
 
 def _reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:
     """Risk list reviewed and situation report approved hold for one operational period."""
+    record(
+        session,
+        "system",
+        "per_advisory_flags_reset",
+        "New operational period: risk list review and situation report approval reset",
+        advisory,
+        {"flags": list(PER_ADVISORY_FLAGS)},
+        {},
+    )
     for flag in PER_ADVISORY_FLAGS:
         session.merge(
             OpState(
@@ -123,12 +139,16 @@ def _reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:
         )
 
 
-def reset(session: Session) -> None:
-    """Returns to before advisory 1."""
+def reset(session: Session, data_dir: Path) -> None:
+    """Returns to before advisory 1: no advisory, no decisions, the initial operational state."""
+    session.exec(delete(AuditEvent))
+    session.exec(delete(PackageItem))
+    session.exec(delete(DecisionPackage))
     session.exec(delete(Finding))
     session.exec(delete(Alert))
     session.exec(delete(Score))
     session.exec(delete(Exposure))
+    restore_initial_state(session, data_dir)
     state = _state(session)
     state.current_advisory = 0
     session.add(state)
@@ -197,3 +217,8 @@ def alerts(session: Session, advisory_no: int) -> list[Alert]:
     require_issued(session, advisory_no)
     query = select(Alert).where(Alert.advisory_no == advisory_no).order_by(col(Alert.id))
     return list(session.exec(query))
+
+
+def staging_area_name(session: Session, area_id: str) -> str | None:
+    area = session.get(StagingArea, area_id)
+    return area.name if area else None

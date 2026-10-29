@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
+from app.agent.decisions import Action, Role
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 from app.playbook.engine import Status
@@ -231,3 +232,68 @@ class ClauseOut(BaseModel):
     section: str
     title: str
     text: str
+
+
+class PackageItemOut(BaseModel):
+    id: int
+    rule_id: str
+    title: str
+    entity_id: str
+    entity_name: str | None
+    kind: Literal["gap", "conflict"]
+    proposed_action: str
+    owner_role: str
+    severity: str
+    cites: list[str]
+    overdue: bool
+    status: Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
+    decided_by: str | None
+    reason: str | None
+    decided_at: datetime | None
+
+
+class DraftParagraphOut(BaseModel):
+    text: str
+    clause_ids: list[str]
+    asset_ids: list[str]
+
+
+class DraftSectionOut(BaseModel):
+    heading: str
+    paragraphs: list[DraftParagraphOut]
+
+
+class DraftOut(BaseModel):
+    status: str  # DRAFT until approved
+    provider: str
+    prompt_version: str
+    sections: list[DraftSectionOut]
+
+
+class PackageOut(BaseModel):
+    advisory_no: int
+    status: Literal["open", "closed"]
+    activation_level: str | None
+    decides_as_commander: Literal["incident_commander", "director"]
+    changes: ChangesOut
+    items: list[PackageItemOut]
+    draft: DraftOut | None
+
+
+class DecisionIn(BaseModel):
+    role: Role
+    action: Action
+    reason: str | None = None
+
+
+class AuditEventOut(BaseModel):
+    id: int
+    recorded_at: datetime  # wall-clock time
+    advisory_no: int | None  # scenario time
+    hours_to_landfall: int | None
+    actor: Literal["system", "agent", "human"]
+    type: str
+    summary: str
+    payload: dict[str, Any]
+    input_hash: str
+    versions: dict[str, Any]

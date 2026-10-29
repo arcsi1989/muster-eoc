@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import ValidationError
-from sqlmodel import Session
+from sqlmodel import Session, delete, select
 
 from app.ingest.contracts import (
     AdvisoryRecord,
@@ -178,17 +178,7 @@ def load_gold(session: Session, data_dir: Path) -> None:
     session.add_all(Dependency(**d.model_dump()) for d in dependencies)
     session.add_all(FragilityCurve(**c.model_dump()) for c in curves)
 
-    known_entities = asset_ids | staging_ids
-    session.add_all(
-        OpState(entity=entity, key=key, value=value, set_by=INITIAL_STATE_SOURCE, set_at=now)
-        for entity, flags in initial_state.entities.items()
-        if entity in known_entities
-        for key, value in flags.items()
-    )
-    session.add_all(
-        OpState(entity="event", key=key, value=value, set_by=INITIAL_STATE_SOURCE, set_at=now)
-        for key, value in initial_state.event.items()
-    )
+    _add_initial_state(session, initial_state, asset_ids | staging_ids, now)
 
     session.add_all(
         Advisory(
@@ -230,3 +220,28 @@ def load_gold(session: Session, data_dir: Path) -> None:
             for i in report.issues
         )
     session.commit()
+
+
+def _add_initial_state(
+    session: Session, initial_state: InitialStateFile, known_entities: set[str], now: datetime
+) -> None:
+    session.add_all(
+        OpState(entity=entity, key=key, value=value, set_by=INITIAL_STATE_SOURCE, set_at=now)
+        for entity, flags in initial_state.entities.items()
+        if entity in known_entities
+        for key, value in flags.items()
+    )
+    session.add_all(
+        OpState(entity="event", key=key, value=value, set_by=INITIAL_STATE_SOURCE, set_at=now)
+        for key, value in initial_state.event.items()
+    )
+
+
+def restore_initial_state(session: Session, data_dir: Path) -> None:
+    """Replaces the operational state with initial_state.json (demo reset)."""
+    initial = InitialStateFile.model_validate_json((data_dir / "initial_state.json").read_text())
+    session.exec(delete(OpState))
+    known = {a for a in session.exec(select(Asset.id))} | {
+        s for s in session.exec(select(StagingArea.id))
+    }
+    _add_initial_state(session, initial, known, datetime.now(UTC))

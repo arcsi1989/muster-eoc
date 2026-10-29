@@ -231,3 +231,49 @@ export interface Clause {
   title: string
   text: string
 }
+
+export type Role = 'incident_commander' | 'director' | 'planning' | 'operations' | 'logistics' | 'regulatory_liaison'
+export type DecisionAction = 'approve' | 'override' | 'defer' | 'alternative'
+export type ItemStatus = 'pending' | 'approved' | 'overridden' | 'deferred' | 'alternative' | 'not_decided'
+
+/** One gap with its proposed action, or one conflict, awaiting a person's decision. */
+export interface PackageItem {
+  id: number
+  rule_id: string
+  title: string
+  entity_id: string
+  entity_name: string | null
+  kind: 'gap' | 'conflict'
+  proposed_action: string
+  owner_role: string
+  severity: string
+  cites: string[]
+  overdue: boolean
+  status: ItemStatus
+  decided_by: string | null
+  reason: string | null
+  decided_at: string | null
+}
+
+export interface DraftParagraph {
+  text: string
+  clause_ids: string[]
+  asset_ids: string[]
+}
+
+export interface Draft {
+  status: string
+  provider: string
+  prompt_version: string
+  sections: { heading: string; paragraphs: DraftParagraph[] }[]
+}
+
+export interface DecisionPackage {
+  advisory_no: number
+  status: 'open' | 'closed'
+  activation_level: ActivationLevel | null
+  decides_as_commander: 'incident_commander' | 'director'
+  changes: AdvisoryChanges
+  items: PackageItem[]
+  draft: Draft | null
+}

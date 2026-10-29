@@ -4,12 +4,15 @@ import type {
   Clause,
   Asset,
   Coastline,
+  DecisionAction,
+  DecisionPackage,
   Explanation,
   Exposure,
   Facility,
   Finding,
   LineageEntry,
   RiskList,
+  Role,
   Scenario,
   StagingArea,
 } from '../types/scenario'
@@ -31,3 +34,13 @@ export const getExplanation = (assetId: string, advisoryNo: number) =>
 export const getAlerts = (advisoryNo: number) => api<Alert[]>(`/alerts?advisory=${advisoryNo}`)
 export const getFindings = (advisoryNo: number) => api<Finding[]>(`/findings?advisory=${advisoryNo}`)
 export const getClauses = () => api<Clause[]>('/clauses')
+export const getPackage = (advisoryNo: number) => api<DecisionPackage>(`/packages/${advisoryNo}`)
+export const postDecision = (
+  advisoryNo: number,
+  itemId: number,
+  decision: { role: Role; action: DecisionAction; reason?: string },
+) =>
+  api<DecisionPackage>(`/packages/${advisoryNo}/items/${itemId}/decision`, {
+    method: 'POST',
+    body: JSON.stringify(decision),
+  })

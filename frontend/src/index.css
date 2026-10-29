@@ -825,3 +825,89 @@ button.link {
   margin: 0.8rem 0 0.4rem;
   font-size: 0.9rem;
 }
+
+/* Decision package */
+
+.role-selector {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.role-selector select {
+  font: inherit;
+  padding: 0.2rem 0.3rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+
+.action-text {
+  margin: 0.3rem 0 0.2rem;
+  font-size: 0.88rem;
+}
+
+.item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.item-actions button {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.reason {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 12rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.reason input {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.status-pending {
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.status-approved,
+.status-alternative,
+.status-deferred {
+  background: color-mix(in srgb, var(--down) 22%, transparent);
+}
+
+.status-overridden,
+.status-not_decided {
+  background: var(--prepare-bg);
+  color: var(--prepare-text);
+}
+
+.item-approved,
+.item-deferred,
+.item-alternative {
+  opacity: 0.8;
+}
+
+.draft h4 {
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0.3rem;
+}
+
+.draft-badge {
+  background: var(--prepare-bg);
+  color: var(--prepare-text);
+}

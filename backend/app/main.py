@@ -4,10 +4,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlmodel import Session
 
+from app.agent.cycle import AdvisoryCycle
 from app.api import (
     routes_advisories,
+    routes_audit,
     routes_exposure,
     routes_health,
+    routes_packages,
     routes_playbook,
     routes_risk,
     routes_territory,
@@ -30,8 +33,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             load_gold(session, settings.data_dir)
         app.state.engine = engine
         app.state.playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
+        app.state.cycle = AdvisoryCycle(engine, app.state.playbook, settings.checkpoint_path)
+        app.state.settings = settings
         app.state.scoring_config = load_scoring_config(settings.scoring_config_path)
         yield
+        app.state.cycle.close()
         engine.dispose()
 
     app = FastAPI(title="SGW storm preparation prototype", lifespan=lifespan)
@@ -43,6 +49,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         routes_exposure,
         routes_risk,
         routes_playbook,
+        routes_packages,
+        routes_audit,
     ):
         app.include_router(router.router)
     return app
