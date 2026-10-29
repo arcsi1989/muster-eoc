@@ -3,7 +3,6 @@
 import json
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, fields
-from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -22,14 +21,6 @@ class Prompt:
     max_tokens: int
     max_tool_rounds: int = 0  # model turns that may call tools before an answer is required
     deadline_s: float | None = None  # the whole answer, across tool rounds
-
-    @classmethod
-    def from_file(
-        cls, path: Path, max_tokens: int, max_tool_rounds: int = 0, deadline_s: float | None = None
-    ) -> "Prompt":
-        """A prompt file's version is its name: sitrep_v2.md is sitrep-v2."""
-        version = path.stem.replace("_", "-")
-        return cls(version, path.read_text(), max_tokens, max_tool_rounds, deadline_s)
 
 
 class Paragraph(BaseModel):

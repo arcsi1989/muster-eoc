@@ -4,12 +4,12 @@ template answer (L9). This task owns the copilot prompt."""
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Literal
 
 from sqlmodel import Session
 
 from app import advisory_context
+from app.agent.prompts import load_prompt
 from app.audit.log import record
 from app.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID, mentioned
@@ -20,13 +20,13 @@ from app.llm.template import TemplateProvider
 from app.playbook.service import Playbook
 from app.scoring_config import CopilotConfig, ScoringConfig
 
-PROMPT_FILE = Path(__file__).resolve().parents[1] / "agent" / "prompts" / "copilot_v1.md"
-ATTEMPTS = 1  # an answer is not retried: the person can ask again, and the template answers now
+# A retry is sent the question again with what the validator found, as the draft is (L9).
+_REJECTED = "\n\nYour previous answer was rejected:\n- "
 
 
 def copilot_prompt(config: CopilotConfig) -> Prompt:
-    return Prompt.from_file(
-        PROMPT_FILE,
+    return load_prompt(
+        "copilot_v1",
         max_tokens=config.max_tokens,
         max_tool_rounds=config.max_tool_rounds,
         deadline_s=config.deadline_s,
@@ -136,7 +136,8 @@ def answer(
 
     def ask(p: LLMProvider, prompt: Prompt, feedback: list[str]) -> _Answered:
         recorder = _Recorder(tools)  # each call is checked against the tools it ran
-        return _Answered(p.chat(question, recent, TOOL_DEFINITIONS, recorder, prompt), recorder)
+        asked = question + (_REJECTED + "\n- ".join(feedback) if feedback else "")
+        return _Answered(p.chat(asked, recent, TOOL_DEFINITIONS, recorder, prompt), recorder)
 
     outcome = generate(
         provider,
@@ -144,7 +145,7 @@ def answer(
         copilot_prompt(config),
         ask,
         _problems,
-        ATTEMPTS,
+        1 + config.retries,
         rejected="the answer was not grounded",
     )
     result = outcome.result.chat

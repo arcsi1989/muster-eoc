@@ -202,8 +202,9 @@ class FakeChat:
     name = "fake"
     model: str | None = "fake-model"
 
-    def __init__(self, text: str) -> None:
-        self.text = text
+    def __init__(self, *texts: str) -> None:
+        self.texts = list(texts)
+        self.questions: list[str] = []
 
     def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
         raise LLMUnavailable("not used here")
@@ -216,8 +217,10 @@ class FakeChat:
         run_tool: ToolRunner,
         prompt: Prompt,
     ) -> ChatResult:
+        self.questions.append(question)
         run_tool("get_asset", {"asset_id": "SUB-07"})
-        return ChatResult(self.text, ["get_asset"], self.model, prompt.version, 5, {})
+        text = self.texts.pop(0) if len(self.texts) > 1 else self.texts[0]
+        return ChatResult(text, ["get_asset"], self.model, prompt.version, 5, {})
 
 
 def test_the_attempt_log_has_the_same_format_for_both_tasks(seeded: SeededScenario) -> None:
@@ -259,3 +262,17 @@ def test_a_configured_template_copilot_is_not_labelled_a_fallback(seeded: Seeded
     assert [(a.provider, a.fallback) for a in answers] == [("template", False)] * 5
     assert "SHEL-01" in answers[3].text
     assert answers[4].text == "unknown asset SUB-998" and answers[4].citations == []
+
+
+def test_a_copilot_retry_is_sent_the_problems_when_configured(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    scoring = seeded.scoring.model_copy(
+        update={"copilot": seeded.scoring.copilot.model_copy(update={"retries": 1})}
+    )
+    fake = FakeChat("SUB-99 is fine.", "SUB-07 is fine.")
+
+    reply = answer(seeded.session, seeded.playbook, fake, "How is SUB-07?", [], scoring)
+
+    assert (reply.provider, reply.fallback, reply.text) == ("fake", False, "SUB-07 is fine.")
+    assert fake.questions[0] == "How is SUB-07?"
+    assert "SUB-99" in fake.questions[1] and fake.questions[1].startswith("How is SUB-07?")

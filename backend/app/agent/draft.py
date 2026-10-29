@@ -3,19 +3,17 @@ accepts only drafts that cite what the request shows (plan section 4, decisions.
 owns the situation report prompt."""
 
 from dataclasses import replace
-from pathlib import Path
 
 from app.agent.citations import citation_problems
+from app.agent.prompts import load_prompt
 from app.llm.grounded import GroundedOutcome, generate
 from app.llm.provider import LLMProvider
 from app.llm.schemas import DraftRequest, DraftResult, Prompt
 from app.scoring_config import DraftConfig
 
-PROMPT_FILE = Path(__file__).resolve().parent / "prompts" / "sitrep_v2.md"
-
 
 def sitrep_prompt(config: DraftConfig) -> Prompt:
-    return Prompt.from_file(PROMPT_FILE, max_tokens=config.max_tokens)
+    return load_prompt("sitrep_v2", max_tokens=config.max_tokens)
 
 
 def produce_draft(
