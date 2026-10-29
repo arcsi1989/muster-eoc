@@ -56,7 +56,7 @@ from app.playbook.activation import (
     PROPOSAL_RULE,
     PROPOSED_DETAIL,
 )
-from app.playbook.service import Playbook, store_findings, store_new_event_findings
+from app.playbook.service import Playbook, reevaluate, store_findings, store_new_event_findings
 from app.replay import service
 from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
@@ -475,9 +475,9 @@ class CycleSteps:
             self._expire_items(session, advisory)
             return True
         if action == APPROVE_SITREP:
-            sitrep.apply_approval(
-                session, self._playbook, advisory, decision["role"], decision["text"]
-            )
+            sitrep.apply_approval(session, advisory, decision["role"], decision["text"])
+            session.flush()
+            reevaluate(session, advisory, self._playbook, sitrep.SITREP_RULE)
             return False
         item = session.get(PackageItem, decision["item_id"])
         finding = session.get(Finding, item.finding_id) if item else None
