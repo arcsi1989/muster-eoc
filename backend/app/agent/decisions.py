@@ -1,5 +1,6 @@
 """Who may decide what (decisions.md, P-2.5, P-3.x, P-8.1, P-8.2), and applying a decision."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Literal, get_args
@@ -7,11 +8,10 @@ from typing import Literal, get_args
 from sqlmodel import Session
 
 from app.advisory_context import ACTIVATION_LEVEL, COMMANDERS, DECLARED_AT_HOURS, Commander
-from app.agent.actions import approval_state
 from app.errors import AppError, ConflictError
 from app.models import Advisory, Finding, ItemStatus, OpState, PackageItem
-from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER, PROPOSED_DETAIL, Level
-from app.playbook.rules import Rule
+from app.playbook.activation import LEVEL_NUMBER, Level, activation_proposal
+from app.playbook.package import StateChange
 
 Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
 Action = Literal["approve", "override", "defer", "alternative"]
@@ -105,14 +105,14 @@ def check_declaration(item: PackageItem, finding: Finding, declaration: Declarat
     role that declares that level: the Director Level 3 and 2, the Incident Commander Level 1."""
     if item.status in DECIDED:
         raise AlreadyDecided(f"the activation proposal was already decided ({item.status})")
-    proposed: Level = finding.details[PROPOSED_DETAIL]
+    proposal = activation_proposal(finding.details)
+    proposed, declarer = proposal.proposed, proposal.declared_by
     number = LEVEL_NUMBER[proposed]
     if declaration.level != proposed:
         raise DecisionRefused(
             f"The playbook proposes Level {number} ({proposed}); declare that level or leave the "
             "proposal open (P-2.5)."
         )
-    declarer = DECLARED_BY[proposed]
     if declaration.declared_by != declarer:
         raise DecisionRefused(
             f"Level {number} ({proposed}) is declared by the {declarer.replace('_', ' ')} (P-2.5)."
@@ -144,10 +144,14 @@ def declare(
 
 
 def apply(
-    session: Session, item: PackageItem, request: DecisionRequest, rule: Rule, finding: Finding
+    session: Session,
+    item: PackageItem,
+    request: DecisionRequest,
+    satisfying: Sequence[StateChange],
 ) -> dict[str, object]:
-    """Records the decision; an approval writes the state that satisfies the rule. Returns the
-    state changes made (empty for overrides and conflict decisions)."""
+    """Records the decision; an approval writes `satisfying`, the state the playbook says
+    satisfies the item's finding. Returns the state changes made (empty for overrides and
+    conflict decisions)."""
     now = datetime.now(UTC)
     item.status = DECIDED_BY_ACTION[request.action]
     item.decided_by = request.role
@@ -156,10 +160,16 @@ def apply(
     session.add(item)
     if request.action != "approve":
         return {}
-    changes = approval_state(rule, finding.details)
     written: dict[str, object] = {}
-    for (namespace, key), value in changes.items():
-        entity = "event" if namespace == "event" else item.entity_id
-        session.merge(OpState(entity=entity, key=key, value=value, set_by=request.role, set_at=now))
-        written[f"{entity}.{key}"] = value
+    for change in satisfying:
+        session.merge(
+            OpState(
+                entity=change.entity,
+                key=change.key,
+                value=change.value,
+                set_by=request.role,
+                set_at=now,
+            )
+        )
+        written[f"{change.entity}.{change.key}"] = change.value
     return written

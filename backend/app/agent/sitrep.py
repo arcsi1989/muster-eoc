@@ -13,8 +13,7 @@ from app.audit.log import record
 from app.errors import ConflictError, NotFound
 from app.llm.schemas import PackageDraft
 from app.models import Advisory, DecisionPackage, OpState, Sitrep
-
-SITREP_RULE = "P-7.1"
+from app.playbook.package import SITREP_RULE
 
 
 class SitrepAlreadyApproved(ConflictError):

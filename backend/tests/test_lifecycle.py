@@ -11,10 +11,11 @@ from app import advisory_context
 from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
+from app.agent.sitrep import SitrepAlreadyApproved
 from app.llm.schemas import Paragraph
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
+from app.playbook.package import SITREP_RULE
 from tests.conftest import FakeProvider, SeededFactory, SeededScenario, draft_of
 
 
@@ -362,3 +363,69 @@ def test_a_package_goes_through_its_whole_lifecycle_without_http(
         assert events[3][2].endswith("items closed as not decided when the next advisory arrived")
         assert events[4][2] == "Decision package for advisory 1 closed"
         assert events[9][2] == "Draft situation report written by fake"
+
+
+# What a package item says and what approving it writes (pinned before the playbook module took
+# over the action text and the satisfying state, architecture-deepening/19)
+
+
+def op_state(seeded: SeededScenario, entity: str, key: str) -> object:
+    seeded.session.expire_all()
+    row = seeded.session.get(OpState, (entity, key))
+    return row.value if row else None
+
+
+def test_items_propose_their_action_and_approving_one_writes_its_satisfying_state(
+    seeded: SeededScenario,
+) -> None:
+    seeded.issue_until(3)
+    at_3 = {(v.item.rule_id, v.item.entity_id): v.item for v in view_items(seeded, 3)}
+
+    proposal, generators, hospital = (
+        at_3[("P-2.5", "event")],
+        at_3[("P-4.3", "event")],
+        at_3[("P-6.2", "SUB-07")],
+    )
+    assert (proposal.kind, proposal.owner_role, proposal.proposed_action) == (
+        "proposal",
+        "incident_commander",
+        "Declare activation Level 1 (full), now monitor; the incident commander declares it",
+    )
+    assert generators.proposed_action == "Fuel 4 more portable generators (10 needed, 6 fuelled)"
+    assert hospital.proposed_action == (
+        "Contact the hospitals fed by SUB-07 Medical District Substation (HOSP-01); confirm "
+        "on-site backup power is tested with 96 hours of fuel, and record who, when and what "
+        "was confirmed"
+    )
+
+    decide(seeded, 3, generators, "logistics", "approve")
+    decide(seeded, 3, hospital, "regulatory_liaison", "approve")
+
+    assert op_state(seeded, "event", "generators_fuelled") == 10
+    assert op_state(seeded, "SUB-07", "critical_customer_contacted") is True
+    assert op_state(seeded, "SUB-07", "hospital_backup_confirmed") is True
+
+
+def test_items_name_staging_areas_and_conflicts_by_their_clauses(seeded: SeededScenario) -> None:
+    seeded.issue_until(4)
+    at_4 = {(v.item.rule_id, v.item.entity_id): v for v in view_items(seeded, 4)}
+    staging = at_4[("P-4.6", "STG-02")]
+    assert (staging.entity_name, staging.item.proposed_action) == (
+        "Harborfront Yard",
+        "Move crews and equipment out of STG-02 to an inland staging area",
+    ), "the view names the staging area; the action text gives its ID"
+
+    seeded.issue_until(5)
+    at_5 = {(v.item.rule_id, v.item.entity_id): v for v in view_items(seeded, 5)}
+    conflict = at_5[("P-4.2", "PS-14")]
+
+    assert (conflict.entity_name, conflict.item.kind, conflict.item.owner_role) == (
+        "Seawall Pumping Station",
+        "conflict",
+        "incident_commander",
+    )
+    assert conflict.item.proposed_action == (
+        "Pre-inspect PS-14 Seawall Pumping Station: pumps, controls and the flood door, before "
+        "crews withdraw: blocked by stop-work (P-4.7). The Incident Commander decides: defer "
+        "(crews withdraw) or an alternative measure. Personnel safety prevails (P-8.2)."
+    )

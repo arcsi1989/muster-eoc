@@ -106,6 +106,19 @@ def _details(rule: Rule, values: Values) -> dict[str, Any]:
     return details
 
 
+def prohibitions_in_force(rulebook: Rulebook, event: dict[str, Any], entity: Entity) -> list[Rule]:
+    """The active prohibitions whose `when` holds for `entity` (P-4.7 stop-work)."""
+    values = {**entity.values, "event": event}
+    return [
+        r
+        for r in rulebook.rules
+        if r.kind == "prohibition"
+        and r.entity == entity.kind
+        and _active(r, event)
+        and all(holds(p, values) for p in r.when)
+    ]
+
+
 def evaluate(rulebook: Rulebook, event: dict[str, Any], entities: list[Entity]) -> list[Finding]:
     """Findings for one advisory: one per active, matched rule and entity in scope."""
     event_entity = Entity("event", "event", {})
@@ -122,10 +135,9 @@ def evaluate(rulebook: Rulebook, event: dict[str, Any], entities: list[Entity]) 
 
     active = [r for r in rulebook.rules if _active(r, event)]
     blocked: dict[str, list[Rule]] = {}  # entity id -> prohibitions in force there
-    for rule in (r for r in active if r.kind == "prohibition"):
-        for entity in scope[rule.entity]:
-            if all(holds(p, values_for(entity)) for p in rule.when):
-                blocked.setdefault(entity.id, []).append(rule)
+    for entity in (event_entity, *entities):
+        if prohibitions := prohibitions_in_force(rulebook, event, entity):
+            blocked[entity.id] = prohibitions
 
     findings = []
     for rule in (r for r in active if r.kind != "prohibition"):

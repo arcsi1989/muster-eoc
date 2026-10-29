@@ -15,7 +15,6 @@ from app.models import (
     Exposure,
     ScenarioState,
     Score,
-    StagingArea,
 )
 from app.network import load_network
 from app.playbook.activation import ActivationLevel
@@ -191,8 +190,3 @@ def alerts(session: Session, advisory_no: int) -> list[Alert]:
     require_issued(session, advisory_no)
     query = select(Alert).where(Alert.advisory_no == advisory_no).order_by(col(Alert.id))
     return list(session.exec(query))
-
-
-def staging_area_name(session: Session, area_id: str) -> str | None:
-    area = session.get(StagingArea, area_id)
-    return area.name if area else None

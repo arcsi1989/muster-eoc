@@ -1,15 +1,12 @@
-"""The action proposed for each gap, and the state an approval records (decisions.md: approval
-counts the action as done from that moment)."""
+"""What a finding asks for: the action proposed for it and the state that satisfies it
+(decisions.md: approval counts the action as done from that moment). Internal to the playbook
+module; callers use the interface in `app.playbook.service`. It reads the engine's predicate
+and detail-key formats so that no other module has to."""
 
+from dataclasses import dataclass
 from typing import Any
 
-from app.playbook.activation import (
-    DECLARED_BY,
-    DECLARED_DETAIL,
-    LEVEL_NUMBER,
-    PROPOSED_DETAIL,
-    Level,
-)
+from app.playbook.activation import LEVEL_NUMBER, activation_proposal
 from app.playbook.rules import Rule
 
 ACTION_TEXT = {
@@ -38,17 +35,33 @@ CONFLICT_TEXT = (
 )
 
 
+@dataclass(frozen=True)
+class StateChange:
+    """One operational state key and the value that satisfies a finding. `entity` is "event"
+    or the finding's own entity."""
+
+    entity: str
+    key: str
+    value: Any
+
+
 def proposed_action(
-    rule_id: str, entity_label: str, details: dict[str, Any], cites: list[str] | None = None
+    rule: Rule, entity_label: str, details: dict[str, Any], cites: list[str] | None = None
 ) -> str:
+    """The action text for a finding; `cites` given for a conflict names its prohibitions."""
     fuelled = details.get("event.generators_fuelled", 0)
     needed = details.get("event.wtp_pump_stations_top25", 0)
-    proposed: Level | None = details.get(PROPOSED_DETAIL)  # only P-2.5 has one
-    text = ACTION_TEXT.get(rule_id, "Act on {entity} as the playbook requires").format(
-        level_number=LEVEL_NUMBER[proposed] if proposed else None,
-        proposed=proposed,
-        declared=details.get(DECLARED_DETAIL),
-        declarer=DECLARED_BY[proposed].replace("_", " ") if proposed else None,
+    levels: dict[str, Any] = {}
+    if rule.kind == "proposal":
+        proposal = activation_proposal(details)
+        levels = {
+            "level_number": LEVEL_NUMBER[proposal.proposed],
+            "proposed": proposal.proposed,
+            "declared": proposal.declared,
+            "declarer": proposal.declared_by.replace("_", " "),
+        }
+    text = ACTION_TEXT.get(rule.id, "Act on {entity} as the playbook requires").format(
+        **levels,
         entity=entity_label,
         facilities=", ".join(details.get("asset.feeds_facility_ids", [])) or "critical facilities",
         fuelled=fuelled,
@@ -60,20 +73,24 @@ def proposed_action(
     return text
 
 
-def approval_state(rule: Rule, details: dict[str, Any]) -> dict[tuple[str, str], Any]:
-    """(namespace, key) -> value that makes the rule's satisfied_if hold. Namespaces: "state"
-    (the entity's own state) and "event"."""
-    changes: dict[tuple[str, str], Any] = {}
+def satisfying_state(rule: Rule, entity_id: str, details: dict[str, Any]) -> list[StateChange]:
+    """The state that makes the rule's satisfied_if hold for `entity_id`: one change per
+    predicate (two for P-6.2), none for a proposal, which no state satisfies (P-2.5)."""
+    if rule.kind == "proposal":
+        return []
+    changes = []
     for predicate in rule.satisfied_if:
         namespace, _, key = predicate.field.partition(".")
+        entity = "event" if namespace == "event" else entity_id
         if predicate.op == "is_true":
-            changes[(namespace, key)] = True
+            value: Any = True
         elif predicate.op == "is_false":
-            changes[(namespace, key)] = False
+            value = False
         elif predicate.value_field and predicate.op in ("ge", "eq"):
-            changes[(namespace, key)] = details.get(predicate.value_field)
+            value = details.get(predicate.value_field)
         elif predicate.op in ("eq", "ge"):
-            changes[(namespace, key)] = predicate.value
+            value = predicate.value
         else:
-            raise ValueError(f"{rule.id}: cannot derive an approval from {predicate.op}")
+            raise ValueError(f"{rule.id}: cannot derive the satisfying state from {predicate.op}")
+        changes.append(StateChange(entity, key, value))
     return changes
