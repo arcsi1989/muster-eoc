@@ -95,9 +95,11 @@ def test_cross_track_spread_scales_with_the_cone_factor() -> None:
         exposures = compute_exposure(*storm_and_sites(), config)
         return float(np.mean([np.std(e.wind_members_mph) for e in exposures]))
 
-    narrow, configured, wide = wind_spread(0.5), wind_spread(1.0), wind_spread(2.0)
+    none, narrow, configured, wide = (
+        wind_spread(f) for f in (0.0, 0.5, CONFIG.ensemble.sigma_cone_factor, 2.0)
+    )
 
-    assert wind_spread(0.0) == pytest.approx(0.0)
+    assert none == pytest.approx(0.0)
     assert narrow < configured < wide
 
 

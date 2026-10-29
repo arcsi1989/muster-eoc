@@ -14,8 +14,8 @@ The reasoning behind each item is in `docs/decisions.md`, by date and topic.
 ## Hazard and risk
 
 - **Hazard is a screening model**, not a surge or wind model: Rankine vortex (decay exponent 0.7 instead of the plan's 0.5, so tropical-storm-force wind reaches ~240 km), 15% inland decay, Gaussian alongshore surge with 3 km inland decay, no waves, rainfall or river flooding.
-- **The ensemble** shifts whole tracks sideways by the cone radius; it does not vary intensity, speed or timing.
-- **Ensemble, not NHC products.** Cross-track σ is `ensemble.sigma_cone_factor` (1.0) × the cone radius, an approximation of the forecast spread. Production would consume the NHC probabilistic products instead: wind-speed probabilities and P-Surge.
+- **The ensemble** shifts whole tracks sideways by the cone radius at landfall; it does not vary intensity, speed or timing.
+- **Ensemble, not NHC products.** Cross-track σ is `ensemble.sigma_cone_factor` (`config/scoring.yaml`) × the cone radius at landfall, an approximation of the forecast spread. Production would consume the NHC probabilistic products instead: wind-speed probabilities and P-Surge.
 - **One vertical datum.** Surge height and ground elevation are assumed to share it, so flood depth is their plain difference.
 - **Wind is 1-minute sustained** throughout (advisory Vmax, wind field and playbook thresholds); there are no gusts.
 - **Fragility curves are illustrative** and uncalibrated (calibration was cut). The condition score lowers capacity by up to 30%.
