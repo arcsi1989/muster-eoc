@@ -2,7 +2,9 @@
 
 Status: ready-for-agent
 
-Source: the architecture review of 2026-10-29 (six candidates, found by walking the commit hot spots and the uncommitted grounding fix), the glossary, ADR 0001 and the decision log. This is a refactor: the EOC-facing behaviour of the prototype stays the same except where a story below says otherwise.
+Source: the architecture review of 2026-10-29 (six candidates, found by walking the commit hot spots and the uncommitted grounding fix), the glossary, ADR 0001, the decision log, and change request CR-01 (playbook v3.3, `docs/change_requests/CR-01_operational_realism.md`). This is a refactor: the EOC-facing behaviour of the prototype stays the same except where a story below says otherwise.
+
+**Relation to CR-01.** CR-01 is a behaviour change implemented on its own, not by these tickets. Tickets 01–03 land first, on playbook v3.2, with no behaviour change; ticket 02 is the prefactor that turns CR-01's C3 (activation is declared, not computed) into a one-module change. CR-01 then lands. Tickets 04–12 are built against playbook v3.3, where the activation level is the last level a person declared, P-2.5 proposes a change of level, declaring a level is a human decision, and P-6.2 is satisfied by two state keys.
 
 ## Problem Statement
 
@@ -23,8 +25,8 @@ For the developer, every change in these areas means reading five to nine files,
 Six refactors, each one a deep module behind a small interface, delivered one ticket at a time with the app runnable and `./scripts/check.sh` green after each:
 
 1. **Seeded session test fixture**: one new test seam, used by every later ticket.
-2. **Advisory context module**: one place that answers "which advisory is current, what is the scenario time, what is the activation level, who commands, is this advisory still current", and owns resetting per-advisory state.
-3. **Decision package lifecycle module**: one place that opens a package, takes decisions on its items, approves its situation report, expires it and closes it, and the only place that answers "is it open". The LangGraph advisory cycle stays (ADR 0001) as the module's internal adapter for step order and the approval pause.
+2. **Advisory context module**: one place that answers "which advisory is current, what is the scenario time, what is the activation level, who commands, is this advisory still current", and owns resetting per-advisory state. Before CR-01 it computes the level as today; after CR-01 it reads the declared level and also gives the proposed level and the declaration time.
+3. **Decision package lifecycle module**: one place that opens a package, takes decisions on its items, approves its situation report, records an activation declaration, expires the package and closes it, and the only place that answers "is it open". The LangGraph advisory cycle stays (ADR 0001) as the module's internal adapter for step order and the approval pause.
 4. **Draft request with built-in grounding**: whatever the model is shown is exactly what it may cite, checked by one validator that owns the clause and entity ID patterns shared with the copilot.
 5. **Grounded generation module**: one place that owns attempt → validate → retry → template fallback and the attempt log for both the situation report and the copilot. Providers become transport only.
 6. **Typed package payloads**: changes and the draft are stored and served as one typed model each, and the mirror API schemas are removed.
@@ -34,7 +36,7 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### EOC behaviour that must not change
 
-1. As an EOC operator, I want advancing to the next advisory to produce the same scores, findings, package items and draft as before the refactor, so that the rehearsed demo is unchanged.
+1. As an EOC operator, I want advancing to the next advisory to produce the same scores, findings, package items and draft as before each refactor ticket (at the playbook version in force), so that the rehearsed demo is unchanged.
 2. As an EOC operator, I want resetting the scenario to return to before advisory 1 exactly as before, so that the demo can be run again.
 3. As an Owner role, I want to approve or override the items assigned to my role exactly as before, so that the refactor costs me nothing.
 4. As the Director, I want to hold the Incident Commander's decisions while the EOC is below Full activation, as before, so that authority follows the activation level.
@@ -62,13 +64,16 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 20. As a developer, I want to test opening, deciding, approving and closing a package against a seeded session without HTTP, so that a lifecycle test does not pay for a full replay.
 21. As a developer, I want the P-7.1 situation report rule ID, the per-advisory situation report flag and the item status values defined once each, so that a rename cannot leave one copy behind.
 22. As a developer, I want a test that proves the package status and the cycle's waiting state cannot disagree, so that the two sources never drift again.
+22a. As the EOC Director or Incident Commander, I want declaring an activation level (playbook v3.3, P-2.5) to go through the same lifecycle path as other decisions, with the same "who may decide" answer and one audit record, so that a declaration is recorded like every other human decision.
+22b. As a developer, I want a test proving that no code path sets the activation level except a declaration, so that the engine never changes the level itself (CR-01 acceptance).
 
 ### Developer: advisory context
 
-23. As a developer, I want one interface that gives the current advisory, its scenario time and its activation level, so that no caller recomputes them.
+23. As a developer, I want one interface that gives the current advisory, its scenario time and its activation level, so that no caller recomputes or re-reads them.
 24. As a developer, I want one interface that says whether the EOC is at Full activation and who commands (Incident Commander or Director), so that the string literal "full" disappears from callers.
 25. As a developer, I want one check that an advisory is still current, with one error, so that the six copies of that check collapse.
-26. As a developer, I want the boundary-hour rule ("a boundary hour belongs to the later, higher level") tested once, directly, so that every caller inherits it.
+26. As a developer, I want the activation level rule tested once, directly, so that every caller inherits it: before CR-01 the boundary-hour rule ("a boundary hour belongs to the later, higher level"); after CR-01 the declared level, the proposed level from the `propose_at_hours` thresholds, and the hours since Full was declared.
+26a. As a developer implementing CR-01, I want switching from a computed to a declared activation level to be a change inside the advisory context module only, so that C3 does not touch ten call sites.
 27. As a developer, I want resetting per-advisory flags to live with the advisory context, not inside replay, so that replay knows nothing about playbook flags.
 28. As a developer, I want scenario reset to ask each module to reset its own tables, so that replay stops deleting advisory cycle tables it does not own.
 29. As a developer, I want the top-10 rank cut defined once, so that "what changed" and the cycle's top-risk list cannot disagree.
@@ -105,17 +110,17 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### Developer: playbook module
 
-51. As a developer, I want the playbook module to answer "which state would satisfy this finding", so that the action code stops inverting rule predicates itself.
+51. As a developer, I want the playbook module to answer "which state would satisfy this finding", including findings satisfied only by several state keys together (P-6.2 in v3.3) and proposal findings that no state satisfies (P-2.5), so that the action code stops inverting rule predicates itself.
 52. As a developer, I want the proposed action and its approval state to come from the playbook module, so that the engine's detail-key format stays internal.
-53. As a developer, I want the playbook module to decide which findings become package items (including leaving out the P-7.1 situation report rule), so that the cycle stops filtering findings itself.
+53. As a developer, I want the playbook module to decide which findings become package items and how (leaving out the P-7.1 situation report rule; presenting a P-2.5 proposal as an activation proposal, not an ordinary item), so that the cycle stops filtering findings itself.
 54. As a developer, I want entity names resolved in one place, so that the three copies collapse.
-55. As a developer, I want the rule inputs (for example the facilities an asset feeds, the critical feeding assets in the top 25) tested directly against a seeded session, so that a field-name bug is caught without a replay.
+55. As a developer, I want the rule inputs (for example the facilities an asset feeds, the pumping stations in the top 25 that serve the treatment plant, the proposed activation level) tested directly against a seeded session, so that a field-name bug is caught without a replay.
 56. As a developer, I want re-evaluating one finding after a state change to be part of the playbook interface, not a patch the situation report code calls, so that partial re-evaluation has one owner.
 
 ### Developer: tests and runnability
 
 57. As a developer, I want a seeded session fixture that gives a database with the gold data loaded and a chosen advisory issued, so that every deepened module can be tested in process.
-58. As a developer, I want the HTTP end-to-end demo test to stay green and unchanged throughout, so that it remains the regression net for the whole refactor.
+58. As a developer, I want the HTTP end-to-end demo test to stay green throughout and never be edited by a refactor ticket (CR-01 alone updates it to v3.3), so that it remains the regression net for the whole refactor.
 59. As a developer, I want each ticket to leave `./scripts/check.sh` green and the app runnable, so that the refactor can stop after any ticket.
 60. As a developer, I want tests that only reached past an interface to be replaced by tests at the new interface, not kept alongside them, so that the test suite does not double in size.
 
@@ -123,20 +128,23 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### Order and slicing
 
-- Tickets are delivered one at a time, in this order: seeded session fixture → advisory context → decision package lifecycle → draft request grounding → grounded generation → typed package payloads → playbook module. Advisory context comes before the lifecycle because the lifecycle uses "who commands" and "is current". Grounding comes before grounded generation because the generation module validates through the draft request.
-- Commit the uncommitted grounding fix (sitrep prompt v2, rank-move asset IDs) before the first ticket, so that the refactor starts from a clean tree.
+- Tickets are delivered one at a time, in this order: seeded session fixture → advisory context → shared citation ID patterns → **CR-01 (outside this spec)** → draft request grounding → decision package lifecycle → grounded generation → typed package payloads → playbook module. Advisory context comes before the lifecycle because the lifecycle uses "who commands" and "is current". Grounding comes before grounded generation because the generation module validates through the draft request.
+- Advisory context lands before CR-01 as a prefactor ("make the change easy, then make the easy change"): it moves every activation-level lookup behind one interface without changing behaviour, so CR-01's C3 changes that one module.
+- CR-01's project rename (C7, Python package and frontend app named `muster`) is a wide mechanical change. It lands as its own commit and never at the same time as a refactor ticket. The tickets name no file paths, so they survive it.
+- Start ticket 01 from a clean tree. The CR-01 playbook, rules and plan files currently sit uncommitted and make `./scripts/check.sh` fail (the rule loader does not know `kind: proposal` yet); hold them back until CR-01 starts.
 - Each ticket is a vertical slice that keeps the app runnable. No ticket leaves a half-moved concept with both an old and a new path in use.
 
 ### Seeded session fixture (the one new test seam)
 
 - A test fixture yields a database session on a fresh engine with the gold data loaded, plus the playbook and scoring config. A helper issues advisories up to a given number using the same replay code the app uses.
 - The deepened modules are tested through this fixture with a fake provider, without the FastAPI app or `TestClient`.
-- The existing HTTP fixtures (`create_app(settings, llm)` plus `TestClient`) stay the regression seam. The end-to-end demo test is not edited.
+- The existing HTTP fixtures (`create_app(settings, llm)` plus `TestClient`) stay the regression seam. No refactor ticket edits the end-to-end demo test; CR-01 updates it to v3.3.
 
 ### Advisory context module
 
 - Interface: from a session and the playbook, give the current advisory (or none before advisory 1), its scenario time, its activation level, whether it is at Full activation, the commander role for that level, and a "require current" check that raises the one existing "no longer current" conflict error.
-- The activation level boundary rule stays where it is computed today; the module becomes its only caller outside tests.
+- Before CR-01 (ticket 02): the activation level boundary rule stays where it is computed today; the module becomes its only caller outside tests. No behaviour change.
+- After CR-01: the module reads the activation level as the last declared level from operational state, gives the proposed level from the `propose_at_hours` thresholds, the declaration time, and the hours since Full was declared. It never sets the level; only a declaration through the lifecycle does. Rules gated by `active_from_hours` keep using hours to landfall.
 - Full activation is named by the existing constant, never by a string literal in callers.
 - Resetting per-advisory flags moves here from replay. Scenario reset calls each owning module's reset, so replay no longer deletes advisory cycle tables.
 - The top-10 rank cut moves to scoring config if it is not already there, per the hard rule "all tunable numbers live in config", and is read from one place.
@@ -144,7 +152,8 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### Decision package lifecycle module
 
-- Interface (operations, not signatures): open the package for an advisory; read the package view (including whether it is open and who commands); decide an item; approve the situation report; expire the package when the next advisory is issued; close it. "Is it open" has exactly one source, which the API's package status reports.
+- Interface (operations, not signatures): open the package for an advisory; read the package view (including whether it is open, who commands, and any activation proposal); decide an item; approve the situation report; declare an activation level (v3.3, P-2.5); expire the package when the next advisory is issued; close it.
+- Declaring an activation level (CR-01 adds the endpoint) becomes a lifecycle operation: it checks who may declare (the EOC Director for Level 3 and 2, the Incident Commander for Level 1), writes the declared level and its time through the single state-writing path, records the decision and the audit event, and closes the P-2.5 proposal. It is the only code that sets the activation level. "Is it open" has exactly one source, which the API's package status reports.
 - The DB package status is the record (ADR 0001 says the DB stays the record the API and audit log read). The LangGraph checkpoint is the lifecycle's internal adapter for the approval pause. The lifecycle keeps the two consistent and is the only code that reads the checkpoint's waiting state.
 - An item decision resolves the activation level once and runs the decision rule check once, before anything changes, so a refusal changes nothing (current guarantee kept). Then it resumes the cycle.
 - Situation report approval goes through the same open/closed gate and the same "who commands" answer as item decisions. Its operational state write (the per-advisory situation report flag) and the re-evaluation of the P-7.1 finding go through the same single state-writing path as item decisions. The rule "only the decision step changes operational state" becomes true and stays documented.
@@ -178,7 +187,7 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 ### Playbook module
 
-- Interface: evaluate an advisory and get its findings; get the package items an advisory's findings produce (the playbook decides which rules are left out, such as P-7.1); for a finding, get the proposed action and the state that would satisfy it; re-evaluate one finding after a state change.
+- Interface: evaluate an advisory and get its findings; get the package items an advisory's findings produce (the playbook decides which rules are left out, such as P-7.1, and that a P-2.5 proposal is presented as an activation proposal); for a finding, get the proposed action and the state that would satisfy it, which may be several state keys together (P-6.2 in v3.3) or none for a proposal; re-evaluate one finding after a state change.
 - The rule engine stays as it is (deep, pure, already well tested). The context builder (the namespace the YAML rules read) stays internal to the playbook module, but gets direct tests through the seeded session fixture.
 - Entity name lookup is defined once and used by the package view, the playbook read views and the cycle.
 - Clause text and thresholds in the playbook files are not edited (project hard rule).
@@ -191,17 +200,18 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
   - **Seeded session**: the new in-process seam for the advisory context, decision package lifecycle, grounded generation and playbook modules, with a fake provider where an LLM is involved.
 - The draft request validator is also tested with hand-built draft requests and drafts, since its interface needs no database.
 - Modules tested and what each test proves:
-  - Advisory context: current advisory before and after advance, activation level at each boundary hour, commander per level, "require current" refusal, per-advisory flag reset.
-  - Decision package lifecycle: open → decide → approve situation report → close; a refusal changes nothing; a decision on a closed or expired package is refused; situation report approval on a closed package is refused; the package status and the cycle's waiting state never disagree; one audit record per decision.
+  - Advisory context: current advisory before and after advance, commander per level, "require current" refusal, per-advisory flag reset; before CR-01, activation level at each boundary hour; after CR-01, declared level, proposed level at each threshold, hours since Full was declared.
+  - Decision package lifecycle: open → decide → approve situation report → close; a refusal changes nothing; a decision on a closed or expired package is refused; situation report approval on a closed package is refused; the package status and the cycle's waiting state never disagree; one audit record per decision; after CR-01, a declaration by the wrong role is refused, a declaration closes the P-2.5 proposal, and no other code path sets the activation level.
   - Draft request: everything shown is citable; something not shown is rejected; hospital and shelter IDs are recognised; the copilot and the situation report share the patterns.
   - Grounded generation: a valid first attempt is used; an invalid attempt is retried; exhausting attempts falls back with the fallback label; a raising provider falls back; a configured template is not labelled a fallback; the attempt log has the same format for both tasks.
   - Typed payloads: a stored draft and stored changes read back equal to what was written; the package response validates with no ignores; the frontend fixture check.
-  - Playbook module: rule inputs for a seeded advisory (fed facilities, critical feeding assets in the top 25); the satisfying state for a finding; package items leave out P-7.1; re-evaluating one finding after a state write.
+  - Playbook module: rule inputs for a seeded advisory (fed facilities, pumping stations in the top 25 serving the treatment plant, proposed activation level); the satisfying state for a finding, including P-6.2's two keys and a proposal's none; package items leave out P-7.1 and present P-2.5 as a proposal; re-evaluating one finding after a state write.
 - Prior art: the rule engine tests that build entities by hand (the playbook test module) for the style of direct interface tests; the HTTP fixtures in the test configuration and the end-to-end demo test for the regression seam; the situation report tests' fake provider passed through `create_app` for injecting a provider (to be replaced by an honest fake); the Anthropic provider unit tests for testing a provider as transport only.
 - Frontend: Vitest tests for the package panel keep passing. The "situation report open" logic moves to reading the backend's package status, and its test is updated to match.
 
 ## Out of Scope
 
+- Everything CR-01 delivers (playbook v3.3 rules and seeds, the declaration endpoint and UI, ensemble spread, calibration, the Muster rename, the updated demo test). These tickets only reshape the code CR-01 touches, before or after it.
 - Replacing LangGraph or changing the advisory cycle's step order or interrupt (ADR 0001).
 - Removing the Azure OpenAI stub (decision log, 2026-10-28).
 - Any change to playbook clause text, rule thresholds or scoring numbers.
@@ -215,5 +225,6 @@ Six refactors, each one a deep module behind a small interface, delivered one ti
 
 - Each ticket records any choice this spec leaves open in `docs/decisions.md`, per the project rules.
 - If a ticket finds that the deletion test fails for a planned module (it would only move code, not concentrate it), the ticket stops, says so in its Comments and proposes a smaller change, rather than building a shallow module to match this spec.
+- The glossary's "Activation level" entry says the level is derived from hours to landfall. CR-01 makes that wrong; updating the entry (declared level, proposed level, declaration) is CR-01 work, and ticket 02 must not add glossary text that repeats the old definition.
 - The glossary already names the domain concepts these modules use (advisory, scenario time, activation level, decision package, situation report, approval, override, finding, Incident Commander, Director). If a ticket names a module after a concept not in the glossary (for example "advisory context"), it adds the term to `GLOSSARY.md`.
 - The architecture review that produced this spec was a throwaway HTML report in the OS temp directory, not kept in the repo.

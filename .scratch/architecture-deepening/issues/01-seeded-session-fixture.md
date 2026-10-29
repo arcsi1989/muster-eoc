@@ -2,7 +2,7 @@
 
 **What to build:** A developer can test any backend module in process against a real database without the FastAPI app: a fixture gives a session on a fresh engine with the gold data loaded, the playbook and the scoring config, and a helper issues advisories up to a given number using the same replay code the app uses. This is the one new test seam the refactor uses. Spec: `.scratch/architecture-deepening/spec.md`.
 
-**Blocked by:** None (can start immediately). Start from a clean tree.
+**Blocked by:** None (can start immediately). Start from a clean tree: hold back the uncommitted CR-01 playbook, rules and plan files, which make `./scripts/check.sh` fail until CR-01 is implemented.
 
 **Status:** ready-for-agent
 
