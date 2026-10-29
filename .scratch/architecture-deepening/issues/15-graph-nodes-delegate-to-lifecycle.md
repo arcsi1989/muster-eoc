@@ -4,11 +4,15 @@
 
 **Blocked by:** 14 (Situation report approval and activation declaration through the lifecycle)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Each graph node is a short call into the lifecycle; no table queries or audit summaries written in the graph
-- [ ] P-7.1 rule ID, situation report flag, item status values defined once each
-- [ ] Seeded-session test of the full lifecycle without running HTTP: open → declare the proposed level → decide → approve situation report → close, with a fake provider
-- [ ] Audit event types and summaries unchanged
-- [ ] If moving the bodies only shifts code without concentrating it (deletion test fails), stop and propose a smaller change in Comments
-- [ ] End-to-end demo test green and not edited by this ticket; `./scripts/check.sh` passes
+- [x] Each graph node is a short call into the lifecycle; no table queries or audit summaries written in the graph
+- [x] P-7.1 rule ID, situation report flag, item status values defined once each
+- [x] Seeded-session test of the full lifecycle without running HTTP: open → declare the proposed level → decide → approve situation report → close, with a fake provider
+- [x] Audit event types and summaries unchanged
+- [x] If moving the bodies only shifts code without concentrating it (deletion test fails), stop and propose a smaller change in Comments
+- [x] End-to-end demo test green and not edited by this ticket; `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as 9cf2e96 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
