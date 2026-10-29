@@ -5,11 +5,11 @@ from typing import Any
 
 from sqlmodel import Session
 
-from app.agent.decisions import DecisionRefused, Role, commander
+from app import advisory_context
+from app.agent.decisions import DecisionRefused, Role
 from app.audit.log import record
 from app.errors import ConflictError, NotFound
 from app.models import DecisionPackage, OpState, Sitrep
-from app.playbook.activation import activation_level
 from app.playbook.service import Playbook, refresh_event_finding
 from app.replay import service
 
@@ -34,14 +34,13 @@ def approve_sitrep(
     session: Session, playbook: Playbook, advisory_no: int, role: Role, text: str
 ) -> Sitrep:
     advisory = service.require_issued(session, advisory_no)
-    if advisory_no != service.current_advisory(session):
-        raise ConflictError(f"advisory {advisory_no} is no longer current")
+    advisory_context.require_current(session, advisory_no)
     package = session.get(DecisionPackage, advisory_no)
     if package is None or not package.draft:
         raise NotFound(f"no draft situation report for advisory {advisory_no}")
     if session.get(Sitrep, advisory_no) is not None:
         raise SitrepAlreadyApproved(f"the situation report for advisory {advisory_no} is approved")
-    lead = commander(activation_level(advisory.hours_to_landfall, playbook.levels) == "full")
+    lead = advisory_context.at(session, playbook.levels, advisory).commander
     if role != lead:
         raise DecisionRefused(
             f"The {lead.replace('_', ' ')} approves the situation report (P-3.1, P-7.1)."

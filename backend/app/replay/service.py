@@ -4,28 +4,21 @@ from pathlib import Path
 
 from sqlmodel import Session, col, delete, select
 
-from app.audit.log import record
+from app import advisory_context
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.hazard.service import store_exposure
 from app.ingest.loader import restore_initial_state
 from app.models import (
     Advisory,
     Alert,
-    AuditEvent,
-    DecisionPackage,
     Exposure,
-    Finding,
     FragilityCurve,
-    OpState,
-    PackageItem,
     ScenarioState,
     Score,
-    Sitrep,
     StagingArea,
 )
 from app.network import load_network
-from app.playbook.activation import ActivationLevel, activation_level
-from app.playbook.service import PER_ADVISORY_FLAGS
+from app.playbook.activation import ActivationLevel
 from app.replay.diff import AdvisoryChanges, AdvisorySnapshot, diff
 from app.risk.alerts import RankedRisk, raise_alerts
 from app.risk.score import score_assets
@@ -44,7 +37,7 @@ def _state(session: Session) -> ScenarioState:
 
 
 def issued_advisories(session: Session) -> list[Advisory]:
-    current = _state(session).current_advisory
+    current = advisory_context.current_advisory_no(session)
     query = (
         select(Advisory).where(Advisory.advisory_no <= current).order_by(col(Advisory.advisory_no))
     )
@@ -59,15 +52,11 @@ def total_advisories(session: Session) -> int:
     return len(session.exec(select(Advisory.advisory_no)).all())
 
 
-def current_advisory(session: Session) -> int:
-    return _state(session).current_advisory
-
-
 def max_wind_mph(advisory: Advisory) -> float:
     return max(float(point["vmax_mph"]) for point in advisory.track)
 
 
-def advance(session: Session, config: ScoringConfig) -> None:
+def advance(session: Session, config: ScoringConfig) -> Advisory:
     """Issues the next advisory: computes hazard exposure, scores and ranks every asset, and
     raises alerts against the previous advisory. The advisory cycle (agent) evaluates the
     playbook next."""
@@ -109,44 +98,17 @@ def advance(session: Session, config: ScoringConfig) -> None:
     current = [RankedRisk(s.asset_id, s.risk, rank) for rank, s in ranked]
     session.add_all(
         Alert(advisory_no=advisory.advisory_no, asset_id=a.asset_id, kind=a.kind, message=a.message)
-        for a in raise_alerts(current, previous, config.risk.alert)
+        for a in raise_alerts(current, previous, config.risk.alert, config.risk.top_n)
     )
-    _reset_per_advisory_flags(session, advisory)
     state.current_advisory = advisory.advisory_no
     session.add(state)
     session.commit()
-
-
-def _reset_per_advisory_flags(session: Session, advisory: Advisory) -> None:
-    """Risk list reviewed and situation report approved hold for one operational period."""
-    record(
-        session,
-        "system",
-        "per_advisory_flags_reset",
-        "New operational period: risk list review and situation report approval reset",
-        advisory,
-        {"flags": list(PER_ADVISORY_FLAGS)},
-        {},
-    )
-    for flag in PER_ADVISORY_FLAGS:
-        session.merge(
-            OpState(
-                entity="event",
-                key=flag,
-                value=False,
-                set_by=f"advisory {advisory.advisory_no}",
-                set_at=advisory.issued_at,
-            )
-        )
+    return advisory
 
 
 def reset(session: Session, data_dir: Path) -> None:
-    """Returns to before advisory 1: no advisory, no decisions, the initial operational state."""
-    session.exec(delete(AuditEvent))
-    session.exec(delete(Sitrep))
-    session.exec(delete(PackageItem))
-    session.exec(delete(DecisionPackage))
-    session.exec(delete(Finding))
+    """Returns the replay to before advisory 1: no advisory, no scores, the initial operational
+    state. The modules that own decisions, findings and the audit log clear their own tables."""
     session.exec(delete(Alert))
     session.exec(delete(Score))
     session.exec(delete(Exposure))
@@ -159,7 +121,7 @@ def reset(session: Session, data_dir: Path) -> None:
 
 def require_issued(session: Session, advisory_no: int) -> Advisory:
     advisory = session.get(Advisory, advisory_no)
-    if advisory is None or advisory_no > _state(session).current_advisory:
+    if advisory is None or advisory_no > advisory_context.current_advisory_no(session):
         raise NotFound(f"advisory {advisory_no} has not been issued")
     return advisory
 
@@ -176,7 +138,9 @@ def ranks(session: Session, advisory_no: int) -> dict[str, int]:
     return {s.asset_id: s.rank for s in session.exec(query)}
 
 
-def changes(session: Session, advisory_no: int, levels: list[ActivationLevel]) -> AdvisoryChanges:
+def changes(
+    session: Session, advisory_no: int, levels: list[ActivationLevel], top_n: int
+) -> AdvisoryChanges:
     """What changed at an issued advisory compared with the one before."""
 
     def snapshot(advisory: Advisory) -> AdvisorySnapshot:
@@ -186,13 +150,13 @@ def changes(session: Session, advisory_no: int, levels: list[ActivationLevel]) -
             landfall_y_km=advisory.landfall_y_km,
             max_wind_mph=max_wind_mph(advisory),
             peak_surge_m=advisory.peak_surge_m,
-            activation_level=activation_level(advisory.hours_to_landfall, levels),
+            activation_level=advisory_context.at(session, levels, advisory).activation_level,
             ranks=ranks(session, advisory.advisory_no),
         )
 
     current = require_issued(session, advisory_no)
     previous = session.get(Advisory, advisory_no - 1)
-    return diff(snapshot(current), snapshot(previous) if previous else None)
+    return diff(snapshot(current), snapshot(previous) if previous else None, top_n)
 
 
 def exposures(session: Session, advisory_no: int) -> list[Exposure]:

@@ -9,6 +9,8 @@ from pathlib import Path
 
 import yaml
 
+FULL_ACTIVATION = "full"
+
 
 @dataclass(frozen=True)
 class ActivationLevel:

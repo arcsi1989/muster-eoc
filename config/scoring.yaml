@@ -21,9 +21,9 @@ hazard:
 risk:
   condition_theta_reduction_per_step: 0.075  # theta x (1 - 0.075 x (condition - 1)): up to -30 %
   stale_inspection_years: 3                  # older inspection -> confidence medium
+  top_n: 10                                  # the top-risk list: diff, alerts, cycle context
   alert:
     risk_threshold: 7000                     # customer-equivalents
-    top_n: 10
     rank_jump: 10                            # places risen since the previous advisory ...
     rank_jump_within: 25                     # ... counted only for assets ending in this top N
 

@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from sqlmodel import Session
 
+from app import advisory_context
 from app.audit.log import record
 from app.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID
@@ -16,7 +17,6 @@ from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable
 from app.llm.template import TemplateProvider
 from app.models import Advisory
 from app.playbook.service import Playbook
-from app.replay import service
 from app.scoring_config import CopilotConfig
 
 log = logging.getLogger(__name__)
@@ -120,7 +120,7 @@ def answer(
         label = TEMPLATE_FALLBACK
     citations, _ = _cite(result.text, recorder)
 
-    current = service.current_advisory(session)
+    current = advisory_context.current_advisory_no(session)
     advisory = session.get(Advisory, current) if current else None
     record(
         session,

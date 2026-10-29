@@ -42,7 +42,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         app.state.engine = engine
         app.state.playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
         app.state.cycle = AdvisoryCycle(
-            engine, app.state.playbook, settings.checkpoint_path, provider, scoring.draft
+            engine, app.state.playbook, settings.checkpoint_path, provider, scoring
         )
         app.state.settings = settings
         app.state.scoring_config = scoring
