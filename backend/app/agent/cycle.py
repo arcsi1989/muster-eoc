@@ -93,7 +93,7 @@ def issue_next_advisory(session: Session, config: ScoringConfig, cycle: Advisory
     cycle.expire(advisory_context.current_advisory_no(session))
     advisory = service.advance(session, config)
     advisory_context.reset_per_advisory_flags(session, advisory)
-    session.commit()
+    session.commit()  # one transaction: the advisory is never current with stale flags
     cycle.start(advisory.advisory_no)
     return advisory.advisory_no
 

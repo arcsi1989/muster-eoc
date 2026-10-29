@@ -10,7 +10,16 @@ from sqlmodel import select
 from app import advisory_context
 from app.agent.cycle import reset_scenario
 from app.errors import ConflictError
-from app.models import Advisory, DecisionPackage, Finding, OpState, PackageItem, Score
+from app.models import (
+    Advisory,
+    AuditEvent,
+    DecisionPackage,
+    Finding,
+    OpState,
+    PackageItem,
+    Score,
+    Sitrep,
+)
 from tests import conftest
 from tests.conftest import SeededScenario
 
@@ -121,7 +130,9 @@ def test_scenario_reset_clears_every_module_and_returns_before_advisory_1(
     reset_scenario(seeded.session, seeded.cycle, conftest.test_settings(tmp_path).data_dir)
 
     assert advisory_context.current_advisory_no(seeded.session) == 0
-    for table in (Score, Finding, DecisionPackage, PackageItem):
+    for table in (Score, Finding, DecisionPackage, PackageItem, Sitrep):
         assert seeded.session.exec(select(table)).first() is None
+    events = seeded.session.exec(select(AuditEvent)).all()
+    assert [e.type for e in events] == ["scenario_reset"]
     seeded.issue_until(1)  # the advisory cycle starts again from a clean thread
     assert seeded.session.get(DecisionPackage, 1) is not None

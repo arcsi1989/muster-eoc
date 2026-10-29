@@ -24,6 +24,7 @@ def check_seeds(data_dir: Path, config: ScoringConfig) -> list[str]:
         load_gold(session, data_dir)
         for _ in range(service.total_advisories(session)):
             service.advance(session, config)
+            session.commit()
         return _failures(session, config)
 
 

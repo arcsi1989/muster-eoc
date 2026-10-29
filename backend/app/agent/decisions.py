@@ -12,9 +12,7 @@ from app.errors import AppError, ConflictError
 from app.models import Finding, OpState, PackageItem
 from app.playbook.rules import Rule
 
-Role = Literal[
-    "incident_commander", "director", "planning", "operations", "logistics", "regulatory_liaison"
-]
+Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
 Action = Literal["approve", "override", "defer", "alternative"]
 DECIDED = {"approved", "overridden", "deferred", "alternative", "not_decided"}
 

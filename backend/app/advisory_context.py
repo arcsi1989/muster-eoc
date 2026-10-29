@@ -57,7 +57,8 @@ def current_advisory_no(session: Session) -> int:
 
 def at(session: Session, levels: Sequence[ActivationLevel], advisory: Advisory) -> AdvisoryContext:
     """The context at an advisory, issued or not (the timeline shows the level ahead). The level
-    is computed from hours to landfall; `session` is where a declared level would be read."""
+    is computed from hours to landfall. `session` is unused until CR-01 (ticket 06), which reads
+    the declared level from it here; it is in the signature now so no caller changes then."""
     level = activation_level(advisory.hours_to_landfall, list(levels))
     full_from = next(lvl.from_hours for lvl in levels if lvl.name == FULL_ACTIVATION)
     return AdvisoryContext(

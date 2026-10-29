@@ -58,7 +58,8 @@ def max_wind_mph(advisory: Advisory) -> float:
 
 def advance(session: Session, config: ScoringConfig) -> Advisory:
     """Issues the next advisory: computes hazard exposure, scores and ranks every asset, and
-    raises alerts against the previous advisory. The advisory cycle (agent) evaluates the
+    raises alerts against the previous advisory. The caller commits, so that what else starts
+    the new advisory lands in the same transaction. The advisory cycle (agent) evaluates the
     playbook next."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
@@ -102,7 +103,7 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
     )
     state.current_advisory = advisory.advisory_no
     session.add(state)
-    session.commit()
+    session.flush()
     return advisory
 
 
