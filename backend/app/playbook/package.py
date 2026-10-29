@@ -8,12 +8,11 @@ from dataclasses import dataclass
 from sqlmodel import Session
 
 from app.models import Finding, ItemKind
-from app.network import load_network
 from app.playbook.actions import StateChange as StateChange  # what satisfying_state returns
 from app.playbook.actions import proposed_action
 from app.playbook.actions import satisfying_state as _satisfying_state
 from app.playbook.activation import activation_proposal
-from app.playbook.service import Playbook
+from app.playbook.service import Playbook, entity_names
 
 # The situation report rule: approving the report satisfies it, so it never becomes an item.
 SITREP_RULE = "P-7.1"
@@ -42,14 +41,16 @@ def package_items(
     """The items `stored` findings produce: one per open or conflicting finding, except the
     situation report rule (P-7.1), which approving the report satisfies. A P-2.5 finding is an
     activation proposal, owned by the role that declares the proposed level."""
-    network = load_network(session)
+    names = entity_names(session)
     items = []
     for finding in stored:
         if finding.status == "satisfied" or finding.rule_id == SITREP_RULE:
             continue
         rule = playbook.rule(finding.rule_id)
-        described = network.describe(finding.entity_id)
-        label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
+        name = names.get(finding.entity_id)
+        # the action text names an asset; the event and staging areas go by their ID
+        asset = name and finding.entity_kind == "asset"
+        label = f"{finding.entity_id} {name}" if asset else finding.entity_id
         conflict = finding.status == "conflict"
         kind: ItemKind = "conflict" if conflict else "gap"
         owner_role = finding.owner_role

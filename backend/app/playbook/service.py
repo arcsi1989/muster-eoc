@@ -1,6 +1,6 @@
 """The playbook: builds the rule inputs for an advisory (plan section 2.4), stores the findings,
-and re-evaluates one finding after a state change. What a finding asks for in the decision
-package is `app.playbook.package`."""
+re-evaluates one finding after a state change and names the entities they are about. What a
+finding asks for in the decision package is `app.playbook.package`."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -220,15 +220,9 @@ def finding_views(
     session: Session, playbook: Playbook, advisory_no: int, status: Status | None = None
 ) -> list[FindingView]:
     titles = {r.id: r.title for r in playbook.rulebook.rules}
-    network = load_network(session)
-    staging = {s.id: s.name for s in session.exec(select(StagingArea))}
-
-    def name(entity_id: str) -> str | None:
-        described = network.describe(entity_id)
-        return described[1] if described else staging.get(entity_id)
-
+    names = entity_names(session)
     return [
-        FindingView(f, titles[f.rule_id], name(f.entity_id))
+        FindingView(f, titles[f.rule_id], names.get(f.entity_id))
         for f in findings(session, advisory_no, status)
     ]
 
@@ -265,3 +259,12 @@ def reevaluate(
             setattr(stored, name, getattr(updated, name))
         session.add(stored)
     return stored
+
+
+def entity_names(session: Session) -> dict[str, str]:
+    """The name of every asset, facility and staging area by ID; the event has none."""
+    network = load_network(session)
+    names = {a.id: a.name for a in network.assets.values()}
+    names |= {f.id: f.name for f in network.facilities.values()}
+    names |= {s.id: s.name for s in session.exec(select(StagingArea))}
+    return names

@@ -11,7 +11,7 @@ from app.agent import lifecycle
 from app.agent.decisions import Declaration
 from app.models import Advisory, Finding, OpState
 from app.playbook.package import StateChange, package_items, satisfying_state
-from app.playbook.service import RuleInputs, findings, reevaluate, rule_inputs
+from app.playbook.service import RuleInputs, entity_names, findings, reevaluate, rule_inputs
 from tests.conftest import SeededScenario
 
 
@@ -215,3 +215,14 @@ def test_package_items_leave_out_the_situation_report_and_propose_the_level(
         "gap",
         "Inspect SUB-52 Lantern Hill South Substation",
     )
+
+
+def test_one_name_lookup_for_assets_facilities_and_staging_areas(seeded: SeededScenario) -> None:
+    names = entity_names(seeded.session)
+
+    assert (names["PS-14"], names["WTP-01"], names["STG-02"]) == (
+        "Seawall Pumping Station",
+        "Bayport Water Treatment Plant",
+        "Harborfront Yard",
+    )
+    assert "event" not in names

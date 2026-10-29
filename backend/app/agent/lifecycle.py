@@ -46,11 +46,11 @@ from app.models import (
     Score,
     Sitrep,
 )
-from app.network import load_network
 from app.playbook.activation import LEVEL_NUMBER, PROPOSAL_RULE, activation_proposal
 from app.playbook.package import SITREP_RULE, package_items, satisfying_state
 from app.playbook.service import (
     Playbook,
+    entity_names,
     reevaluate,
     store_findings,
     store_new_event_findings,
@@ -161,7 +161,7 @@ def package_view(
         raise NotFound(f"no decision package for advisory {advisory_no}")
     status: PackageStatus = "open" if is_open(session, cycle, advisory_no) else "closed"
     titles = {r.id: r.title for r in playbook.rulebook.rules}
-    network = load_network(session)
+    names = entity_names(session)
     findings = {
         f.id: f for f in session.exec(select(Finding).where(Finding.advisory_no == advisory_no))
     }
@@ -174,12 +174,13 @@ def package_view(
 
     def view(item: PackageItem) -> ItemView:
         finding = findings[item.finding_id]
-        described = network.describe(item.entity_id)
-        name = described[1] if described else None
-        if name is None and (area := service.staging_area_name(session, item.entity_id)):
-            name = area
         return ItemView(
-            item, titles[item.rule_id], name, finding.severity, finding.cites, finding.overdue
+            item,
+            titles[item.rule_id],
+            names.get(item.entity_id),
+            finding.severity,
+            finding.cites,
+            finding.overdue,
         )
 
     return PackageView(
