@@ -2,7 +2,8 @@ import { useSyncExternalStore } from 'react'
 
 /** The pages, in nav order: one table drives the hash lookup and the nav links. */
 export const PAGES = [
-  { route: 'operations', hash: '#/', label: 'Operations' },
+  { route: 'storm-map', hash: '#/', label: 'Storm map' },
+  { route: 'operations', hash: '#/operations', label: 'Operations' },
   { route: 'audit', hash: '#/audit', label: 'Audit' },
   { route: 'data-quality', hash: '#/data-quality', label: 'Data quality' },
   { route: 'calibration', hash: '#/calibration', label: 'Calibration' },
@@ -11,7 +12,7 @@ export const PAGES = [
 export type Route = (typeof PAGES)[number]['route']
 
 function current(): Route {
-  return PAGES.find((p) => p.hash === window.location.hash)?.route ?? 'operations'
+  return PAGES.find((p) => p.hash === window.location.hash)?.route ?? 'storm-map'
 }
 
 function subscribe(onChange: () => void) {

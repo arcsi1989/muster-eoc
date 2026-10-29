@@ -1,14 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import {
-  getAlerts,
-  getAssets,
-  getChanges,
-  getCoastline,
-  getExposure,
-  getFacilities,
-  getRisk,
-  getStagingAreas,
-} from './api/scenario'
+import { getAlerts, getChanges, getExposure, getRisk, getTerritory } from './api/scenario'
 import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { AuditPage } from './features/audit/AuditPage'
@@ -26,19 +17,10 @@ import { currentAdvisories } from './features/scenario/currentAdvisory'
 import { IntroPanel } from './features/scenario/IntroPanel'
 import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
+import { StormMapScreen } from './features/storm-map/StormMapScreen'
 import { PAGES, useHashRoute } from './lib/useHashRoute'
 import { useLoad } from './lib/useLoad'
 import type { Role } from './types/scenario'
-
-const loadTerritory = async () => {
-  const [assets, coastline, facilities, stagingAreas] = await Promise.all([
-    getAssets(),
-    getCoastline(),
-    getFacilities(),
-    getStagingAreas(),
-  ])
-  return { assets, coastline, facilities, stagingAreas }
-}
 
 export default function App() {
   const route = useHashRoute()
@@ -51,6 +33,7 @@ export default function App() {
           </a>
         ))}
       </nav>
+      {route === 'storm-map' && <StormMapScreen />}
       {route === 'operations' && <OperationsScreen />}
       {route === 'audit' && <AuditPage />}
       {route === 'data-quality' && <DataQualityPage />}
@@ -62,7 +45,7 @@ export default function App() {
 
 function OperationsScreen() {
   const scenario = useScenario()
-  const territory = useLoad(loadTerritory)
+  const territory = useLoad(getTerritory)
 
   const { currentNo, current, previous } = currentAdvisories(scenario.state.status === 'ok' ? scenario.state.data : null)
 

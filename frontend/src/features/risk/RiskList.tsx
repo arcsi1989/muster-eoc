@@ -1,4 +1,5 @@
 import { formatCustomers, formatPercent } from '../../lib/format'
+import { useFlip } from '../../lib/useFlip'
 import { pFailColor } from '../../lib/pFailColor'
 import type { Asset, RiskItem } from '../../types/scenario'
 
@@ -34,6 +35,8 @@ function RankChange({ item }: { item: RiskItem }) {
 }
 
 export function RiskList({ items, assetsById, onSelect }: Props) {
+  // A new advisory reorders the rows in place: each row moves from its old rank to its new one.
+  const flip = useFlip(items.map((i) => i.asset_id))
   if (items.length === 0) {
     return <p className="hint">No assets were scored for this advisory.</p>
   }
@@ -47,7 +50,7 @@ export function RiskList({ items, assetsById, onSelect }: Props) {
         {items.map((item) => {
           const asset = assetsById.get(item.asset_id)
           return (
-            <li key={item.asset_id}>
+            <li key={item.asset_id} ref={flip(item.asset_id)}>
               <button type="button" className="risk-row" onClick={() => onSelect(item.asset_id)}>
                 <span className="rank">{item.rank}</span>
                 <span className="swatch" style={{ background: pFailColor(item.p_fail) }} aria-hidden />
