@@ -53,6 +53,7 @@ N_PUMP_STATIONS = 75
 N_HOSPITALS = 8
 N_SHELTERS = 22
 FUELLED_GENERATORS = 6
+INITIAL_ACTIVATION_LEVEL = "monitor"  # declared at the start of the scenario (plan 2.3)
 
 # Population centres: assets cluster around them (x_km, km inland, spread_km).
 TOWNS = [(125, 8, 14), (60, 10, 12), (195, 8, 12), (100, 70, 15), (200, 95, 15), (45, 140, 15)]
@@ -356,7 +357,11 @@ def build_initial_state(
     entities.update({s["id"]: dict.fromkeys(STATE_KEYS_STAGING, False) for s in staging})
     return {
         "entities": entities,
-        "event": {"generators_fuelled": FUELLED_GENERATORS, "regulator_notified": False},
+        "event": {
+            "generators_fuelled": FUELLED_GENERATORS,
+            "regulator_notified": False,
+            "activation_level": INITIAL_ACTIVATION_LEVEL,
+        },
     }
 
 

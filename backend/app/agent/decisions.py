@@ -1,4 +1,4 @@
-"""Who may decide what (decisions.md, P-3.x, P-8.1, P-8.2), and applying a decision."""
+"""Who may decide what (decisions.md, P-2.5, P-3.x, P-8.1, P-8.2), and applying a decision."""
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -6,10 +6,11 @@ from typing import Literal
 
 from sqlmodel import Session
 
-from app.advisory_context import COMMANDERS, Commander
+from app.advisory_context import ACTIVATION_LEVEL, COMMANDERS, DECLARED_AT_HOURS, Commander
 from app.agent.actions import approval_state
 from app.errors import AppError, ConflictError
-from app.models import Finding, OpState, PackageItem
+from app.models import Advisory, Finding, OpState, PackageItem
+from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER
 from app.playbook.rules import Rule
 
 Role = Literal[Commander, "planning", "operations", "logistics", "regulatory_liaison"]
@@ -33,11 +34,24 @@ class DecisionRequest:
     reason: str | None = None
 
 
+@dataclass(frozen=True)
+class Declaration:
+    """A person declares an activation level (P-2.5)."""
+
+    level: str
+    declared_by: Role
+    reason: str | None = None
+
+
 def check(item: PackageItem, request: DecisionRequest, lead: Commander) -> None:
     """Raises if this role may not take this decision on this item, with `lead` the role that
     commands at the advisory."""
     if item.status in DECIDED:
         raise AlreadyDecided(f"item {item.id} was already decided ({item.status})")
+    if item.kind == "proposal":
+        raise DecisionRefused(
+            "An activation proposal is closed only by declaring the level (P-2.5)."
+        )
     other_lead = next(role for role in COMMANDERS if role != lead)
     if request.role == other_lead:
         raise DecisionRefused(
@@ -46,8 +60,11 @@ def check(item: PackageItem, request: DecisionRequest, lead: Commander) -> None:
         )
     reason = (request.reason or "").strip()
     if item.kind == "conflict":
-        if request.role != "incident_commander":
-            raise DecisionRefused("Only the Incident Commander decides a conflict (P-8.2).")
+        if request.role != lead:  # below Full activation the Director holds the IC's role
+            raise DecisionRefused(
+                f"Only the {lead.replace('_', ' ')} decides a conflict at this activation level "
+                "(P-8.2)."
+            )
         if request.action not in ("defer", "alternative"):
             raise DecisionRefused("A conflict is decided by deferring or an alternative measure.")
         if not reason:
@@ -70,6 +87,49 @@ def check(item: PackageItem, request: DecisionRequest, lead: Commander) -> None:
             raise DecisionRefused("An override needs a reason (P-8.1).")
         return
     raise DecisionRefused(f"{request.action} applies only to conflicts.")
+
+
+def check_declaration(item: PackageItem, finding: Finding, declaration: Declaration) -> None:
+    """Raises unless `declaration` declares the level the P-2.5 proposal `item` proposes, by the
+    role that declares that level: the Director Level 3 and 2, the Incident Commander Level 1."""
+    if item.status in DECIDED:
+        raise AlreadyDecided(f"the activation proposal was already decided ({item.status})")
+    proposed: str = finding.details["event.proposed_activation_level"]
+    number = LEVEL_NUMBER[proposed]
+    if declaration.level != proposed:
+        raise DecisionRefused(
+            f"The playbook proposes Level {number} ({proposed}); declare that level or leave the "
+            "proposal open (P-2.5)."
+        )
+    declarer = DECLARED_BY[proposed]
+    if declaration.declared_by != declarer:
+        raise DecisionRefused(
+            f"Level {number} ({proposed}) is declared by the {declarer.replace('_', ' ')} (P-2.5)."
+        )
+
+
+def declare(
+    session: Session, item: PackageItem, declaration: Declaration, advisory: Advisory
+) -> dict[str, object]:
+    """Records the declaration on the P-2.5 item and writes the declared level and its scenario
+    time. The only code that sets the activation level. Returns the state written."""
+    now = datetime.now(UTC)
+    item.status = "approved"
+    item.decided_by = declaration.declared_by
+    item.reason = (declaration.reason or "").strip() or None
+    item.decided_at = now
+    session.add(item)
+    written: dict[str, object] = {
+        ACTIVATION_LEVEL: declaration.level,
+        DECLARED_AT_HOURS: advisory.hours_to_landfall,
+    }
+    for key, value in written.items():
+        session.merge(
+            OpState(
+                entity="event", key=key, value=value, set_by=declaration.declared_by, set_at=now
+            )
+        )
+    return {f"event.{key}": value for key, value in written.items()}
 
 
 def apply(

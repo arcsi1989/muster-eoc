@@ -14,7 +14,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
 from app import advisory_context
-from app.agent.decisions import DecisionRequest
+from app.agent.decisions import DecisionRequest, Declaration
 from app.agent.graph import build_graph
 from app.audit.log import clear_events, record
 from app.llm.provider import LLMProvider
@@ -65,6 +65,19 @@ class AdvisoryCycle:
         with self._lock:
             precheck()
             resume = {"item_id": item_id, **asdict(request)}
+            self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
+
+    def declare(
+        self,
+        advisory_no: int,
+        item_id: int,
+        declaration: Declaration,
+        precheck: Callable[[], None],
+    ) -> None:
+        """Like `decide`, for an activation declaration on the P-2.5 item."""
+        with self._lock:
+            precheck()
+            resume = {"item_id": item_id, "action": "declare", **asdict(declaration)}
             self._graph.invoke(Command(resume=resume), self._thread(advisory_no))
 
     def expire(self, advisory_no: int) -> None:

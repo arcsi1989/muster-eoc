@@ -6,6 +6,7 @@
 - Prohibitions never become findings: they BLOCK open rules with requires_field_work on the same
   entity, which become CONFLICT findings citing both clauses and the conflict clause (P-8.2).
 - A deadline that has passed on an open rule makes it overdue and escalates it to critical.
+- A proposal (P-2.5) is never satisfied by data: only a person's declaration closes it.
 The LLM never evaluates these rules.
 """
 
@@ -132,7 +133,7 @@ def evaluate(rulebook: Rulebook, event: dict[str, Any], entities: list[Entity]) 
             values = values_for(entity)
             if not all(holds(p, values) for p in rule.when):
                 continue
-            satisfied = all(holds(p, values) for p in rule.satisfied_if)
+            satisfied = rule.kind != "proposal" and all(holds(p, values) for p in rule.satisfied_if)
             status: Status = "satisfied" if satisfied else "open"
             cites = [rule.id]
             severity = rule.severity

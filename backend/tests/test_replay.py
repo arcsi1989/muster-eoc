@@ -21,20 +21,20 @@ def test_scenario_starts_before_advisory_1(client: TestClient) -> None:
     assert body["advisories"] == []
 
 
-def test_first_advisory_is_72_hours_out_at_prepare(client: TestClient) -> None:
+def test_first_advisory_is_72_hours_out_at_the_declared_monitor_level(client: TestClient) -> None:
     body = advance(client, 1)
 
     assert body["current_advisory"] == 1
     latest = body["advisories"][-1]
     assert latest["hours_to_landfall"] == 72
-    assert latest["activation_level"] == "prepare"
+    assert latest["activation_level"] == "monitor", "declared, not reached (P-2.5)"
 
 
-def test_third_advisory_is_48_hours_out_at_full_activation(client: TestClient) -> None:
+def test_third_advisory_is_48_hours_out_and_stays_at_the_declared_level(client: TestClient) -> None:
     body = advance(client, 3)
 
     assert [a["hours_to_landfall"] for a in body["advisories"]] == [72, 60, 48]
-    assert body["advisories"][-1]["activation_level"] == "full"
+    assert body["advisories"][-1]["activation_level"] == "monitor"
 
 
 def test_advancing_past_the_last_advisory_is_refused(client: TestClient) -> None:
@@ -99,12 +99,13 @@ def test_timeline_lists_every_advisory_with_its_hours_and_level(client: TestClie
 
     timeline = body["timeline"]
     assert [slot["hours_to_landfall"] for slot in timeline] == [72, 60, 48, 36, 24]
+    # issued advisories at the declared level; the ones ahead are not declared yet
     assert [slot["activation_level"] for slot in timeline] == [
-        "prepare",
-        "prepare",
-        "full",
-        "full",
-        "full",
+        "monitor",
+        "monitor",
+        None,
+        None,
+        None,
     ]
     assert [slot["issued"] for slot in timeline] == [True, True, False, False, False]
 
@@ -127,7 +128,7 @@ def test_changes_at_advisory_1_are_initial(client: TestClient) -> None:
     assert len(body["top10_entered"]) == 0
 
 
-def test_changes_at_advisory_3_show_the_eastward_shift_and_full_activation(
+def test_changes_at_advisory_3_show_the_eastward_shift_and_no_level_change(
     client: TestClient,
 ) -> None:
     advance(client, 3)
@@ -140,8 +141,9 @@ def test_changes_at_advisory_3_show_the_eastward_shift_and_full_activation(
     assert body["landfall_shift"]["distance_km"] == pytest.approx(40, abs=5)
     assert body["max_wind_change_mph"] == 5
     assert body["peak_surge_change_m"] == 0.5
-    assert body["activation_level_from"] == "prepare"
-    assert body["activation_level_to"] == "full"
+    assert body["activation_level_from"] == body["activation_level_to"] == "monitor", (
+        "an advisory never changes the level; only a declaration does"
+    )
     moves = body["rank_moves"]
     assert moves, "the eastward shift reorders the list"
     assert all(m["from_rank"] != m["to_rank"] for m in moves)

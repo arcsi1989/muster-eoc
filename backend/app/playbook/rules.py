@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 Op = Literal["eq", "ne", "gt", "ge", "lt", "le", "in", "contains_any", "is_true", "is_false"]
 EntityKind = Literal["event", "asset", "staging_area"]
-RuleKind = Literal["process", "action", "prohibition", "notification"]
+RuleKind = Literal["process", "action", "prohibition", "notification", "proposal"]
 
 
 class Strict(BaseModel):

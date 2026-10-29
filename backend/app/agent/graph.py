@@ -2,13 +2,14 @@
 
 load_context -> diff -> evaluate_rules -> draft -> await_approval <-> apply_decision -> finalise
 
-Only `apply_decision` changes operational state, and it is deterministic: the LLM never writes
-state, never decides whether a rule is met and never changes scores. Every node writes an audit
+Only `apply_decision` changes operational state (item decisions and activation declarations),
+and it is deterministic: the LLM never writes state, never decides whether a rule is met and
+never changes scores. Every node writes an audit
 event. The graph state holds only the advisory number and the decision being applied; the
 package, its items and the findings live in the database.
 """
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import UTC, datetime
@@ -27,9 +28,18 @@ from app.agent.draft_request import draft_request
 from app.audit.log import record
 from app.errors import AppError, DataNotLoaded
 from app.llm.provider import LLMProvider
-from app.models import Advisory, DecisionPackage, Finding, OpState, PackageItem, Score
+from app.models import (
+    Advisory,
+    DecisionPackage,
+    Finding,
+    ItemKind,
+    OpState,
+    PackageItem,
+    Score,
+)
 from app.network import load_network
-from app.playbook.service import Playbook, store_findings
+from app.playbook.activation import DECLARED_BY, LEVEL_NUMBER
+from app.playbook.service import Playbook, store_findings, store_new_event_findings
 from app.replay import service
 from app.scoring_config import ScoringConfig
 
@@ -122,37 +132,49 @@ def build_graph(
             )
         return {}
 
+    def add_items(session: Session, advisory: Advisory, stored: Sequence[Finding]) -> list[str]:
+        """One pending package item per open or conflicting finding; returns their rule IDs."""
+        network = load_network(session)
+        added = []
+        for finding in stored:
+            if finding.status == "satisfied" or finding.rule_id == SITREP_RULE:
+                continue
+            described = network.describe(finding.entity_id)
+            label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
+            kind: ItemKind = "conflict" if finding.status == "conflict" else "gap"
+            owner_role = finding.owner_role
+            if rules[finding.rule_id].kind == "proposal":
+                kind = "proposal"  # declared by the role for the proposed level (P-2.5)
+                owner_role = DECLARED_BY[finding.details["event.proposed_activation_level"]]
+            session.add(
+                PackageItem(
+                    advisory_no=advisory.advisory_no,
+                    finding_id=finding.id or 0,
+                    rule_id=finding.rule_id,
+                    entity_id=finding.entity_id,
+                    kind=kind,
+                    proposed_action=proposed_action(
+                        finding.rule_id,
+                        label,
+                        finding.details,
+                        finding.cites if finding.status == "conflict" else None,
+                    ),
+                    owner_role=owner_role,
+                    status="pending",
+                )
+            )
+            added.append(finding.rule_id)
+        return added
+
     def evaluate_rules(state: CycleState) -> CycleState:
         with unit() as session:
             advisory = advisory_of(session, state)
             findings = store_findings(session, advisory, playbook)
             session.flush()
-            network = load_network(session)
             stored = session.exec(
                 select(Finding).where(Finding.advisory_no == advisory.advisory_no)
             ).all()
-            for finding in stored:
-                if finding.status == "satisfied" or finding.rule_id == SITREP_RULE:
-                    continue
-                described = network.describe(finding.entity_id)
-                label = f"{finding.entity_id} {described[1]}" if described else finding.entity_id
-                session.add(
-                    PackageItem(
-                        advisory_no=advisory.advisory_no,
-                        finding_id=finding.id or 0,
-                        rule_id=finding.rule_id,
-                        entity_id=finding.entity_id,
-                        kind="conflict" if finding.status == "conflict" else "gap",
-                        proposed_action=proposed_action(
-                            finding.rule_id,
-                            label,
-                            finding.details,
-                            finding.cites if finding.status == "conflict" else None,
-                        ),
-                        owner_role=finding.owner_role,
-                        status="pending",
-                    )
-                )
+            add_items(session, advisory, stored)
             counts = {
                 s: sum(1 for f in findings if f.status == s)
                 for s in ("open", "conflict", "satisfied")
@@ -265,6 +287,9 @@ def build_graph(
             finding = session.get(Finding, item.finding_id) if item else None
             if item is None or finding is None:
                 raise DataNotLoaded(f"package item {decision['item_id']} missing")
+            if decision.get("action") == "declare":
+                declare(session, advisory, item, finding, decision)
+                return Command(goto="await_approval")
             request = decisions.DecisionRequest(
                 role=decision["role"], action=decision["action"], reason=decision.get("reason")
             )
@@ -304,6 +329,51 @@ def build_graph(
                 versions,
             )
         return Command(goto="await_approval")
+
+    def declare(
+        session: Session,
+        advisory: Advisory,
+        item: PackageItem,
+        finding: Finding,
+        decision: dict[str, Any],
+    ) -> None:
+        """Declares the activation level on the P-2.5 item, then adds the event items the new
+        level brings (P-7.2 once Full is declared)."""
+        declaration = decisions.Declaration(
+            level=decision["level"], declared_by=decision["declared_by"], reason=decision["reason"]
+        )
+        try:
+            decisions.check_declaration(item, finding, declaration)
+        except AppError as refused:
+            # Normally refused before resuming; never leave the thread stuck on a refusal.
+            record(
+                session, "system", "decision_refused", str(refused), advisory, decision, versions
+            )
+            return
+        written = decisions.declare(session, item, declaration, advisory)
+        session.flush()
+        added = add_items(session, advisory, store_new_event_findings(session, advisory, playbook))
+        record(
+            session,
+            "human",
+            "activation_declared",
+            f"{declaration.declared_by.replace('_', ' ').capitalize()} declared activation "
+            f"Level {LEVEL_NUMBER[declaration.level]} ({declaration.level})"
+            + (f": {item.reason}" if item.reason else ""),
+            advisory,
+            {
+                "item_id": item.id,
+                "role": declaration.declared_by,
+                "rule_id": item.rule_id,
+                "entity_id": item.entity_id,
+                "level": declaration.level,
+                "from_level": finding.details.get("event.activation_level"),
+                "reason": item.reason,
+                "state_written": written,
+                "items_added": added,
+            },
+            versions,
+        )
 
     def finalise(state: CycleState) -> CycleState:
         with unit() as session:

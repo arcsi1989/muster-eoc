@@ -1977,6 +1977,7 @@
     }
   },
   "event": {
+    "activation_level": "monitor",
     "generators_fuelled": 6,
     "regulator_notified": false
   }

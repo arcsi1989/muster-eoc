@@ -240,7 +240,7 @@ class PackageItemOut(BaseModel):
     title: str
     entity_id: str
     entity_name: str | None
-    kind: Literal["gap", "conflict"]
+    kind: Literal["gap", "conflict", "proposal"]
     proposed_action: str
     owner_role: str
     severity: str
@@ -289,7 +289,8 @@ class SitrepApproveIn(BaseModel):
 class PackageOut(BaseModel):
     advisory_no: int
     status: Literal["open", "closed"]
-    activation_level: str | None
+    activation_level: str | None  # declared (P-2.5)
+    proposed_activation_level: str | None  # from the playbook's thresholds
     decides_as_commander: Literal["incident_commander", "director"]
     changes: ChangesOut
     items: list[PackageItemOut]
@@ -301,6 +302,12 @@ class PackageOut(BaseModel):
 class DecisionIn(BaseModel):
     role: Role
     action: Action
+    reason: str | None = None
+
+
+class DeclarationIn(BaseModel):
+    level: Literal["monitor", "prepare", "full"]
+    declared_by: Role
     reason: str | None = None
 
 

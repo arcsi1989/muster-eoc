@@ -10,7 +10,7 @@ from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.risk.confidence import Confidence
 
-ItemKind = Literal["gap", "conflict"]
+ItemKind = Literal["gap", "conflict", "proposal"]
 ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
 PackageStatus = Literal["open", "closed"]
 
@@ -179,7 +179,8 @@ class DecisionPackage(SQLModel, table=True):
 
 
 class PackageItem(SQLModel, table=True):
-    """One gap with its proposed action, or one conflict, awaiting a person's decision."""
+    """One gap with its proposed action, one conflict, or one activation proposal (P-2.5),
+    awaiting a person's decision."""
 
     id: int | None = Field(default=None, primary_key=True)
     advisory_no: int = Field(foreign_key="decisionpackage.advisory_no")

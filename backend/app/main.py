@@ -6,6 +6,7 @@ from sqlmodel import Session
 
 from app.agent.cycle import AdvisoryCycle
 from app.api import (
+    routes_activation,
     routes_advisories,
     routes_audit,
     routes_copilot,
@@ -60,6 +61,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         routes_risk,
         routes_playbook,
         routes_packages,
+        routes_activation,
         routes_audit,
         routes_sitrep,
         routes_copilot,

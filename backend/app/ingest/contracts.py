@@ -68,7 +68,7 @@ class InitialStateFile(Contract):
     """Operational state at advisory 1: per-entity flags and event-level values."""
 
     entities: dict[str, dict[str, bool]]
-    event: dict[str, int | bool]
+    event: dict[str, int | bool | str]
 
 
 class PointRecord(Contract):

@@ -9,11 +9,12 @@ from app.deps import CycleDep, PlaybookDep, SessionDep
 router = APIRouter(prefix="/packages")
 
 
-def _out(view: PackageView) -> PackageOut:
+def package_out(view: PackageView) -> PackageOut:
     return PackageOut(
         advisory_no=view.package.advisory_no,
         status=view.package.status,
         activation_level=view.activation_level,
+        proposed_activation_level=view.proposed_activation_level,
         decides_as_commander=view.decides_as_commander,
         changes=view.changes,  # type: ignore[arg-type]  # validated into ChangesOut
         items=[
@@ -35,7 +36,7 @@ def _out(view: PackageView) -> PackageOut:
 
 @router.get("/{advisory_no}", response_model=PackageOut)
 def get_package(advisory_no: int, session: SessionDep, playbook: PlaybookDep) -> PackageOut:
-    return _out(package_view(session, playbook, advisory_no))
+    return package_out(package_view(session, playbook, advisory_no))
 
 
 @router.post("/{advisory_no}/items/{item_id}/decision", response_model=PackageOut)
@@ -56,4 +57,4 @@ def post_decision(
         item_id,
         DecisionRequest(body.role, body.action, body.reason),
     )
-    return _out(package_view(session, playbook, advisory_no))
+    return package_out(package_view(session, playbook, advisory_no))
