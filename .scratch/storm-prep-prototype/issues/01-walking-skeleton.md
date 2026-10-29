@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] A small hand-made territory (synthetic coastline, about 10 assets, 5 advisories with a simple track, hours to landfall 72, 60, 48, 36, 24) loads into SQLite at startup; coordinates are planar km (`x_km`, `y_km`)
 - [x] One settings class reads configuration from the environment; nothing reads the environment elsewhere
@@ -15,3 +15,7 @@
 - [x] Makefile targets: `make dev` (backend :8000, frontend :5173), `make test` (runs `./scripts/check.sh`), `make data` (writes the toy data), `make demo-reset`
 - [x] API tests for next, reset, past-5 refusal and activation level; frontend tests for the API client and the list's loading, error and empty states
 - [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Resolved with ht-resolve: built in the step 1-10 commits (8a14132 to ac188e6, 102309d); user confirmed 2026-10-29.
