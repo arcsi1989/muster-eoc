@@ -337,3 +337,53 @@ export interface ChatReply {
   fallback: boolean
   tools_used: string[]
 }
+
+export interface Curve {
+  asset_type: string
+  hazard: 'wind' | 'flood'
+  /** median capacity: mph for wind, m for flood */
+  theta: number
+  beta: number
+}
+
+export interface ReliabilityBin {
+  lower: number
+  upper: number
+  count: number
+  /** null for an empty bin */
+  mean_predicted: number | null
+  observed_rate: number | null
+}
+
+export interface Backtest {
+  model_version: number
+  assets: number
+  failures: number
+  brier: number
+  /** of assets, by predicted probability (0.10: the top decile) */
+  top_fraction: number
+  /** share of all failures among them */
+  top_capture: number
+  reliability: ReliabilityBin[]
+}
+
+export interface ModelVersion {
+  id: number
+  label: string
+  status: 'proposed' | 'approved'
+  /** the latest approved: scores the next advisory */
+  in_use: boolean
+  curves: Curve[]
+  created_at: string
+  approved_by: string | null
+  approved_at: string | null
+}
+
+export interface Calibration {
+  storm: string
+  /** the version in use */
+  before: Backtest
+  /** the proposed version */
+  after: Backtest
+  model_version: ModelVersion
+}

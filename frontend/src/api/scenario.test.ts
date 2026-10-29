@@ -1,6 +1,18 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { ApiError } from './client'
-import { getAlerts, getAudit, getExplanation, getExposure, getLineage, getRisk, nextAdvisory, postDeclaration } from './scenario'
+import {
+  approveModelVersion,
+  getAlerts,
+  getAudit,
+  getExplanation,
+  getExposure,
+  getLineage,
+  getModelVersions,
+  getRisk,
+  nextAdvisory,
+  postDeclaration,
+  runCalibration,
+} from './scenario'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -85,4 +97,29 @@ test('getAudit asks for everyone or one actor', async () => {
 
   expect(fetchMock).toHaveBeenCalledWith('/api/audit', expect.anything())
   expect(fetchMock).toHaveBeenCalledWith('/api/audit?actor=agent', expect.anything())
+})
+
+test('runCalibration posts to the calibration run endpoint', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ storm: 'Storm Delta' }))
+
+  expect(await runCalibration()).toMatchObject({ storm: 'Storm Delta' })
+  expect(fetchMock).toHaveBeenCalledWith('/api/calibration/run', expect.objectContaining({ method: 'POST' }))
+})
+
+test('getModelVersions reads the model versions', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json([]))
+
+  expect(await getModelVersions()).toEqual([])
+  expect(fetchMock).toHaveBeenCalledWith('/api/model-versions', expect.anything())
+})
+
+test('approveModelVersion posts the role to the version it approves', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ id: 2, status: 'approved' }))
+
+  await approveModelVersion(2, 'planning')
+
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/model-versions/2/approve',
+    expect.objectContaining({ method: 'POST', body: JSON.stringify({ role: 'planning' }) }),
+  )
 })
