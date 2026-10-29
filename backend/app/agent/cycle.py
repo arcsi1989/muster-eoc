@@ -17,6 +17,8 @@ from app import advisory_context
 from app.agent.decisions import DecisionRequest, Declaration
 from app.agent.graph import build_graph
 from app.audit.log import clear_events, record
+from app.calibration.service import CALIBRATION_EVENT
+from app.calibration.versions import APPROVED_EVENT
 from app.llm.provider import LLMProvider
 from app.models import DecisionPackage, PackageItem, Sitrep
 from app.playbook.service import Playbook, clear_findings
@@ -116,10 +118,12 @@ def issue_next_advisory(session: Session, config: ScoringConfig, cycle: Advisory
 def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> None:
     """Back to before advisory 1: checkpoints deleted, decisions, findings and the audit log
     cleared, the operational state restored from the initial state. Each module clears its own
-    tables."""
+    tables. Model versions are not scenario state: they, their calibration runs and approvals
+    stay, so the replay scores with the approved version and the log still shows who approved
+    it."""
     cycle.reset(session)
     clear_findings(session)
-    clear_events(session)
+    clear_events(session, keep=(CALIBRATION_EVENT, APPROVED_EVENT))
     service.reset(session, data_dir)
     record(
         session,

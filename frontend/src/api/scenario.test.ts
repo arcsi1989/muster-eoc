@@ -34,7 +34,7 @@ test('postDeclaration posts the declared level, the role and the reason', async 
 })
 
 test('getRisk asks for the given advisory', async () => {
-  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ advisory_no: 2, items: [] }))
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ advisory_no: 2, model_version: 1, items: [] }))
 
   await getRisk(2)
 

@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlmodel import Session, col, delete, select
 
 from app import advisory_context
+from app.calibration import versions
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.hazard.service import store_exposure
 from app.ingest.loader import restore_initial_state
@@ -12,7 +13,6 @@ from app.models import (
     Advisory,
     Alert,
     Exposure,
-    FragilityCurve,
     ScenarioState,
     Score,
     StagingArea,
@@ -57,20 +57,21 @@ def max_wind_mph(advisory: Advisory) -> float:
 
 
 def advance(session: Session, config: ScoringConfig) -> Advisory:
-    """Issues the next advisory: computes hazard exposure, scores and ranks every asset, and
-    raises alerts against the previous advisory. The caller commits, so that what else starts
-    the new advisory lands in the same transaction. The advisory cycle (agent) evaluates the
-    playbook next."""
+    """Issues the next advisory: computes hazard exposure, scores and ranks every asset with the
+    model version in use (the latest approved), and raises alerts against the previous advisory.
+    The caller commits, so that what else starts the new advisory lands in the same transaction.
+    The advisory cycle (agent) evaluates the playbook next."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
         raise ScenarioComplete(f"all {state.current_advisory} advisories have been issued")
 
     exposures = store_exposure(session, advisory, config.hazard)
+    model = versions.in_use(session)
     scores = score_assets(
         [e for e in exposures if e.kind == "asset"],
         load_network(session),
-        list(session.exec(select(FragilityCurve))),
+        model.curves,
         config,
         advisory.issued_at.date(),
     )
@@ -79,6 +80,7 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
         Score(
             asset_id=s.asset_id,
             advisory_no=advisory.advisory_no,
+            model_version=model.id,
             p_wind=s.p_wind,
             p_flood=s.p_flood,
             p_fail=s.p_fail,
@@ -131,6 +133,11 @@ def ranked_scores(session: Session, advisory_no: int) -> list[Score]:
     require_issued(session, advisory_no)
     query = select(Score).where(Score.advisory_no == advisory_no).order_by(col(Score.rank))
     return list(session.exec(query))
+
+
+def model_version(session: Session, advisory_no: int) -> int | None:
+    """The model version that scored an advisory; None before it is issued."""
+    return session.exec(select(Score.model_version).where(Score.advisory_no == advisory_no)).first()
 
 
 def ranks(session: Session, advisory_no: int) -> dict[str, int]:

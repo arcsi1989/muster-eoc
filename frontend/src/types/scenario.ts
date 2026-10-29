@@ -130,6 +130,7 @@ export interface RiskItem {
 
 export interface RiskList {
   advisory_no: number
+  model_version: number // the fragility curves that scored the advisory
   items: RiskItem[]
 }
 

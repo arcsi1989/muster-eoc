@@ -15,10 +15,13 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from pydantic import BaseModel
 
+from app.calibration.backtest import Observation, best_track_exposure, predict
 from app.config import REPO_ROOT
 from app.geo import distance_to_polyline
+from app.hazard.ensemble import Site, impute_elevations
 from app.ingest.contracts import (
     AdvisoryRecord,
     AssetRecord,
@@ -26,10 +29,14 @@ from app.ingest.contracts import (
     DependencyRecord,
     FacilityRecord,
     FragilityCurveRecord,
+    HistoricalStormFile,
     InitialStateFile,
     StagingAreaRecord,
+    StormOutcomeRecord,
 )
+from app.models import FragilityCurve
 from app.playbook.activation import Level
+from app.scoring_config import load_scoring_config
 
 SEED = 42
 SCENARIO_START = date(2026, 9, 1)
@@ -341,7 +348,7 @@ def build_dependencies(
     return sorted(deps, key=lambda d: (d["from_id"], d["to_id"]))
 
 
-FRAGILITY_CURVES = [
+FRAGILITY_CURVES: list[dict[str, Any]] = [
     {"asset_type": "substation", "hazard": "wind", "theta": 140.0, "beta": 0.25},
     {"asset_type": "substation", "hazard": "flood", "theta": 0.8, "beta": 0.5},
     {"asset_type": "pump_station", "hazard": "wind", "theta": 150.0, "beta": 0.25},
@@ -349,6 +356,22 @@ FRAGILITY_CURVES = [
     {"asset_type": "treatment_plant", "hazard": "wind", "theta": 160.0, "beta": 0.2},
     {"asset_type": "treatment_plant", "hazard": "flood", "theta": 1.5, "beta": 0.4},
 ]
+
+# The hidden true curves (never written to gold) that Storm Delta's failures are drawn from. The
+# published curves overstate every median capacity by 20 % (plan M8: the prior is about 20 % off).
+TRUE_FRAGILITY_CURVES: list[dict[str, Any]] = [
+    {**c, "theta": round(c["theta"] / 1.2, 3)} for c in FRAGILITY_CURVES
+]
+
+# Storm Delta, a past fictional storm: a straight best track through the eastern half of the
+# territory, 6-hourly from 36 h before landfall to 24 h after.
+DELTA_NAME = "Storm Delta"
+DELTA_LANDFALL_AT = datetime(2021, 8, 29, 18, 0, tzinfo=UTC)
+DELTA_LANDFALL_X_KM = 185.0
+DELTA_HOURS_BEFORE_LANDFALL = 36
+DELTA_VMAX_MPH = 130.0
+DELTA_PEAK_SURGE_M = 3.0
+DELTA_HEADING_DEG_FROM_EAST = 80.0
 
 
 def build_initial_state(
@@ -416,6 +439,84 @@ def build_advisory(index: int) -> dict[str, Any]:
     }
 
 
+def build_storm_delta() -> dict[str, Any]:
+    lx, ly = DELTA_LANDFALL_X_KM, coast_y_km(DELTA_LANDFALL_X_KM)
+    heading = math.radians(DELTA_HEADING_DEG_FROM_EAST)
+    track = []
+    for t in range(0, DELTA_HOURS_BEFORE_LANDFALL + 25, 6):
+        travelled = FORWARD_SPEED_KMH * (t - DELTA_HOURS_BEFORE_LANDFALL)
+        track.append(
+            {
+                "t_hours": float(t),
+                "x_km": round(lx + travelled * math.cos(heading), 3),
+                "y_km": round(ly + travelled * math.sin(heading), 3),
+                "vmax_mph": DELTA_VMAX_MPH,
+                "rmax_km": RMAX_KM,
+            }
+        )
+    return {
+        "name": DELTA_NAME,
+        "landfall_at": DELTA_LANDFALL_AT.isoformat(),
+        "landfall_t_hours": float(DELTA_HOURS_BEFORE_LANDFALL),
+        "track": track,
+        "landfall": {"x_km": lx, "y_km": round(ly, 3)},
+        "peak_surge_m": DELTA_PEAK_SURGE_M,
+    }
+
+
+def build_storm_delta_outcomes(
+    storm: dict[str, Any], assets: list[dict[str, Any]], coastline: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Which assets failed in Storm Delta: drawn (seeded) from the hidden true curves, applied to
+    the exposure the back-test computes from the best track."""
+    config = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
+    elevations = impute_elevations(
+        [(a["id"], a["x_km"], a["y_km"], a["elevation_m"]) for a in assets],
+        config.hazard.surge.imputation_neighbours,
+    )
+    sites = [
+        Site(
+            a["id"], "asset", a["x_km"], a["y_km"], *elevations[a["id"]], a["distance_to_coast_km"]
+        )
+        for a in assets
+    ]
+    line, land = (f["geometry"]["coordinates"] for f in coastline["features"])
+    exposures = best_track_exposure(
+        storm["track"],
+        storm["landfall_t_hours"],
+        (storm["landfall"]["x_km"], storm["landfall"]["y_km"]),
+        storm["peak_surge_m"],
+        sites,
+        [tuple(p) for p in line],
+        [tuple(p) for p in land[0]],
+        config.hazard,
+    )
+    by_id = {a["id"]: a for a in assets}
+    observations = [
+        Observation(
+            e.site_id,
+            by_id[e.site_id]["type"],
+            by_id[e.site_id]["condition_score"],
+            float(e.wind_members_mph[0]),
+            float(e.flood_members_m[0]),
+            False,
+        )
+        for e in exposures
+    ]
+    p_true = predict(
+        observations,
+        [FragilityCurve(**c) for c in TRUE_FRAGILITY_CURVES],
+        config.risk.condition_theta_reduction_per_step,
+    )
+    draws = np.random.default_rng(SEED).random(len(observations))
+    return [
+        {"asset_id": o.asset_id, "failed": bool(u < p)}
+        for o, u, p in sorted(
+            zip(observations, draws, p_true, strict=True), key=lambda t: t[0].asset_id
+        )
+    ]
+
+
 REJECTED_EXAMPLE = [
     {
         "id": "SUB-121",
@@ -463,7 +564,14 @@ def generate(out_dir: Path) -> None:
     write_json(out_dir / "dependencies.json", build_dependencies(assets, facilities))
     write_json(out_dir / "fragility_curves.json", FRAGILITY_CURVES)
     write_json(out_dir / "initial_state.json", build_initial_state(assets, staging))
-    write_json(out_dir / "coastline.geojson", build_coastline())
+    coastline = build_coastline()
+    write_json(out_dir / "coastline.geojson", coastline)
+    delta = build_storm_delta()
+    write_json(out_dir / "history" / "storm_delta_track.json", delta)
+    write_json(
+        out_dir / "history" / "storm_delta_outcomes.json",
+        build_storm_delta_outcomes(delta, assets, coastline),
+    )
     for index in range(len(HOURS_TO_LANDFALL)):
         write_json(out_dir / "advisories" / f"adv_{index + 1:02d}.json", build_advisory(index))
 
@@ -479,6 +587,8 @@ def export_schemas(out_dir: Path) -> None:
         "initial_state": InitialStateFile,
         "advisory": AdvisoryRecord,
         "coastline": CoastlineFile,
+        "historical_storm": HistoricalStormFile,
+        "storm_outcome": StormOutcomeRecord,
     }
     for name, model in contracts.items():
         write_json(out_dir / f"{name}.schema.json", model.model_json_schema())

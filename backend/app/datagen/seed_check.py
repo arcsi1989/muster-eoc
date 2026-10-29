@@ -6,10 +6,11 @@ from pathlib import Path
 
 from sqlmodel import Session, select
 
+from app.calibration import service as calibration
 from app.db import create_fresh_engine
 from app.errors import DataNotLoaded
 from app.ingest.loader import load_gold
-from app.models import Asset, Exposure, OpState, Score
+from app.models import Asset, Exposure, OpState, Score, StormOutcome
 from app.network import load_network
 from app.replay import service
 from app.scoring_config import ScoringConfig
@@ -59,6 +60,12 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         if (first_issued - a.last_inspection_date).days > stale_days
     ]
 
+    outcomes = list(
+        session.exec(select(StormOutcome).where(StormOutcome.storm == config.calibration.storm))
+    )
+    failure_rate = sum(o.failed for o in outcomes) / max(1, len(outcomes))
+    calibrated = calibration.run(session, config)
+
     ps14 = assets["PS-14"]
     ps14_arrival = {n: exposure("PS-14", n).tsforce_arrival_h for n in (3, 4, 5)}
     stg02_floods = [exposure("STG-02", n).flood_depth_p90_m > 0 for n in range(1, 6)]
@@ -94,5 +101,10 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         ),
         "3 null elevations": sum(a.elevation_m is None for a in assets.values()) == 3,
         "5 inspections over 3 years old": len(stale) == 5,
+        "Storm Delta has an outcome for every asset": {o.asset_id for o in outcomes} == set(assets),
+        "10-50 % of assets failed in Storm Delta": 0.10 <= failure_rate <= 0.50,
+        "calibration on Storm Delta lowers the Brier score": (
+            calibrated.after.brier < calibrated.before.brier
+        ),
     }
     return [name for name, holds in checks.items() if not holds]

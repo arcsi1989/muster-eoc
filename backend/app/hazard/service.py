@@ -8,20 +8,21 @@ from app.models import Advisory, Asset, Coastline, Exposure, StagingArea
 from app.scoring_config import HazardConfig
 
 
-def _sites(session: Session, config: HazardConfig) -> list[Site]:
+def sites(session: Session, config: HazardConfig) -> list[Site]:
+    """Every asset and staging area, with missing elevations imputed."""
     assets = session.exec(select(Asset)).all()
     elevations = impute_elevations(
         [(a.id, a.x_km, a.y_km, a.elevation_m) for a in assets], config.surge.imputation_neighbours
     )
-    sites = [
+    result = [
         Site(a.id, "asset", a.x_km, a.y_km, *elevations[a.id], a.distance_to_coast_km)
         for a in assets
     ]
-    sites += [
+    result += [
         Site(s.id, "staging_area", s.x_km, s.y_km, s.elevation_m, False, s.distance_to_coast_km)
         for s in session.exec(select(StagingArea))
     ]
-    return sites
+    return result
 
 
 def store_exposure(
@@ -42,7 +43,7 @@ def store_exposure(
     )
     exposures = compute_exposure(
         storm,
-        _sites(session, config),
+        sites(session, config),
         [(x, y) for x, y in coastline.coastline],
         [(x, y) for x, y in coastline.land],
         config,

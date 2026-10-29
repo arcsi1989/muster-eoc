@@ -1,0 +1,105 @@
+{
+  "$defs": {
+    "PointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "x_km": {
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x_km",
+        "y_km"
+      ],
+      "title": "PointRecord",
+      "type": "object"
+    },
+    "TrackPointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "rmax_km": {
+          "exclusiveMinimum": 0,
+          "title": "Rmax Km",
+          "type": "number"
+        },
+        "t_hours": {
+          "minimum": 0,
+          "title": "T Hours",
+          "type": "number"
+        },
+        "vmax_mph": {
+          "exclusiveMinimum": 0,
+          "title": "Vmax Mph",
+          "type": "number"
+        },
+        "x_km": {
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t_hours",
+        "x_km",
+        "y_km",
+        "vmax_mph",
+        "rmax_km"
+      ],
+      "title": "TrackPointRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A past storm's best track (history/), for the calibration back-test. `landfall_t_hours` is\nthe track time of landfall.",
+  "properties": {
+    "landfall": {
+      "$ref": "#/$defs/PointRecord"
+    },
+    "landfall_at": {
+      "format": "date-time",
+      "title": "Landfall At",
+      "type": "string"
+    },
+    "landfall_t_hours": {
+      "minimum": 0,
+      "title": "Landfall T Hours",
+      "type": "number"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "peak_surge_m": {
+      "minimum": 0,
+      "title": "Peak Surge M",
+      "type": "number"
+    },
+    "track": {
+      "items": {
+        "$ref": "#/$defs/TrackPointRecord"
+      },
+      "minItems": 2,
+      "title": "Track",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name",
+    "landfall_at",
+    "landfall_t_hours",
+    "track",
+    "landfall",
+    "peak_surge_m"
+  ],
+  "title": "HistoricalStormFile",
+  "type": "object"
+}

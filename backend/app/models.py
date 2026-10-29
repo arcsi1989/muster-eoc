@@ -13,6 +13,7 @@ from app.risk.confidence import Confidence
 ItemKind = Literal["gap", "conflict", "proposal"]
 ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
 PackageStatus = Literal["open", "closed"]
+ModelVersionStatus = Literal["proposed", "approved"]
 
 
 class Asset(SQLModel, table=True):
@@ -57,6 +58,40 @@ class FragilityCurve(SQLModel, table=True):
     hazard: str = Field(primary_key=True)
     theta: float
     beta: float
+
+
+class ModelVersion(SQLModel, table=True):
+    """A set of fragility curves risk scoring can use. Version 1 is the published curves; a
+    calibration run proposes a new one. Only an approved version is ever used to score."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    label: str
+    status: ModelVersionStatus = Field(sa_type=String)
+    curves: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
+    created_at: datetime
+    approved_by: str | None = None  # a role, or "published" for version 1
+    approved_at: datetime | None = None
+    backtest: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))  # before and after
+
+
+class HistoricalStorm(SQLModel, table=True):
+    """A past storm's best track, for the calibration back-test."""
+
+    name: str = Field(primary_key=True)
+    landfall_at: datetime
+    landfall_t_hours: float  # track time of landfall
+    landfall_x_km: float
+    landfall_y_km: float
+    peak_surge_m: float
+    track: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
+
+
+class StormOutcome(SQLModel, table=True):
+    """Whether an asset failed in a past storm."""
+
+    storm: str = Field(primary_key=True, foreign_key="historicalstorm.name")
+    asset_id: str = Field(primary_key=True, foreign_key="asset.id")
+    failed: bool
 
 
 class OpState(SQLModel, table=True):
@@ -132,6 +167,7 @@ class Score(SQLModel, table=True):
 
     asset_id: str = Field(primary_key=True, foreign_key="asset.id")
     advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    model_version: int = Field(foreign_key="modelversion.id")  # the curves that scored it
     p_wind: float
     p_flood: float
     p_fail: float

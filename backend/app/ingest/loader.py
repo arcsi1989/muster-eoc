@@ -24,10 +24,12 @@ from app.ingest.contracts import (
     DependencyRecord,
     FacilityRecord,
     FragilityCurveRecord,
+    HistoricalStormFile,
     InitialStateFile,
     LineStringGeometry,
     PolygonGeometry,
     StagingAreaRecord,
+    StormOutcomeRecord,
 )
 from app.models import (
     Advisory,
@@ -36,14 +38,18 @@ from app.models import (
     Dependency,
     Facility,
     FragilityCurve,
+    HistoricalStorm,
     Lineage,
+    ModelVersion,
     OpState,
     QualityIssue,
     ScenarioState,
     StagingArea,
+    StormOutcome,
 )
 
 INITIAL_STATE_SOURCE = "initial_state"
+PUBLISHED = "published"  # model version 1: the published curves, in use from the start
 
 
 class GoldDataMissing(RuntimeError):
@@ -172,11 +178,36 @@ def load_gold(session: Session, data_dir: Path) -> None:
         raise GoldDataMissing(f"no advisories in {data_dir / 'advisories'}; run `make data` first")
     advisories = [loader.single(f"advisories/{p.name}", AdvisoryRecord) for p in advisory_paths]
 
+    delta = loader.single("history/storm_delta_track.json", HistoricalStormFile)
+    outcome_rows, outcome_report = loader.rows(
+        "history/storm_delta_outcomes.json", StormOutcomeRecord
+    )
+    outcomes = []
+    for index, outcome in outcome_rows:
+        if outcome.asset_id in asset_ids:
+            outcomes.append(outcome)
+        else:
+            outcome_report.reject(
+                index, outcome.asset_id, f"asset_id: unknown asset {outcome.asset_id}"
+            )
+
     session.add_all(Asset(**a.model_dump()) for a in assets)
     session.add_all(Facility(**f.model_dump()) for f in facilities)
     session.add_all(StagingArea(**s.model_dump()) for s in staging)
     session.add_all(Dependency(**d.model_dump()) for d in dependencies)
     session.add_all(FragilityCurve(**c.model_dump()) for c in curves)
+    session.add(
+        ModelVersion(
+            id=1,
+            label="Published curves",
+            status="approved",
+            curves=[c.model_dump() for c in curves],
+            created_at=now,
+            approved_by=PUBLISHED,
+            approved_at=now,
+            backtest={},
+        )
+    )
 
     _add_initial_state(session, initial_state, asset_ids | staging_ids, now)
 
@@ -204,6 +235,20 @@ def load_gold(session: Session, data_dir: Path) -> None:
         )
     )
     session.add(ScenarioState())
+    session.add(
+        HistoricalStorm(
+            name=delta.name,
+            landfall_at=delta.landfall_at,
+            landfall_t_hours=delta.landfall_t_hours,
+            landfall_x_km=delta.landfall.x_km,
+            landfall_y_km=delta.landfall.y_km,
+            peak_surge_m=delta.peak_surge_m,
+            track=[p.model_dump() for p in delta.track],
+        )
+    )
+    session.add_all(
+        StormOutcome(storm=delta.name, asset_id=o.asset_id, failed=o.failed) for o in outcomes
+    )
 
     for report in loader.reports:
         session.add(

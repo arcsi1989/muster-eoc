@@ -12,8 +12,11 @@ def adjusted_theta(theta: float, condition_score: int, reduction_per_step: float
     return theta * (1.0 - reduction_per_step * (condition_score - 1))
 
 
-def failure_probability(intensity: FloatArray, theta: float, beta: float) -> FloatArray:
-    """P(fail | x) = Phi(ln(x / theta) / beta); zero where there is no hazard."""
+def failure_probability(
+    intensity: FloatArray, theta: float | FloatArray, beta: float | FloatArray
+) -> FloatArray:
+    """P(fail | x) = Phi(ln(x / theta) / beta); zero where there is no hazard. theta and beta are
+    one curve, or one per intensity."""
     x = np.asarray(intensity, dtype=float)
     with np.errstate(divide="ignore"):
         z = np.where(x > 0, np.log(np.maximum(x, 1e-12) / theta) / beta, -np.inf)

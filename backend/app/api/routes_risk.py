@@ -26,6 +26,7 @@ def get_risk(session: SessionDep, advisory: AdvisoryQuery) -> RiskListOut:
     previous = service.ranks(session, advisory - 1)
     return RiskListOut(
         advisory_no=advisory,
+        model_version=scores[0].model_version,
         items=[
             RiskItemOut(
                 asset_id=s.asset_id,
