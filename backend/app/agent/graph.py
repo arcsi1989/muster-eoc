@@ -43,6 +43,7 @@ from app.network import load_network
 from app.playbook.activation import DECLARED_BY, DECLARED_DETAIL, LEVEL_NUMBER, PROPOSED_DETAIL
 from app.playbook.service import Playbook, store_findings, store_new_event_findings
 from app.replay import service
+from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
 
 SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
@@ -202,11 +203,10 @@ def build_graph(
             package = session.get(DecisionPackage, advisory.advisory_no)
             if package is None:
                 raise DataNotLoaded(f"no decision package for advisory {advisory.advisory_no}")
-            request, grounding = draft_request(
-                session, advisory, playbook, package.changes, draft_config
-            )
+            changes = changes_from_json(package.changes)
+            request = draft_request(session, advisory, playbook, changes, draft_config)
         # the model call runs outside any database transaction
-        outcome = produce_draft(provider(), request, grounding, draft_config.retries)
+        outcome = produce_draft(provider(), request, draft_config.retries)
         label = TEMPLATE_FALLBACK if outcome.fallback else outcome.result.provider
         with unit() as session:
             advisory = advisory_of(session, state)

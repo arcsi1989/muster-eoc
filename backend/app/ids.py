@@ -9,3 +9,8 @@ CLAUSE_ID = re.compile(r"\bP-\d+\.\d+\b", re.IGNORECASE)
 SITE_ID = re.compile(r"\b(?:SUB|PS|WTP|STG)-\d{2,3}\b", re.IGNORECASE)
 # Anything that names an entity: assets, staging areas, critical facilities.
 ENTITY_ID = re.compile(r"\b(?:SUB|PS|WTP|STG|HOSP|SHEL)-\d{2,3}\b", re.IGNORECASE)
+
+
+def mentioned(pattern: re.Pattern[str], text: str) -> frozenset[str]:
+    """The IDs a pattern finds in text, in one case."""
+    return frozenset(m.upper() for m in pattern.findall(text))

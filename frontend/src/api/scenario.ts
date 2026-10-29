@@ -3,6 +3,7 @@ import type {
   Alert,
   AuditActor,
   AuditEvent,
+  Calibration,
   ChatReply,
   ChatTurn,
   Clause,
@@ -16,6 +17,7 @@ import type {
   Facility,
   Finding,
   LineageEntry,
+  ModelVersion,
   RiskList,
   Role,
   Scenario,
@@ -59,3 +61,7 @@ export const getAudit = (actor?: AuditActor) =>
   api<AuditEvent[]>(actor ? `/audit?actor=${encodeURIComponent(actor)}` : '/audit')
 export const postChat = (message: string, history: ChatTurn[]) =>
   api<ChatReply>('/copilot/chat', { method: 'POST', body: JSON.stringify({ message, history }) })
+export const runCalibration = () => api<Calibration>('/calibration/run', { method: 'POST' })
+export const getModelVersions = () => api<ModelVersion[]>('/model-versions')
+export const approveModelVersion = (versionId: number, role: Role) =>
+  api<ModelVersion>(`/model-versions/${versionId}/approve`, { method: 'POST', body: JSON.stringify({ role }) })

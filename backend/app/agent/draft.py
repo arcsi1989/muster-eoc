@@ -8,7 +8,7 @@ from typing import Any
 
 from app.agent.citations import citation_problems
 from app.llm.provider import LLMProvider
-from app.llm.schemas import DraftRequest, DraftResult, Grounding, LLMUnavailable
+from app.llm.schemas import DraftRequest, DraftResult, LLMUnavailable
 from app.llm.template import TemplateProvider
 
 log = logging.getLogger(__name__)
@@ -23,9 +23,7 @@ class DraftOutcome:
     fallback_reason: str | None
 
 
-def produce_draft(
-    provider: LLMProvider, request: DraftRequest, grounding: Grounding, retries: int
-) -> DraftOutcome:
+def produce_draft(provider: LLMProvider, request: DraftRequest, retries: int) -> DraftOutcome:
     template = TemplateProvider()
     if isinstance(provider, TemplateProvider):
         return DraftOutcome(template.draft_sitrep(request), False, None, [], None)
@@ -50,7 +48,7 @@ def produce_draft(
             attempts.append(attempt)
             log.warning("llm_unavailable %s", attempt, exc_info=not known)
             break
-        problems = citation_problems(result.draft, grounding.clauses, grounding.assets)
+        problems = citation_problems(result.draft, request)
         attempts.append(
             attempt
             | {

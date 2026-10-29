@@ -9,7 +9,7 @@ import logging
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 import anthropic
@@ -78,10 +78,9 @@ class AnthropicProvider:
         self._copilot = copilot
 
     def draft_sitrep(self, request: DraftRequest) -> DraftResult:
-        data = {k: v for k, v in asdict(request).items() if k != "feedback"}
         content = (
             "<findings>\n"
-            + json.dumps(data, indent=1, default=str)
+            + json.dumps(request.shown(), indent=1, default=str)
             + "\n</findings>\n\nWrite the draft situation report from the findings above."
         )
         if request.feedback:
