@@ -26,7 +26,8 @@ from app.playbook.activation import (
 
 Commander = Literal["incident_commander", "director"]
 COMMANDERS: tuple[Commander, Commander] = ("incident_commander", "director")
-PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", "sitrep_approved_current")
+SITREP_FLAG = "sitrep_approved_current"  # written only by approving the situation report
+PER_ADVISORY_FLAGS = ("risk_list_reviewed_current", SITREP_FLAG)
 # Operational state (entity "event") that only a declaration writes.
 ACTIVATION_LEVEL = "activation_level"
 DECLARED_AT_HOURS = "activation_declared_at_hours"  # hours to landfall when it was declared

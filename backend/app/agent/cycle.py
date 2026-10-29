@@ -14,7 +14,7 @@ from langgraph.types import Command
 from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
-from app.agent.decisions import DecisionRequest, Declaration
+from app.agent.decisions import DecisionRequest, Declaration, Role
 from app.agent.graph import build_graph
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
@@ -86,6 +86,13 @@ class AdvisoryCycle:
     ) -> None:
         """Like `decide`, for an activation declaration on the P-2.5 item."""
         resume = {"item_id": item_id, "action": "declare", **asdict(declaration)}
+        self._resume(advisory_no, resume, precheck)
+
+    def approve_sitrep(
+        self, advisory_no: int, role: Role, text: str, precheck: Callable[[], None]
+    ) -> None:
+        """Like `decide`, for approving the advisory's situation report."""
+        resume = {"action": "approve_sitrep", "role": role, "text": text}
         self._resume(advisory_no, resume, precheck)
 
     def _resume(

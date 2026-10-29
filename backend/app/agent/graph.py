@@ -5,10 +5,10 @@ load_context -> diff -> evaluate_rules -> draft -> await_approval <-> apply_deci
 The thread pauses in `await_approval` until the next advisory expires it, so the package stays
 open while its advisory is current. The decision package lifecycle checks every decision before
 resuming; `apply_decision` applies it. Only `apply_decision` changes operational state (item
-decisions and activation declarations), and it is deterministic: the LLM never writes state,
-never decides whether a rule is met and never changes scores. Every node writes an audit
-event. The graph state holds only the advisory number and the decision being applied; the
-package, its items and the findings live in the database.
+decisions, situation report approvals and activation declarations), and it is deterministic:
+the LLM never writes state, never decides whether a rule is met and never changes scores. Every
+node writes an audit event. The graph state holds only the advisory number and the decision
+being applied; the package, its items and the findings live in the database.
 """
 
 from collections.abc import Callable, Iterator, Sequence
@@ -27,6 +27,7 @@ from app.agent import decisions
 from app.agent.actions import proposed_action
 from app.agent.draft import produce_draft
 from app.agent.draft_request import draft_request
+from app.agent.sitrep import SITREP_RULE, apply_approval
 from app.audit.log import record
 from app.errors import DataNotLoaded
 from app.llm.provider import LLMProvider
@@ -46,7 +47,6 @@ from app.replay import service
 from app.replay.diff import changes_from_json
 from app.scoring_config import ScoringConfig
 
-SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
 TEMPLATE_FALLBACK = "template (fallback)"
 
 
@@ -288,6 +288,9 @@ def build_graph(
                         versions(session, advisory),
                     )
                 return Command(goto="finalise")
+            if decision.get("action") == "approve_sitrep":
+                apply_approval(session, playbook, advisory, decision["role"], decision["text"])
+                return Command(goto="await_approval")
             item = session.get(PackageItem, decision["item_id"])
             finding = session.get(Finding, item.finding_id) if item else None
             if item is None or finding is None:

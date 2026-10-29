@@ -1,16 +1,24 @@
 """The decision package lifecycle through a seeded session, without HTTP: one answer to "is the
-package open", and the path every item decision takes."""
+package open", and the path every decision takes: item decisions, situation report approval
+and activation declarations."""
 
+import re
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
 from sqlmodel import col, select
 
+from app import advisory_context
+from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.models import AuditEvent, DecisionPackage, OpState, PackageItem
+from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved
+from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
 from tests.conftest import SeededScenario
+
+APP_DIR = Path(__file__).resolve().parents[1] / "app"
 
 
 def item(seeded: SeededScenario, advisory_no: int, rule_id: str) -> PackageItem:
@@ -160,3 +168,149 @@ def test_a_package_record_out_of_step_with_the_cycle_is_an_error(seeded: SeededS
 
     with pytest.raises(lifecycle.PackageOutOfStep):
         lifecycle.is_open(seeded.session, seeded.cycle, 1)
+
+
+def approve_sitrep(seeded: SeededScenario, advisory_no: int, role: Any, text: str) -> Any:
+    return lifecycle.approve_sitrep(
+        seeded.session, seeded.playbook, seeded.cycle, advisory_no, role, text
+    )
+
+
+def sitrep_finding(seeded: SeededScenario, advisory_no: int) -> Finding:
+    seeded.session.expire_all()
+    return seeded.session.exec(
+        select(Finding).where(Finding.advisory_no == advisory_no, Finding.rule_id == SITREP_RULE)
+    ).one()
+
+
+def new_events(seeded: SeededScenario, before: list[Any]) -> list[AuditEvent]:
+    seeded.session.expire_all()
+    return list(seeded.session.exec(select(AuditEvent).where(col(AuditEvent.id).not_in(before))))
+
+
+def test_approving_the_situation_report_on_an_open_package_satisfies_p_7_1(
+    seeded: SeededScenario,
+) -> None:
+    seeded.issue_until(1)
+    assert sitrep_finding(seeded, 1).status == "open"
+    _, _, events_before = snapshot(seeded)
+
+    sitrep = approve_sitrep(seeded, 1, "director", "Situation report.")
+
+    assert (sitrep.approved_by, sitrep.approved_text) == ("director", "Situation report.")
+    assert sitrep_finding(seeded, 1).status == "satisfied"
+    flag = seeded.session.get(OpState, ("event", SITREP_FLAG))
+    assert flag is not None and (flag.value, flag.set_by) == (True, "director")
+    assert [e.type for e in new_events(seeded, events_before)] == ["sitrep_approved"]
+    assert served_status(seeded, 1) == "open", "the package stays open until the next advisory"
+
+
+def test_approving_the_situation_report_on_a_closed_package_is_refused(
+    seeded: SeededScenario,
+) -> None:
+    seeded.issue_until(2)
+    before = snapshot(seeded)
+
+    with pytest.raises(lifecycle.PackageClosed):
+        approve_sitrep(seeded, 1, "director", "Situation report.")
+
+    assert snapshot(seeded) == before
+    assert seeded.session.get(Sitrep, 1) is None
+
+
+@pytest.mark.parametrize("role", ["incident_commander", "planning"])
+def test_the_situation_report_approved_by_the_wrong_role_is_refused(
+    seeded: SeededScenario, role: str
+) -> None:
+    seeded.issue_until(1)
+    before = snapshot(seeded)
+
+    with pytest.raises(DecisionRefused):
+        approve_sitrep(seeded, 1, role, "Situation report.")
+
+    assert snapshot(seeded) == before
+    assert sitrep_finding(seeded, 1).status == "open"
+
+
+def test_a_situation_report_is_approved_once(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    approve_sitrep(seeded, 1, "director", "Situation report.")
+    before = snapshot(seeded)
+
+    with pytest.raises(SitrepAlreadyApproved):
+        approve_sitrep(seeded, 1, "director", "Again.")
+
+    assert snapshot(seeded) == before
+
+
+def test_a_declaration_by_the_wrong_role_is_refused(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    before = snapshot(seeded)
+
+    with pytest.raises(DecisionRefused):
+        lifecycle.declare(
+            seeded.session, seeded.cycle, Declaration("prepare", "incident_commander")
+        )
+
+    assert snapshot(seeded) == before
+
+
+def test_a_declaration_closes_the_proposal_with_one_audit_record(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    _, _, events_before = snapshot(seeded)
+
+    lifecycle.declare(seeded.session, seeded.cycle, Declaration("prepare", "director", "T-72"))
+
+    proposal = item(seeded, 1, "P-2.5")
+    assert (proposal.status, proposal.decided_by) == ("approved", "director")
+    assert [e.type for e in new_events(seeded, events_before)] == ["activation_declared"]
+    context = advisory_context.current(seeded.session, seeded.playbook.levels)
+    assert context.activation_level == "prepare"
+
+
+def test_declaring_full_starts_the_p_7_2_clock(seeded: SeededScenario) -> None:
+    seeded.issue_until(3)
+    assert not any(v.item.rule_id == "P-7.2" for v in view_items(seeded, 3))
+
+    lifecycle.declare(seeded.session, seeded.cycle, Declaration("full", "incident_commander"))
+
+    regulator = item(seeded, 3, "P-7.2")
+    assert regulator.status == "pending"
+    seeded.session.expire_all()
+    finding = seeded.session.get(Finding, regulator.finding_id)
+    assert finding is not None
+    assert finding.details["event.hours_since_full_activation"] == 0
+    assert served_status(seeded, 3) == "open"
+
+
+def test_no_lifecycle_operation_but_a_declaration_sets_the_activation_level(
+    seeded: SeededScenario,
+) -> None:
+    """Item decisions, situation report approvals and issuing advisories leave the level as
+    declared; only `decisions.declare` writes it."""
+
+    def level() -> Any:
+        seeded.session.expire_all()
+        return advisory_context.current(seeded.session, seeded.playbook.levels).activation_level
+
+    for advisory_no in range(1, 6):
+        seeded.issue_until(advisory_no)
+        assert level() == "monitor"
+        for v in view_items(seeded, advisory_no):
+            if v.item.kind == "gap":
+                decide(seeded, advisory_no, v.item, "director", "approve")
+            elif v.item.kind == "conflict":
+                decide(seeded, advisory_no, v.item, "director", "defer", "stop-work")
+        approve_sitrep(seeded, advisory_no, "director", "Situation report.")
+        assert level() == "monitor"
+
+    writers = [
+        path.relative_to(APP_DIR).as_posix()
+        for path in APP_DIR.rglob("*.py")
+        if re.search(r"\bACTIVATION_LEVEL\b", path.read_text())
+    ]
+    assert sorted(writers) == ["advisory_context.py", "agent/decisions.py"]
+
+
+def view_items(seeded: SeededScenario, advisory_no: int) -> list[lifecycle.ItemView]:
+    return lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, advisory_no).items
