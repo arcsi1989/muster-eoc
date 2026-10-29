@@ -1,16 +1,23 @@
 """The playbook module against a seeded session, without HTTP: the rule inputs (the namespace
 the playbook rules read) at a seeded advisory, re-evaluating one finding after a state change,
-what satisfies a finding and the package items findings produce."""
+what satisfies a finding, the package items findings produce, and field work and stop-work."""
 
 from datetime import UTC, datetime
 
 import pytest
+from sqlmodel import select
 
 from app import advisory_context
 from app.agent import lifecycle
-from app.agent.decisions import Declaration
-from app.models import Advisory, Finding, OpState
-from app.playbook.package import StateChange, package_items, satisfying_state
+from app.agent.decisions import DecisionRequest, Declaration
+from app.models import Advisory, Finding, OpState, PackageItem
+from app.playbook.package import (
+    StateChange,
+    field_work,
+    package_items,
+    satisfying_state,
+    stop_work,
+)
 from app.playbook.service import RuleInputs, entity_names, findings, reevaluate, rule_inputs
 from tests.conftest import SeededScenario
 
@@ -226,3 +233,65 @@ def test_one_name_lookup_for_assets_facilities_and_staging_areas(seeded: SeededS
         "Harborfront Yard",
     )
     assert "event" not in names
+
+
+# Field work and stop-work
+
+
+def item(seeded: SeededScenario, advisory_no: int, rule_id: str, entity_id: str) -> PackageItem:
+    return next(
+        i
+        for i in seeded.session.exec(
+            select(PackageItem).where(PackageItem.advisory_no == advisory_no)
+        )
+        if (i.rule_id, i.entity_id) == (rule_id, entity_id)
+    )
+
+
+def approve(seeded: SeededScenario, advisory_no: int, rule_id: str, entity_id: str) -> None:
+    approved = item(seeded, advisory_no, rule_id, entity_id)
+    request = DecisionRequest("operations", "approve")
+    lifecycle.decide(
+        seeded.session, seeded.playbook, seeded.cycle, advisory_no, approved.id or 0, request
+    )
+
+
+def test_an_approved_inspection_is_field_work_completed_by_its_state_key(
+    seeded: SeededScenario,
+) -> None:
+    issued = advisory(seeded, 3)
+    approve(seeded, 3, "P-4.2", "PS-14")
+    approve(seeded, 3, "P-5.2", "PS-14")  # a confirmation from the EOC, not field work
+
+    work = field_work(seeded.session, issued, seeded.playbook)
+
+    assert [(w.item.rule_id, w.item.entity_id, w.completes, w.stop_work) for w in work] == [
+        ("P-4.2", "PS-14", [StateChange("PS-14", "inspection_completed", True)], [])
+    ], "only approved items that need a crew on site; the other P-4.2 items are pending"
+
+
+def test_field_work_approved_earlier_is_stopped_once_stop_work_applies(
+    seeded: SeededScenario,
+) -> None:
+    """PS-14's inspection approved at advisory 3 is still field work at advisory 5, where
+    tropical-storm-force wind is due within 12 hours (P-4.7)."""
+    seeded.issue_until(3)
+    approve(seeded, 3, "P-4.2", "PS-14")
+
+    at_5 = advisory(seeded, 5)
+    work = {
+        (w.item.advisory_no, w.item.rule_id, w.item.entity_id): w
+        for w in field_work(seeded.session, at_5, seeded.playbook)
+    }
+
+    assert work[(3, "P-4.2", "PS-14")].stop_work == ["P-4.7"]
+
+
+def test_ps14_is_under_stop_work_at_advisory_5(seeded: SeededScenario) -> None:
+    at_3 = advisory(seeded, 3)
+    assert stop_work(seeded.session, at_3, seeded.playbook, "PS-14") == []
+
+    at_5 = advisory(seeded, 5)
+
+    assert stop_work(seeded.session, at_5, seeded.playbook, "PS-14") == ["P-4.7"]
+    assert stop_work(seeded.session, at_5, seeded.playbook, "event") == []

@@ -1,21 +1,25 @@
 """What a finding asks for in the decision package: the item it becomes, its proposed action
-and the state that would satisfy it. Callers never read the engine's predicates or detail
-keys."""
+and the state that would satisfy it, which approved items need field work and whether a site
+is under stop-work. Callers never read the engine's predicates or detail keys."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
-from app.models import Finding, ItemKind
+from app.models import Advisory, Finding, ItemKind, PackageItem
 from app.playbook.actions import StateChange as StateChange  # what satisfying_state returns
 from app.playbook.actions import proposed_action
 from app.playbook.actions import satisfying_state as _satisfying_state
 from app.playbook.activation import activation_proposal
-from app.playbook.service import Playbook, entity_names
+from app.playbook.engine import prohibitions_in_force
+from app.playbook.service import Playbook, RuleInputs, entity_names, rule_inputs
 
 # The situation report rule: approving the report satisfies it, so it never becomes an item.
 SITREP_RULE = "P-7.1"
+# The state keys a field crew completes on site (CR-02 C2): inspection, barrier, generator
+# staging, relocation. An approved item that needs one of them is field work.
+FIELD_WORK_KEYS = ("inspection_completed", "barrier_installed", "generator_assigned", "relocated")
 
 
 def satisfying_state(playbook: Playbook, finding: Finding) -> list[StateChange]:
@@ -59,3 +63,56 @@ def package_items(
         action = proposed_action(rule, label, finding.details, finding.cites if conflict else None)
         items.append(ProposedItem(finding, kind, owner_role, action))
     return items
+
+
+def stop_work(
+    session: Session, advisory: Advisory, playbook: Playbook, entity_id: str
+) -> list[str]:
+    """The prohibitions in force at a site at `advisory` (P-4.7: tropical-storm-force wind within
+    12 hours), as clause IDs; empty when work may go ahead."""
+    return _stop_work(playbook, rule_inputs(session, advisory, playbook), entity_id)
+
+
+def _stop_work(playbook: Playbook, inputs: RuleInputs, entity_id: str) -> list[str]:
+    entity = next((e for e in inputs.entities if e.id == entity_id), None)
+    if entity is None:
+        return []
+    return [r.id for r in prohibitions_in_force(playbook.rulebook, inputs.event, entity)]
+
+
+@dataclass(frozen=True)
+class FieldWork:
+    """An approved item a field crew carries out: the state on its entity that completes it,
+    and the prohibitions that stop work at its site at the advisory asked about (empty when
+    none)."""
+
+    item: PackageItem
+    completes: list[StateChange]
+    stop_work: list[str]
+
+
+def field_work(session: Session, advisory: Advisory, playbook: Playbook) -> list[FieldWork]:
+    """The approved items that need field work (inspection, barrier, generator staging,
+    relocation) in the packages up to and including `advisory`'s, oldest first, with stop-work
+    as it stands at `advisory`: work approved at advisory 3 is stopped at advisory 5 once
+    tropical-storm-force wind is due within 12 hours."""
+    approved = session.exec(
+        select(PackageItem, Finding)
+        .where(
+            PackageItem.finding_id == Finding.id,
+            PackageItem.advisory_no <= advisory.advisory_no,
+            PackageItem.status == "approved",
+        )
+        .order_by(col(PackageItem.id))
+    ).all()
+    inputs = rule_inputs(session, advisory, playbook)
+    work = []
+    for item, finding in approved:
+        completes = [
+            c
+            for c in satisfying_state(playbook, finding)
+            if c.entity == item.entity_id and c.key in FIELD_WORK_KEYS
+        ]
+        if completes:
+            work.append(FieldWork(item, completes, _stop_work(playbook, inputs, item.entity_id)))
+    return work
