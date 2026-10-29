@@ -12,10 +12,10 @@ from app.advisory_context import SITREP_FLAG
 from app.agent import lifecycle
 from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
 from app.agent.sitrep import SITREP_RULE, SitrepAlreadyApproved, draft_text
-from app.llm.schemas import DraftRequest, DraftResult, Paragraph, Section, SitrepDraft
+from app.llm.schemas import Paragraph
 from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
 from app.playbook.activation import Level
-from tests.conftest import SeededFactory, SeededScenario
+from tests.conftest import FakeProvider, SeededFactory, SeededScenario, draft_of
 
 
 def item(seeded: SeededScenario, advisory_no: int, rule_id: str) -> PackageItem:
@@ -317,28 +317,16 @@ def view_items(seeded: SeededScenario, advisory_no: int) -> list[lifecycle.ItemV
     return lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, advisory_no).items
 
 
-class FakeProvider:
-    """Stands in for a model provider (T2): always returns the same one-paragraph draft."""
-
-    name = "anthropic"
-    model: str | None = "claude-sonnet-5-5"
-    prompt_version: str | None = "sitrep-v2"
-
-    def draft_sitrep(self, request: DraftRequest) -> DraftResult:
-        paragraph = Paragraph(text="Storm preparation is under way.", clause_ids=[], asset_ids=[])
-        draft = SitrepDraft(sections=[Section(heading="Situation", paragraphs=[paragraph])])
-        return DraftResult(draft, "anthropic", "claude-sonnet-5-5", 1, {})
-
-
 def test_a_package_goes_through_its_whole_lifecycle_without_http(
     make_seeded: SeededFactory,
 ) -> None:
     """Open -> declare the proposed level -> decide an item -> approve the situation report ->
     closed by the next advisory, with the audit record each step writes."""
-    with make_seeded(FakeProvider()) as seeded:
+    paragraph = Paragraph(text="Storm preparation is under way.", clause_ids=[], asset_ids=[])
+    with make_seeded(FakeProvider(draft_of(paragraph))) as seeded:
         seeded.issue_until(1)
         view = lifecycle.package_view(seeded.session, seeded.playbook, seeded.cycle, 1)
-        assert (view.status, view.package.draft["provider"]) == ("open", "anthropic")
+        assert (view.status, view.package.draft["provider"]) == ("open", "fake")
         assert view.proposed_activation_level == "prepare"
         _, _, events_before = snapshot(seeded)
 
@@ -368,5 +356,7 @@ def test_a_package_goes_through_its_whole_lifecycle_without_http(
         ]
         assert events[0][2] == "Director declared activation Level 2 (prepare)"
         assert events[1][2] == "Planning approved P-4.1 for " + item(seeded, 1, "P-4.1").entity_id
+        assert events[2][2] == "Director approved the situation report as drafted"
+        assert events[3][2].endswith("items closed as not decided when the next advisory arrived")
         assert events[4][2] == "Decision package for advisory 1 closed"
-        assert events[9][2] == "Draft situation report written by anthropic"
+        assert events[9][2] == "Draft situation report written by fake"
