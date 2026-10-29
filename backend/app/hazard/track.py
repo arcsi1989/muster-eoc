@@ -8,6 +8,7 @@ import numpy as np
 import shapely
 
 from app.geo import FloatArray, Point, heading_unit_vector
+from app.scoring_config import IntensityCategory
 
 
 @dataclass(frozen=True)
@@ -74,8 +75,10 @@ def cone_polygon(track: list[dict[str, Any]], radii: dict[str, float]) -> list[P
     return [(round(x, 3), round(y, 3)) for x, y in cone.exterior.coords]
 
 
-def intensity_category(vmax_mph: float, min_mph: dict[str, float]) -> str:
+def intensity_category(
+    vmax_mph: float, category_min_mph: dict[IntensityCategory, float]
+) -> IntensityCategory:
     """The highest intensity category whose lowest wind `vmax_mph` reaches (Saffir-Simpson,
     thresholds from config)."""
-    reached = [(threshold, name) for name, threshold in min_mph.items() if vmax_mph >= threshold]
+    reached = [(mph, name) for name, mph in category_min_mph.items() if vmax_mph >= mph]
     return max(reached)[1]

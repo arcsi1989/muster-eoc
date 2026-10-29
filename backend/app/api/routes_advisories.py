@@ -14,6 +14,7 @@ from app.api.schemas import (
     PastPositionOut,
     PointOut,
     ScenarioOut,
+    StormPositionOut,
     TimelineSlotOut,
     TrackPointOut,
 )
@@ -36,7 +37,7 @@ def _scenario(
     advisories = service.all_advisories(session)
     current = advisory_context.current_advisory_no(session)
     issued = [a for a in advisories if a.advisory_no <= current]
-    min_mph = config.hazard.intensity_min_mph
+    category_min_mph = config.hazard.intensity_min_mph
 
     def level(advisory: Advisory) -> str | None:
         return advisory_context.at(session, levels, advisory).activation_level
@@ -46,7 +47,7 @@ def _scenario(
             {
                 **point,
                 "valid_at": advisory.issued_at + timedelta(hours=point["t_hours"]),
-                "category": intensity_category(point["vmax_mph"], min_mph),
+                "category": intensity_category(point["vmax_mph"], category_min_mph),
             }
         )
 
@@ -54,7 +55,7 @@ def _scenario(
         start = track_point(advisory, advisory.track[0])
         return PastPositionOut(
             advisory_no=advisory.advisory_no,
-            **start.model_dump(include={"valid_at", "x_km", "y_km", "vmax_mph", "category"}),
+            **start.model_dump(include=set(StormPositionOut.model_fields)),
         )
 
     return ScenarioOut(

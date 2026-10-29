@@ -13,8 +13,8 @@ from fastapi.testclient import TestClient
 
 from app.config import REPO_ROOT
 from app.hazard.ensemble import StormInput, track_shift_sd
-from app.hazard.track import cone_circles, cone_polygon, cone_radius, intensity_category
-from app.scoring_config import load_scoring_config
+from app.hazard.track import cone_circles, cone_polygon, intensity_category
+from app.scoring_config import IntensityCategory, load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").hazard
 ADVISORIES = [
@@ -46,10 +46,10 @@ def test_saffir_simpson_category_at_each_boundary(wind_mph: float, category: str
 
 
 def test_category_thresholds_come_from_config() -> None:
-    thresholds = {"weak": 0.0, "strong": 100.0}
+    thresholds: dict[IntensityCategory, float] = {"tropical_depression": 0.0, "cat_5": 100.0}
 
-    assert intensity_category(99.0, thresholds) == "weak"
-    assert intensity_category(100.0, thresholds) == "strong"
+    assert intensity_category(99.0, thresholds) == "tropical_depression"
+    assert intensity_category(100.0, thresholds) == "cat_5"
 
 
 def storm(advisory: dict[str, Any]) -> StormInput:
@@ -73,9 +73,10 @@ def test_cone_and_ensemble_read_the_same_cone_radius(advisory: dict[str, Any]) -
         if p["t_hours"] == advisory["hours_to_landfall"]
     )
 
-    assert [c.radius_km for c in circles] == [
-        cone_radius(p["t_hours"], advisory["cone_radius_km"]) for p in advisory["track"]
-    ]
+    published = {0.0: 0.0, **{float(k): v for k, v in advisory["cone_radius_km"].items()}}
+    for circle, point in zip(circles, advisory["track"], strict=True):
+        if point["t_hours"] in published:  # between published lead times it is interpolated
+            assert circle.radius_km == published[point["t_hours"]]
     assert track_shift_sd(storm(advisory), CONFIG.ensemble) == pytest.approx(
         CONFIG.ensemble.sigma_cone_factor * at_landfall
     )

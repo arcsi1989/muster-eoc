@@ -1,6 +1,7 @@
 """Loads config/scoring.yaml: every tunable number for hazard and risk lives there (B9)."""
 
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -28,12 +29,19 @@ class EnsembleConfig(Strict):
     seed: int
 
 
+# Saffir-Simpson category names; their thresholds are config (intensity_min_mph), the names are
+# the API contract the frontend mirrors.
+IntensityCategory = Literal[
+    "tropical_depression", "tropical_storm", "cat_1", "cat_2", "cat_3", "cat_4", "cat_5"
+]
+
+
 class HazardConfig(Strict):
     wind: WindConfig
     surge: SurgeConfig
     ensemble: EnsembleConfig
     interpolation_step_hours: float
-    intensity_min_mph: dict[str, float]  # Saffir-Simpson category -> lowest wind in it
+    intensity_min_mph: dict[IntensityCategory, float]  # category -> lowest wind in it
 
 
 class AlertConfig(Strict):

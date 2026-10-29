@@ -19,21 +19,22 @@ export type IntensityCategory =
   | 'cat_4'
   | 'cat_5'
 
-export interface TrackPoint extends Point {
-  t_hours: number
-  /** issue time + t_hours */
+/** Where the storm is (or is forecast to be) at a time, with its intensity. */
+export interface StormPosition extends Point {
   valid_at: string
   vmax_mph: number
-  rmax_km: number
   category: IntensityCategory
 }
 
+export interface TrackPoint extends StormPosition {
+  /** lead time: valid_at is the issue time + t_hours */
+  t_hours: number
+  rmax_km: number
+}
+
 /** Where the storm was when an earlier advisory was issued. */
-export interface PastPosition extends Point {
+export interface PastPosition extends StormPosition {
   advisory_no: number
-  valid_at: string
-  vmax_mph: number
-  category: IntensityCategory
 }
 
 export interface Advisory {
