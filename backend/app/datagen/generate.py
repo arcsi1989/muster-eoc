@@ -65,6 +65,7 @@ STATE_KEYS_ASSET = [
     "chem_stock_confirmed",
     "boil_water_notice_ready",
     "critical_customer_contacted",
+    "hospital_backup_confirmed",
 ]
 STATE_KEYS_STAGING = ["relocated"]
 

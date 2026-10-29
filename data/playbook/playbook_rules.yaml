@@ -170,7 +170,7 @@ rules:
     owner_role: operations
 
   - id: P-6.2
-    title: Contact hospitals that depend on top-25 assets
+    title: Confirm on-site backup at hospitals that depend on top-25 assets
     kind: notification
     entity: asset
     active_from_hours: 48
@@ -179,6 +179,7 @@ rules:
       - {field: asset.risk_rank, op: le, value: 25}
     satisfied_if:
       - {field: state.critical_customer_contacted, op: is_true}
+      - {field: state.hospital_backup_confirmed, op: is_true}
     requires_field_work: false
     severity: medium
     owner_role: regulatory_liaison

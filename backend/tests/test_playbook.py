@@ -22,6 +22,7 @@ FALSE_STATE = {
     "chem_stock_confirmed": False,
     "boil_water_notice_ready": False,
     "critical_customer_contacted": False,
+    "hospital_backup_confirmed": False,
 }
 
 
@@ -265,6 +266,17 @@ def test_p_6_2_contact_hospitals_fed_by_top_25_assets() -> None:
     assert [f.entity_id for f in found if f.rule_id == "P-6.2"] == ["SUB-07"]
 
 
+def test_p_6_2_needs_both_contact_and_confirmed_on_site_backup() -> None:
+    def status(**state: bool) -> str:
+        sub07 = asset("SUB-07", state=state, feeds_facility_types=["hospital"], risk_rank=16)
+        return one(findings(48, [sub07]), "P-6.2", "SUB-07").status
+
+    assert status() == "open"
+    assert status(critical_customer_contacted=True) == "open"
+    assert status(hospital_backup_confirmed=True) == "open"
+    assert status(critical_customer_contacted=True, hospital_backup_confirmed=True) == "satisfied"
+
+
 def test_p_7_1_situation_report_approved_this_period() -> None:
     assert one(findings(72, []), "P-7.1").status == "open"
     assert one(findings(72, [], sitrep_approved_current=True), "P-7.1").status == "satisfied"
@@ -380,6 +392,9 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
     assert {types[f["entity_id"]] for f in found if f["rule_id"] == "P-4.5"} == {"pump_station"}, (
         "portable generators never go to substations"
     )
+    hospital = find(found, "P-6.2", "SUB-07")
+    assert hospital["status"] == "open"
+    assert "HOSP-01" in hospital["details"]["asset.feeds_facility_ids"]
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
     regulator = find(found, "P-7.2")
     assert (regulator["status"], regulator["overdue"]) == ("open", False)
