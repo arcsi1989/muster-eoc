@@ -1,0 +1,18 @@
+# Demo script (8 minutes)
+
+> **Fictional prototype.** Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. All names and data are synthetic.
+
+The plan's section 8 scenario, in template mode (works offline) or with Claude (`backend/.env`, see the README). Start from a fresh backend or `make demo-reset`, on the Operations page, window at least 1,000 px wide.
+
+| Time | Advisory | Do | Say |
+|---|---|---|---|
+| 0:00–0:45 | — | Show the intro panel, the timeline and the map. | "A fictional utility, 72 hours before a hurricane. Five forecasts arrive every 12 hours. The tool prepares decisions; people make them." |
+| 0:45–1:45 | 1 (T-72, Prepare) | **Issue advisory 1.** Point at the track and cone, the risk colours, the ranked list. Open **Decision package**. | "Exposure from a 50-member ensemble; risk is failure probability times consequence. The rule engine already finds gaps: the risk-list review (P-4.1), generators, 6 fuelled against 7 needed (P-4.3), and poor-condition substations in the top 10 (P-4.4). The situation report (P-7.1) is approved from its draft below, not as an item." |
+| 1:45–2:30 | 2 (T-60) | **Issue advisory 2.** Show *What changed* and the rank arrows; open advisory 1's audit events. | "Everything I left undecided closed as *not decided*: the storm doesn't wait, and the audit trail shows it. The poor-condition list changes with the ranking." |
+| 2:30–4:30 | 3 (T-48, Full activation) | **Issue advisory 3.** Timeline turns to Full activation. Scroll the risk list to **SUB-07** (rank 16, up from 34) or click it on the map near the coast: explanation drawer. In the package, as **Logistics**, approve *Assign a generator to SUB-07 (feeds HOSP-01)*. As **Regulatory Liaison**, approve the regulator notification (P-7.2). As **Incident Commander**, **override** the PS-14 inspection: "crew shortage, re-plan at next advisory". Show the draft situation report, its chips, click a clause chip. Edit one line and **approve** it. | "Only the deterministic apply step writes state. An override is a deviation, so only the Incident Commander can make it, with a reason. The draft cites only clauses and assets from the findings; if it invents one, the template replaces it." |
+| 4:30–5:15 | 4 (T-36) | **Issue advisory 4.** Show STG-02 (P-4.6, staging area floods), flood barriers (P-5.1), and P-7.2 satisfied. | "The landfall moved east again; the coastal staging yard now floods." |
+| 5:15–6:30 | 5 (T-24) | **Issue advisory 5.** In **Conflicts**: PS-14 citing P-4.2, P-4.7 and P-8.2. Try to defer it as **Operations**: refused. As **Incident Commander**, **Defer…** with "stop-work in force; inspect after landfall". | "Tropical-storm wind reaches PS-14 within 12 hours: the inspection we deferred at advisory 3 now collides with stop-work. The tool flags it and routes it to the Incident Commander; personnel safety prevails." |
+| 6:30–7:15 | 5 | **Copilot**: "Why is PS-14 ranked where it is?", click the PS-14 chip; "What does P-4.7 say?". | "Answers come from read-only tools and cite only what those tools returned." |
+| 7:15–8:00 | — | **Audit** page: filter **People**, then **Agent**. **Data quality**: the two rejected rows. | "Every step, decision and model call is recorded, with versions and an input hash. Bad data is rejected at the door." |
+
+**Alternative path** (also tested): at advisory 3, as **Operations**, *approve* the PS-14 inspection instead of overriding it. At advisory 5 there is no PS-14 conflict.

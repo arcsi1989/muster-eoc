@@ -2,7 +2,11 @@
 FRONTEND_PORT ?= 5173
 BACKEND_PORT ?= 8000
 
-.PHONY: data dev test demo-reset
+.PHONY: install data dev test demo-reset
+
+install: ## Install backend and frontend dependencies from the lockfiles
+	cd backend && uv sync --locked
+	cd frontend && pnpm install --frozen-lockfile
 
 data: ## Regenerate the gold data (deterministic)
 	cd backend && uv run python -m app.datagen.generate

@@ -6,10 +6,14 @@
 
 **Status:** ready-for-agent
 
-- [ ] README: what it is, disclaimer, run steps (`make data`, `make dev`, `make demo-reset`, template and Claude modes, env names), screenshots
-- [ ] Architecture document mapping the prototype's components (to the PRD's layers if `docs/PRD.md` exists; otherwise to the plan's sections)
-- [ ] Assumptions and limitations, including "approval counts as done", the fictional km grid, the storm modelled on a 2022 landfall, and what was cut (calibration, Docker, Azure)
-- [ ] Demo script for the section 8 scenario with timings for an 8-minute video
-- [ ] A fresh clone runs end to end in template mode following only the README
-- [ ] Disclaimer present in the UI footer and every doc
-- [ ] `./scripts/check.sh` passes
+- [x] README: what it is, disclaimer, run steps (`make data`, `make dev`, `make demo-reset`, template and Claude modes, env names), screenshots
+- [x] Architecture document mapping the prototype's components (to the PRD's layers if `docs/PRD.md` exists; otherwise to the plan's sections)
+- [x] Assumptions and limitations, including "approval counts as done", the fictional km grid, the storm modelled on a 2022 landfall, and what was cut (calibration, Docker, Azure)
+- [x] Demo script for the section 8 scenario with timings for an 8-minute video
+- [x] A fresh clone runs end to end in template mode following only the README
+- [x] Disclaimer present in the UI footer and every doc
+- [x] `./scripts/check.sh` passes
+
+## Verification
+
+A fresh clone (`git clone` into a scratch folder) followed only the README: `make install`, `make data` (git stayed clean: byte-identical data; all demo seed facts hold), the backend served advisory 1 with a decision package and a template draft, and `./scripts/check.sh` passed 7/7 inside the clone. Screenshots show the stacked small-screen layout (the agent's browser window could not be widened).

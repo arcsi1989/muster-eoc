@@ -11,9 +11,11 @@ Where they and this file disagree, they win.
 
 **Check everything:** `./scripts/check.sh` (the definition of done for people, agents and CI).
 
+**One-command entry points:** `make install`, `make data` (regenerate the gold data and check the demo seeds), `make dev` (backend :8000, frontend :5173), `make test` (= `./scripts/check.sh`), `make demo-reset` (back to before advisory 1).
+
 | What | Backend (`backend/`) | Frontend (`frontend/`) |
 | --- | --- | --- |
-| Install | `uv sync` | `pnpm install` |
+| Install | `uv sync --locked` (or `make install`) | `pnpm install --frozen-lockfile` |
 | Run | `uv run uvicorn app.main:app --reload --reload-dir app --port 8000` | `pnpm dev` (proxies `/api/*` to the backend, prefix stripped) |
 | Format | `uv run ruff format .` | n/a |
 | Lint | `uv run ruff check .` | `pnpm run lint` (oxlint) |

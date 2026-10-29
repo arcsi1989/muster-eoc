@@ -13,6 +13,7 @@ Take-home challenge for the role of AI Solution Engineer (Zug). Not an official 
 3. Record any choice the plan leaves open in `docs/decisions.md`.
 
 ## Commands
+- `make install`: backend and frontend dependencies from the lockfiles
 - `make data`: regenerate `data/gold/` (seed 42, reproducible)
 - `make dev`: backend on :8000, frontend on :5173
 - `make test`: ruff, mypy, pytest, vitest
