@@ -4,11 +4,15 @@
 
 **Blocked by:** 12 (The draft request carries its own grounding)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Grounded generation module owns attempt → validate → retry → fallback and the attempt log
-- [ ] Situation report drafting uses it; no provider type check remains in the draft code
-- [ ] Fallback label defined once; fallback template built from configuration (for example the number of top risks)
-- [ ] Test fakes are honest fakes (no pretending to be the Anthropic provider)
-- [ ] Tests: valid first attempt used; invalid attempt retried; exhausted attempts fall back with the label; raising provider falls back; configured template not labelled a fallback
-- [ ] Audit records for drafting unchanged in meaning; `./scripts/check.sh` passes
+- [x] Grounded generation module owns attempt → validate → retry → fallback and the attempt log
+- [x] Situation report drafting uses it; no provider type check remains in the draft code
+- [x] Fallback label defined once; fallback template built from configuration (for example the number of top risks)
+- [x] Test fakes are honest fakes (no pretending to be the Anthropic provider)
+- [x] Tests: valid first attempt used; invalid attempt retried; exhausted attempts fall back with the label; raising provider falls back; configured template not labelled a fallback
+- [x] Audit records for drafting unchanged in meaning; `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as d3d73d6 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
