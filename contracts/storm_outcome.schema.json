@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "description": "Whether an asset failed in the past storm.",
+  "properties": {
+    "asset_id": {
+      "title": "Asset Id",
+      "type": "string"
+    },
+    "failed": {
+      "title": "Failed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "asset_id",
+    "failed"
+  ],
+  "title": "StormOutcomeRecord",
+  "type": "object"
+}

@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
     "rank-bm25>=0.2.2",
+    "scipy>=1.18.1",
     "sqlmodel>=0.0.48",
     "uvicorn[standard]>=0.54.0",
 ]
@@ -27,6 +28,7 @@ dev = [
     "pytest-asyncio>=1.4.1",
     "pytest-xdist>=3.8.0",
     "ruff>=0.17.3",
+    "scipy-stubs>=1.18.1.1",
     "types-pyyaml>=6.0.12.20260906",
 ]
 

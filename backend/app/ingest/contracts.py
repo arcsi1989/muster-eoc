@@ -94,6 +94,25 @@ class AdvisoryRecord(Contract):
     peak_surge_m: float = Field(ge=0)
 
 
+class HistoricalStormFile(Contract):
+    """A past storm's best track (history/), for the calibration back-test. `landfall_t_hours` is
+    the track time of landfall."""
+
+    name: str = Field(min_length=1)
+    landfall_at: datetime
+    landfall_t_hours: float = Field(ge=0)
+    track: list[TrackPointRecord] = Field(min_length=2)
+    landfall: PointRecord
+    peak_surge_m: float = Field(ge=0)
+
+
+class StormOutcomeRecord(Contract):
+    """Whether an asset failed in the past storm."""
+
+    asset_id: str
+    failed: bool
+
+
 class LineStringGeometry(Contract):
     type: Literal["LineString"]
     coordinates: list[tuple[float, float]]

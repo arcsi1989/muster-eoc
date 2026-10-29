@@ -45,7 +45,6 @@ from app.scoring_config import ScoringConfig
 
 SITREP_RULE = "P-7.1"  # satisfied only by approving the situation report, never an item
 TEMPLATE_FALLBACK = "template (fallback)"
-MODEL_VERSION = "published-curves"
 
 
 class CycleState(TypedDict, total=False):
@@ -57,11 +56,15 @@ def build_graph(
     engine: Engine, playbook: Playbook, llm: LLMProvider, config: ScoringConfig
 ) -> StateGraph[CycleState]:
     draft_config = config.draft
-    versions = {
-        "rules_version": playbook.rulebook.version,
-        "model_version": MODEL_VERSION,
-        "prompt_version": llm.prompt_version,
-    }
+
+    def versions(session: Session, advisory: Advisory) -> dict[str, Any]:
+        """The versions that produced a step: the model version is the one that scored the
+        advisory."""
+        return {
+            "rules_version": playbook.rulebook.version,
+            "model_version": service.model_version(session, advisory.advisory_no),
+            "prompt_version": llm.prompt_version,
+        }
 
     def provider() -> LLMProvider:
         return llm
@@ -101,7 +104,7 @@ def build_graph(
                 f"{advisory.hours_to_landfall} h to landfall, {level}",
                 advisory,
                 {"top10": list(top10), "event_state": event_state, "activation_level": level},
-                versions,
+                versions(session, advisory),
             )
         return {}
 
@@ -128,7 +131,7 @@ def build_graph(
                 f"{moves} rank moves",
                 advisory,
                 changes,
-                versions,
+                versions(session, advisory),
             )
         return {}
 
@@ -187,7 +190,7 @@ def build_graph(
                 f"{counts['satisfied']} satisfied",
                 advisory,
                 counts,
-                versions,
+                versions(session, advisory),
             )
         return {}
 
@@ -232,7 +235,7 @@ def build_graph(
                     "fallback_reason": outcome.fallback_reason,
                     "clauses_retrieved": [c.id for c in request.clauses],
                 },
-                versions,
+                versions(session, advisory),
             )
         return {}
 
@@ -258,7 +261,15 @@ def build_graph(
         session: Session, advisory: Advisory, refused: AppError, payload: dict[str, Any]
     ) -> None:
         """Normally refused before resuming; never leave the thread stuck on a refusal."""
-        record(session, "system", "decision_refused", str(refused), advisory, payload, versions)
+        record(
+            session,
+            "system",
+            "decision_refused",
+            str(refused),
+            advisory,
+            payload,
+            versions(session, advisory),
+        )
 
     def apply_decision(state: CycleState) -> Command[str]:
         decision = state["decision"]
@@ -286,7 +297,7 @@ def build_graph(
                             for i in items
                         ]
                     },
-                    versions,
+                    versions(session, advisory),
                 )
                 return Command(goto="finalise")
             item = session.get(PackageItem, decision["item_id"])
@@ -310,7 +321,7 @@ def build_graph(
                 session,
                 "human",
                 "decision",
-                f"{request.role.replace('_', ' ').capitalize()} {item.status} "
+                f"{decisions.role_label(request.role)} {item.status} "
                 f"{item.rule_id} for {item.entity_id}"
                 + (f": {item.reason}" if item.reason else ""),
                 advisory,
@@ -323,7 +334,7 @@ def build_graph(
                     "reason": item.reason,
                     "state_written": written,
                 },
-                versions,
+                versions(session, advisory),
             )
         return Command(goto="await_approval")
 
@@ -351,7 +362,7 @@ def build_graph(
             session,
             "human",
             "activation_declared",
-            f"{declaration.declared_by.replace('_', ' ').capitalize()} declared activation "
+            f"{decisions.role_label(declaration.declared_by)} declared activation "
             f"Level {LEVEL_NUMBER[declaration.level]} ({declaration.level})"
             + (f": {item.reason}" if item.reason else ""),
             advisory,
@@ -366,7 +377,7 @@ def build_graph(
                 "state_written": written,
                 "items_added": added,
             },
-            versions,
+            versions(session, advisory),
         )
 
     def finalise(state: CycleState) -> CycleState:
@@ -384,7 +395,7 @@ def build_graph(
                 f"Decision package for advisory {advisory.advisory_no} closed",
                 advisory,
                 {},
-                versions,
+                versions(session, advisory),
             )
         return {}
 

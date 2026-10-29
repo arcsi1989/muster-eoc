@@ -45,6 +45,7 @@ const twoItems = {
   status: 'ok' as const,
   data: {
     advisory_no: 2,
+    model_version: 1,
     items: [
       makeRiskItem({ asset_id: 'SUB-07', rank: 1, previous_rank: 4, risk: 12300, confidence: 'medium' }),
       makeRiskItem({ asset_id: 'PS-14', rank: 2, previous_rank: 1, risk: 800 }),
@@ -80,7 +81,7 @@ test('clicking a row asks for its explanation', async () => {
 
 test('says so when an advisory scored no assets', () => {
   render(
-    <RiskPanel state={{ status: 'ok', data: { advisory_no: 1, items: [] } }} assetsById={assetsById} onRetry={noop} onSelect={noop} />,
+    <RiskPanel state={{ status: 'ok', data: { advisory_no: 1, model_version: 1, items: [] } }} assetsById={assetsById} onRetry={noop} onSelect={noop} />,
   )
 
   expect(screen.getByText(/no assets were scored/i)).toBeInTheDocument()

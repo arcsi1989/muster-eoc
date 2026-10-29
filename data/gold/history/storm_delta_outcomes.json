@@ -1,0 +1,786 @@
+[
+  {
+    "asset_id": "PS-01",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-02",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-03",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-04",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-05",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-06",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-07",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-08",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-09",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-10",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-11",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-12",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-13",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-14",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-15",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-16",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-17",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-18",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-19",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-20",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-21",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-22",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-23",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-24",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-25",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-26",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-27",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-28",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-29",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-30",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-31",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-32",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-33",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-34",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-35",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-36",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-37",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-38",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-39",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-40",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-41",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-42",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-43",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-44",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-45",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-46",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-47",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-48",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-49",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-50",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-51",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-52",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-53",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-54",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-55",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-56",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-57",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-58",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-59",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-60",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-61",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-62",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-63",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-64",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-65",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-66",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-67",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-68",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-69",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-70",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-71",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-72",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-73",
+    "failed": true
+  },
+  {
+    "asset_id": "PS-74",
+    "failed": false
+  },
+  {
+    "asset_id": "PS-75",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-01",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-02",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-03",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-04",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-05",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-06",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-07",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-08",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-09",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-10",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-100",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-101",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-102",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-103",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-104",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-105",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-106",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-107",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-108",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-109",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-11",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-110",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-111",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-112",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-113",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-114",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-115",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-116",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-117",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-118",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-119",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-12",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-120",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-13",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-14",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-15",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-16",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-17",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-18",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-19",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-20",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-21",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-22",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-23",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-24",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-25",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-26",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-27",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-28",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-29",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-30",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-31",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-32",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-33",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-34",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-35",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-36",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-37",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-38",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-39",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-40",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-41",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-42",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-43",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-44",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-45",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-46",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-47",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-48",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-49",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-50",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-51",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-52",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-53",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-54",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-55",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-56",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-57",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-58",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-59",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-60",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-61",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-62",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-63",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-64",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-65",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-66",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-67",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-68",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-69",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-70",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-71",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-72",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-73",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-74",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-75",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-76",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-77",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-78",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-79",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-80",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-81",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-82",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-83",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-84",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-85",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-86",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-87",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-88",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-89",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-90",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-91",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-92",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-93",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-94",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-95",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-96",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-97",
+    "failed": true
+  },
+  {
+    "asset_id": "SUB-98",
+    "failed": false
+  },
+  {
+    "asset_id": "SUB-99",
+    "failed": false
+  },
+  {
+    "asset_id": "WTP-01",
+    "failed": false
+  }
+]

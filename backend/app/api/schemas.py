@@ -143,6 +143,7 @@ class RiskItemOut(BaseModel):
 
 class RiskListOut(BaseModel):
     advisory_no: int
+    model_version: int  # the fragility curves that scored the advisory
     items: list[RiskItemOut]
 
 
@@ -346,3 +347,50 @@ class ChatOut(BaseModel):
     provider: str  # the provider that answered, or "template (fallback)"
     fallback: bool
     tools_used: list[str]
+
+
+class CurveOut(BaseModel):
+    asset_type: str
+    hazard: Literal["wind", "flood"]
+    theta: float  # median capacity: mph for wind, m for flood
+    beta: float
+
+
+class ReliabilityBinOut(BaseModel):
+    lower: float
+    upper: float
+    count: int
+    mean_predicted: float | None  # None for an empty bin
+    observed_rate: float | None
+
+
+class BacktestOut(BaseModel):
+    model_version: int
+    assets: int
+    failures: int
+    brier: float
+    top_fraction: float  # of assets, by predicted probability (calibration.top_fraction)
+    top_capture: float  # share of all failures among them (top-decile capture at 0.10)
+    reliability: list[ReliabilityBinOut]
+
+
+class ModelVersionOut(BaseModel):
+    id: int
+    label: str
+    status: Literal["proposed", "approved"]
+    in_use: bool  # the latest approved: scores the next advisory
+    curves: list[CurveOut]
+    created_at: datetime
+    approved_by: str | None
+    approved_at: datetime | None
+
+
+class CalibrationOut(BaseModel):
+    storm: str
+    before: BacktestOut  # the version in use
+    after: BacktestOut  # the proposed version
+    model_version: ModelVersionOut
+
+
+class ModelVersionApproveIn(BaseModel):
+    role: Role

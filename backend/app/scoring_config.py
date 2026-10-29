@@ -68,11 +68,20 @@ class CopilotConfig(Strict):
     history_max: int
 
 
+class CalibrationConfig(Strict):
+    storm: str
+    reliability_bins: int
+    top_fraction: float
+    prior_sd_log_theta: float
+    prior_sd_log_beta: float
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
     risk: RiskConfig
     draft: DraftConfig
     copilot: CopilotConfig
+    calibration: CalibrationConfig
     consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 

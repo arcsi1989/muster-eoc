@@ -9,6 +9,7 @@ from app.api import (
     routes_activation,
     routes_advisories,
     routes_audit,
+    routes_calibration,
     routes_copilot,
     routes_exposure,
     routes_health,
@@ -65,6 +66,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         routes_audit,
         routes_sitrep,
         routes_copilot,
+        routes_calibration,
     ):
         app.include_router(router.router)
     return app

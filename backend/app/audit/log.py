@@ -3,6 +3,7 @@ versions that produced it (plan section 4)."""
 
 import hashlib
 import json
+from collections.abc import Collection
 from datetime import UTC, datetime
 from typing import Any, Literal
 
@@ -50,6 +51,6 @@ def events(session: Session, actor: Actor | None = None) -> list[AuditEvent]:
     return list(session.exec(query))
 
 
-def clear_events(session: Session) -> None:
-    """Empties the audit log (scenario reset)."""
-    session.exec(delete(AuditEvent))
+def clear_events(session: Session, keep: Collection[str] = ()) -> None:
+    """Empties the audit log (scenario reset), except events of the types in `keep`."""
+    session.exec(delete(AuditEvent).where(col(AuditEvent.type).not_in(keep)))
