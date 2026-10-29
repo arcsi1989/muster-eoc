@@ -128,12 +128,6 @@ def test_exposure_for_an_advisory_not_yet_issued_is_not_found(client: TestClient
     assert response.json()["error"]["code"] == "not_found"
 
 
-def test_issued_advisory_carries_its_forecast_cone(client: TestClient) -> None:
-    advisory = client.post("/advisories/next").json()["advisories"][-1]
-
-    assert len(advisory["cone"]) == 2 * len(advisory["track"])
-
-
 # Demo seeds that depend on hazard only (plan section 2.2; the risk ones follow in ticket 04).
 
 

@@ -15,6 +15,7 @@ from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.risk.alerts import AlertKind
 from app.risk.confidence import Confidence
+from app.scoring_config import IntensityCategory
 
 
 class PointOut(BaseModel):
@@ -22,12 +23,25 @@ class PointOut(BaseModel):
     y_km: float
 
 
-class TrackPointOut(BaseModel):
-    t_hours: float
+class StormPositionOut(BaseModel):
+    """Where the storm is (or is forecast to be) at a time, with its intensity."""
+
+    valid_at: datetime
     x_km: float
     y_km: float
     vmax_mph: float
+    category: IntensityCategory  # Saffir-Simpson, from vmax_mph (config/scoring.yaml)
+
+
+class TrackPointOut(StormPositionOut):
+    t_hours: float  # lead time: valid_at is the issue time + t_hours
     rmax_km: float
+
+
+class PastPositionOut(StormPositionOut):
+    """Where the storm was when an earlier advisory was issued."""
+
+    advisory_no: int
 
 
 class AdvisoryOut(BaseModel):
@@ -38,8 +52,9 @@ class AdvisoryOut(BaseModel):
     max_wind_mph: float
     peak_surge_m: float
     landfall: PointOut
-    track: list[TrackPointOut]
-    cone: list[PointOut]  # outline of the forecast cone
+    track: list[TrackPointOut]  # forecast points
+    past_positions: list[PastPositionOut]  # earlier advisories, oldest first
+    cone: list[PointOut]  # outline of the NHC-style forecast cone
 
 
 class TimelineSlotOut(BaseModel):

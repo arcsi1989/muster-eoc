@@ -11,6 +11,7 @@ const advisory = (no: number): Advisory => ({
   peak_surge_m: 2,
   landfall: { x_km: 0, y_km: 0 },
   track: [],
+  past_positions: [],
   cone: [],
 })
 
