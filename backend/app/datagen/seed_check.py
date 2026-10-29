@@ -64,7 +64,7 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
     stg02_floods = [exposure("STG-02", n).flood_depth_p90_m > 0 for n in range(1, 6)]
     checks = {
         "SUB-07 feeds HOSP-01": "HOSP-01" in {f.id for f in network.direct_facilities("SUB-07")},
-        "SUB-07 in the top 25 at advisory 3": scores(3)["SUB-07"].rank <= 25,
+        "SUB-07 in the top 25 at advisory 3": "SUB-07" in top(3, 25),
         "Bayport General not yet contacted": state("SUB-07", "critical_customer_contacted") is False
         and state("SUB-07", "hospital_backup_confirmed") is False,
         "PS-09 serves WTP-01": network.serves_treatment_plant("PS-09")

@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import get_settings
+from app.datagen.generate import STATE_KEYS_ASSET
 from app.playbook.clauses import parse_clauses
 from app.playbook.engine import Entity, Finding, evaluate, holds
 from app.playbook.rules import Predicate, load_rulebook
@@ -14,16 +15,7 @@ from app.playbook.rules import Predicate, load_rulebook
 SETTINGS = get_settings()
 RULEBOOK = load_rulebook(SETTINGS.playbook_rules_path)
 
-FALSE_STATE = {
-    "inspection_completed": False,
-    "generator_assigned": False,
-    "barrier_installed": False,
-    "backup_power_confirmed": False,
-    "chem_stock_confirmed": False,
-    "boil_water_notice_ready": False,
-    "critical_customer_contacted": False,
-    "hospital_backup_confirmed": False,
-}
+FALSE_STATE = dict.fromkeys(STATE_KEYS_ASSET, False)
 
 
 def event(hours: int, **overrides: Any) -> dict[str, Any]:
@@ -395,6 +387,9 @@ def test_advisory_3_full_activation_gaps(client: TestClient) -> None:
     hospital = find(found, "P-6.2", "SUB-07")
     assert hospital["status"] == "open"
     assert "HOSP-01" in hospital["details"]["asset.feeds_facility_ids"]
+    assert not any(f["rule_id"] == "P-4.5" and f["entity_id"] == "SUB-07" for f in found), (
+        "Bayport General relies on its own backup power, not a portable generator"
+    )
     assert find(found, "P-4.2", "PS-14")["status"] == "open"
     regulator = find(found, "P-7.2")
     assert (regulator["status"], regulator["overdue"]) == ("open", False)
