@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from app.copilot.tools import TOOL_DEFINITIONS
 from app.llm.anthropic_provider import AnthropicProvider, CopilotPrompt
 from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable, ToolRunner
 from tests.conftest import ClientFactory
@@ -253,6 +254,25 @@ def test_a_facility_a_tool_returned_is_grounded(make_client: ClientFactory) -> N
 
     assert reply["fallback"] is False
     assert reply["citations"] == [{"id": "SUB-07", "kind": "asset"}]
+
+
+JSON_TYPES = {"string": str, "integer": int, "null": type(None)}
+
+
+def _enum_nodes(node: Any) -> list[dict[str, Any]]:
+    if isinstance(node, dict):
+        own = [node] if "enum" in node else []
+        return own + [n for v in node.values() for n in _enum_nodes(v)]
+    if isinstance(node, list):
+        return [n for v in node for n in _enum_nodes(v)]
+    return []
+
+
+def test_tool_enums_declare_one_type_their_values_match() -> None:
+    # The API rejects strict tools whose enum mixes types (found with a real key, ticket 09)
+    for node in _enum_nodes([t["input_schema"] for t in TOOL_DEFINITIONS]):
+        assert isinstance(node["type"], str), node
+        assert all(isinstance(v, JSON_TYPES[node["type"]]) for v in node["enum"]), node
 
 
 def test_history_is_bounded(client: TestClient) -> None:

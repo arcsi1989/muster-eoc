@@ -91,8 +91,10 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             {
                 "advisory": ADVISORY,
                 "status": {
-                    "type": ["string", "null"],
-                    "enum": ["open", "satisfied", "conflict", None],
+                    "anyOf": [
+                        {"type": "string", "enum": ["open", "satisfied", "conflict"]},
+                        {"type": "null"},
+                    ],
                 },
             },
             ["advisory", "status"],
