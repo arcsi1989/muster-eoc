@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     database_path: Path = REPO_ROOT / "data" / "runtime" / "sgw.sqlite"
     checkpoint_path: Path = REPO_ROOT / "data" / "runtime" / "checkpoints.sqlite"
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
+    models_config_path: Path = REPO_ROOT / "config" / "models.yaml"
 
     # LLM (decisions.md): template by default and in tests; make dev reads backend/.env.
     llm_provider: Literal["anthropic", "template", "azure_openai"] = "template"

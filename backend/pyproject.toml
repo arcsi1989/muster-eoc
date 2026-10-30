@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
     "rank-bm25>=0.2.2",
+    "scikit-learn>=1.7",
     "scipy>=1.18.1",
     "shapely>=2.2.0",
     "sqlmodel>=0.0.48",
@@ -54,5 +55,5 @@ asyncio_default_fixture_loop_scope = "function"
 addopts = "-q"
 
 [[tool.mypy.overrides]]
-module = ["rank_bm25"]
+module = ["rank_bm25", "sklearn.*"]
 ignore_missing_imports = true  # no type stubs published
