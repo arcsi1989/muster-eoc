@@ -11,6 +11,7 @@ import { FieldPage } from './features/field/FieldPage'
 import { PackagePanel } from './features/package/PackagePanel'
 import { RoleSelector } from './features/package/RoleSelector'
 import { TerritoryMap } from './features/map/TerritoryMap'
+import { PlanningPage } from './features/planning/PlanningPage'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
 import { ChangesPanel } from './features/scenario/ChangesPanel'
@@ -37,6 +38,7 @@ export default function App() {
       {route === 'storm-map' && <StormMapScreen />}
       {route === 'operations' && <OperationsScreen />}
       {route === 'field' && <FieldPage />}
+      {route === 'planning' && <PlanningPage />}
       {route === 'audit' && <AuditPage />}
       {route === 'data-quality' && <DataQualityPage />}
       {route === 'calibration' && <CalibrationPage />}

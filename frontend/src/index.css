@@ -1475,4 +1475,69 @@ button.link {
   margin: 1rem 0 0;
   padding: 0;
   max-width: 720px;
+
+/* ICS-215 and IAP objectives */
+
+.planning-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.planning-section {
+  margin-top: 1.2rem;
+}
+
+.release-steps li,
+.objectives li {
+  margin-bottom: 0.4rem;
+}
+
+.ics215 .chip,
+.objectives .chip {
+  white-space: nowrap;
+}
+
+.ics215 .stop-work {
+  display: inline-block;
+  margin-left: 0.4rem;
+}
+
+/* Printing the planning products: the page alone, without navigation or controls */
+@media print {
+  /* black on white whatever the screen's colour scheme */
+  :root {
+    --text: #000;
+    --muted: #444;
+    --bg: #fff;
+    --panel: #fff;
+    --card: #fff;
+    --border: #999;
+    /* the light scheme's colours for badges, chips and highlighted rows */
+    --accent: #0969da;
+    --danger: #cf222e;
+    --up: #cf222e;
+    --down: #1a7f37;
+    --track: #8250df;
+    --prepare-bg: #fff1c2;
+    --prepare-text: #5c4400;
+    --full-bg: #ffd8d3;
+    --full-text: #7a1b10;
+  }
+
+  .app-nav,
+  .no-print,
+  .planning button {
+    display: none !important;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .ics215 tr {
+    break-inside: avoid;
+  }
 }

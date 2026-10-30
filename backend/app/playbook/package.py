@@ -17,6 +17,8 @@ from app.playbook.service import Playbook, RuleInputs, entity_names, rule_inputs
 
 # The situation report rule: approving the report satisfies it, so it never becomes an item.
 SITREP_RULE = "P-7.1"
+# The staging area rule: an area forecast to flood is left (P-4.6), so crews no longer work from it.
+RELOCATION_RULE = "P-4.6"
 # The state keys a field crew completes on site (CR-02 C2): inspection, barrier, generator
 # staging, relocation. An approved item that needs one of them is field work.
 FIELD_WORK_KEYS = ("inspection_completed", "barrier_installed", "generator_assigned", "relocated")
@@ -27,6 +29,24 @@ def satisfying_state(playbook: Playbook, finding: Finding) -> list[StateChange]:
     some (P-6.2: the customer contacted and the hospital's backup confirmed), none for a
     proposal, which only a declaration closes (P-2.5)."""
     return _satisfying_state(playbook.rule(finding.rule_id), finding.entity_id, finding.details)
+
+
+def actionable(finding: Finding) -> bool:
+    """An open or conflicting finding: the EOC still has to act on it."""
+    return finding.status != "satisfied"
+
+
+def staging_to_leave(session: Session, advisory: Advisory) -> set[str]:
+    """The staging areas the playbook has asked to leave (P-4.6, forecast to flood) at any
+    advisory up to `advisory`."""
+    return set(
+        session.exec(
+            select(Finding.entity_id).where(
+                Finding.rule_id == RELOCATION_RULE,
+                Finding.advisory_no <= advisory.advisory_no,
+            )
+        )
+    )
 
 
 @dataclass(frozen=True)
@@ -48,7 +68,7 @@ def package_items(
     names = entity_names(session)
     items = []
     for finding in stored:
-        if finding.status == "satisfied" or finding.rule_id == SITREP_RULE:
+        if not actionable(finding) or finding.rule_id == SITREP_RULE:
             continue
         rule = playbook.rule(finding.rule_id)
         name = names.get(finding.entity_id)

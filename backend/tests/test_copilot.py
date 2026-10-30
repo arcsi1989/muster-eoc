@@ -9,7 +9,15 @@ from fastapi.testclient import TestClient
 
 from app.copilot.tools import TOOL_DEFINITIONS
 from app.llm.anthropic_provider import AnthropicProvider
-from app.llm.schemas import ChatResult, ChatTurn, LLMUnavailable, Prompt, ToolRunner
+from app.llm.schemas import (
+    ChatResult,
+    ChatTurn,
+    LLMUnavailable,
+    ObjectivesRequest,
+    ObjectivesResult,
+    Prompt,
+    ToolRunner,
+)
 from tests.conftest import ClientFactory
 
 
@@ -96,6 +104,9 @@ class FakeChat:
         self.prompts: list[Prompt] = []
 
     def draft_sitrep(self, request: Any, prompt: Prompt) -> Any:
+        raise LLMUnavailable("not used here")
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
         raise LLMUnavailable("not used here")
 
     def chat(

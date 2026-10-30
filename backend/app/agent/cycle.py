@@ -17,12 +17,13 @@ from sqlmodel import Session, delete
 from app.agent.decisions import DecisionRequest, Declaration, Role
 from app.agent.field import FieldReportRequest
 from app.agent.graph import build_graph
-from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE
+from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE, RELEASE
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT
 from app.llm.provider import LLMProvider
 from app.models import DecisionPackage, FieldReport, PackageItem, Sitrep
+from app.planning.service import clear as clear_planning
 from app.playbook.service import Playbook, clear_findings
 from app.replay import service
 from app.scoring_config import ScoringConfig
@@ -97,6 +98,10 @@ class AdvisoryCycle:
         resume = {"action": APPROVE_SITREP, "role": role, "text": text}
         self._resume(advisory_no, resume, precheck)
 
+    def release_planning(self, advisory_no: int, role: Role, precheck: Callable[[], None]) -> None:
+        """Like `decide`, for a release approval of the advisory's planning draft."""
+        self._resume(advisory_no, {"action": RELEASE, "role": role}, precheck)
+
     def report_field_work(
         self,
         advisory_no: int,
@@ -142,6 +147,7 @@ def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> No
     tables. Model versions are not scenario state: they, their calibration runs and approvals
     stay, so the replay scores with the approved version and the log still shows who approved
     it."""
+    clear_planning(session)
     cycle.reset(session)
     clear_findings(session)
     clear_events(session, keep=(CALIBRATION_EVENT, APPROVED_EVENT))

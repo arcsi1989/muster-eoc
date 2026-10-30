@@ -8,6 +8,8 @@ from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     LLMUnavailable,
+    ObjectivesRequest,
+    ObjectivesResult,
     Prompt,
     ToolRunner,
 )
@@ -28,4 +30,7 @@ class AzureOpenAIProvider:
         run_tool: ToolRunner,
         prompt: Prompt,
     ) -> ChatResult:
+        raise LLMUnavailable("the Azure OpenAI provider is a stub in this prototype")
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
         raise LLMUnavailable("the Azure OpenAI provider is a stub in this prototype")
