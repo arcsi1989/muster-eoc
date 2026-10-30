@@ -38,6 +38,7 @@ def test_settings(tmp_path: Path) -> Settings:
         _env_file=None,
         database_path=tmp_path / "test.sqlite",
         checkpoint_path=tmp_path / "checkpoints.sqlite",
+        eval_results_path=None,  # no committed evaluation in the audit log; test_evals sets one
     )
 
 

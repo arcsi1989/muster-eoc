@@ -1,5 +1,6 @@
 """The template copilot: a fixed set of questions answered through the same tools, so the demo
-works offline (plan section 5): why ranked, top risks, what depends on X, what clause Y says."""
+works offline (plan section 5): why ranked, top risks, what depends on X, what clause Y says.
+It declines any request to change something, and answers "will X fail" with a probability."""
 
 import re
 from typing import Any
@@ -9,6 +10,19 @@ from app.llm.schemas import ChatResult, ToolRunner
 
 DEPENDS = re.compile(r"depend|feeds?\b|supplies|supplied|upstream|downstream", re.IGNORECASE)
 TOP = re.compile(r"\btop\b|highest|most at risk|riskiest", re.IGNORECASE)
+# A request to change something, which the copilot cannot do (CLAUDE.md hard rules).
+ACT = re.compile(
+    r"^\W*(?:please\s+|(?:can|could|would) you\s+)?"
+    r"(?:dispatch|send|approve|reject|override|declare|mark|set|change|update|assign|close|"
+    r"cancel|delete|decide)\b",
+    re.IGNORECASE,
+)
+# A question whose honest answer is a probability, not a yes or no.
+PREDICT = re.compile(r"\bwill\b.*\b(?:fail|survive|hold)\b|\bguarantee", re.IGNORECASE)
+DECLINE = (
+    "I cannot change anything: no decisions, approvals, dispatches or state. "
+    "A person decides in the decision package."
+)
 # No example names a real ID: the answer cites only IDs a tool returned, and this one runs none.
 HELP = (
     "I can answer, offline: why an asset is ranked where it is "
@@ -80,7 +94,9 @@ def template_chat(question: str, run_tool: ToolRunner, top_n: int) -> ChatResult
         used.append(name)
         return run_tool(name, args)
 
-    if clause_id and not asset:
+    if ACT.search(question):
+        text = DECLINE
+    elif clause_id and not asset:
         data = call("search_playbook", {"query": clause_id.group(0).upper()})
         text = data.get("error") or clause(data)
     elif asset and DEPENDS.search(question):
@@ -89,6 +105,11 @@ def template_chat(question: str, run_tool: ToolRunner, top_n: int) -> ChatResult
     elif asset:  # "why is X ranked", or any other question about one asset
         data = call("explain_score", {"asset_id": asset.group(0).upper(), "advisory": None})
         text = data.get("error") or why_ranked(data)
+        if PREDICT.search(question) and "error" not in data:
+            text = (
+                f"Nobody can say whether {data['asset_id']} will fail; the ranking gives a "
+                f"probability, not a forecast. {text}"
+            )
     elif TOP.search(question):
         data = call("list_top_risks", {"advisory": None, "n": top_n})
         text = data.get("error") or top_risks(data)

@@ -22,6 +22,7 @@ from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT
 from app.challenger.promotion import PROPOSED_EVENT
+from app.evals.audit import EVALUATION_EVENT
 from app.llm.provider import LLMProvider
 from app.models import DecisionPackage, FieldReport, PackageItem, Sitrep
 from app.planning.service import clear as clear_planning
@@ -147,12 +148,15 @@ def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> No
     """Back to before advisory 1: checkpoints deleted, decisions, findings, the audit log and
     the traces cleared (a new demo run begins), the operational state restored from the initial
     state. Each module clears its own tables. Model versions are not scenario state: they, their
-    calibration runs, proposals and approvals stay, so the replay scores with the approved
-    version and the log still shows who approved it."""
+    calibration runs, proposals and approvals, and the latest evaluation stay, so the replay
+    scores with the approved version and the log still shows who approved it and how it was
+    evaluated."""
     clear_planning(session)
     cycle.reset(session)
     clear_findings(session)
-    clear_events(session, keep=(CALIBRATION_EVENT, PROPOSED_EVENT, APPROVED_EVENT))
+    clear_events(
+        session, keep=(CALIBRATION_EVENT, PROPOSED_EVENT, APPROVED_EVENT, EVALUATION_EVENT)
+    )
     tracing.clear(session)
     service.reset(session, data_dir)
     record(
