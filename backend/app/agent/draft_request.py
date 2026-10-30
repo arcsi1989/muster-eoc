@@ -1,10 +1,10 @@
 """Assembles what the draft may see, and so cite: package items, changes, top assets,
-retrieved clauses."""
+retrieved clauses; and, quoted and never citable, the notes of blocked field tasks."""
 
 from sqlmodel import Session, col, select
 
 from app import advisory_context
-from app.llm.schemas import DraftItem, DraftRequest, RetrievedClause, TopAsset
+from app.llm.schemas import DraftItem, DraftRequest, FieldNote, RetrievedClause, TopAsset
 from app.models import Advisory, Finding, PackageItem, Score
 from app.network import load_network
 from app.playbook.service import Playbook
@@ -73,4 +73,7 @@ def draft_request(
             for s in top
         ],
         clauses=[RetrievedClause(c.id, c.title, c.text) for c in retrieved],
+        field_reports=[
+            FieldNote(i.rule_id, i.entity_id, i.blocked_note) for i in items if i.blocked_note
+        ],
     )

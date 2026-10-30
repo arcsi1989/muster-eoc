@@ -160,16 +160,17 @@ def apply(
     session.add(item)
     if request.action != "approve":
         return {}
-    written: dict[str, object] = {}
-    for change in satisfying:
+    return write_state(session, satisfying, request.role, now)
+
+
+def write_state(
+    session: Session, changes: Sequence[StateChange], set_by: str, at: datetime
+) -> dict[str, object]:
+    """Writes each state change; returns them as the audit records them ("entity.key")."""
+    for change in changes:
         session.merge(
             OpState(
-                entity=change.entity,
-                key=change.key,
-                value=change.value,
-                set_by=request.role,
-                set_at=now,
+                entity=change.entity, key=change.key, value=change.value, set_by=set_by, set_at=at
             )
         )
-        written[f"{change.entity}.{change.key}"] = change.value
-    return written
+    return {f"{c.entity}.{c.key}": c.value for c in changes}

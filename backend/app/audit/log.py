@@ -11,7 +11,7 @@ from sqlmodel import Session, col, delete, select
 
 from app.models import Advisory, AuditEvent
 
-Actor = Literal["system", "agent", "human"]
+Actor = Literal["system", "agent", "human", "field_supervisor"]
 
 
 def input_hash(payload: Any) -> str:

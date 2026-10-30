@@ -24,6 +24,7 @@ const proposal: PackageItem = {
   decided_by: null,
   reason: null,
   decided_at: null,
+  blocked_note: null,
 }
 
 const pkg: DecisionPackage = {

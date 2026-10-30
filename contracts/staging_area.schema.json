@@ -6,6 +6,11 @@
       "title": "Distance To Coast Km",
       "type": "number"
     },
+    "district": {
+      "minLength": 1,
+      "title": "District",
+      "type": "string"
+    },
     "elevation_m": {
       "title": "Elevation M",
       "type": "number"
@@ -35,7 +40,8 @@
     "x_km",
     "y_km",
     "elevation_m",
-    "distance_to_coast_km"
+    "distance_to_coast_km",
+    "district"
   ],
   "title": "StagingAreaRecord",
   "type": "object"
