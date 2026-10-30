@@ -1,15 +1,14 @@
 from dataclasses import asdict
 
 from fastapi import APIRouter
-from sqlmodel import Session
 
-from app.api.routes_calibration import version_out
+from app.api.model_version_out import version_out
 from app.api.schemas import ChallengerOut, ModelMetricsOut, ModelVersionOut, PromotionCheckOut
+from app.calibration import versions
 from app.challenger import promotion
 from app.challenger.model import ChallengerModel
 from app.deps import ChallengerDep, ModelsConfigDep, SessionDep
 from app.errors import NotFound
-from app.models import ModelVersion
 
 router = APIRouter(prefix="/challenger")
 
@@ -18,13 +17,6 @@ def _loaded(challenger: ChallengerModel | None) -> ChallengerModel:
     if challenger is None:
         raise NotFound("no challenger model is loaded; run make train")
     return challenger
-
-
-def _version(session: Session, challenger: ChallengerModel) -> ModelVersion:
-    version = session.get(ModelVersion, challenger.version)
-    if version is None:
-        raise NotFound(f"model version {challenger.version} does not exist")
-    return version
 
 
 @router.get("", response_model=ChallengerOut)
@@ -37,7 +29,7 @@ def get_challenger(
     trained = loaded.trained
     check = promotion.check(trained.held_out_storm, trained.held_out, config.promotion)
     return ChallengerOut(
-        model_version=version_out(session, _version(session, loaded)),
+        model_version=version_out(session, versions.get(session, loaded.version)),
         challenger=ModelMetricsOut.model_validate(asdict(trained.held_out.challenger)),
         champion=ModelMetricsOut.model_validate(asdict(trained.held_out.champion)),
         promotion=PromotionCheckOut.model_validate({**asdict(check), "passed": check.passed}),

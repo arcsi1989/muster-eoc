@@ -1,35 +1,19 @@
 from dataclasses import asdict
 
 from fastapi import APIRouter
-from sqlmodel import Session
 
+from app.api.model_version_out import version_out
 from app.api.schemas import (
     BacktestOut,
     CalibrationOut,
-    CurveOut,
     ModelVersionApproveIn,
     ModelVersionOut,
 )
 from app.calibration import service, versions
 from app.calibration.backtest import BacktestMetrics
 from app.deps import ScoringConfigDep, SessionDep
-from app.models import ModelVersion
 
 router = APIRouter()
-
-
-def version_out(session: Session, version: ModelVersion) -> ModelVersionOut:
-    return ModelVersionOut(
-        id=version.id or 0,
-        label=version.label,
-        kind=version.kind,
-        status=version.status,
-        in_use=version.id == versions.champion(session).id,
-        curves=[CurveOut.model_validate(c) for c in version.curves],
-        created_at=version.created_at,
-        approved_by=version.approved_by,
-        approved_at=version.approved_at,
-    )
 
 
 def _backtest_out(model_version: int, metrics: BacktestMetrics) -> BacktestOut:

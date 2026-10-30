@@ -48,7 +48,7 @@ def _latest_approved(session: Session, kind: ModelVersionKind | None = None) -> 
     return version
 
 
-def in_use(session: Session) -> ActiveModelVersion:
+def latest_curves(session: Session) -> ActiveModelVersion:
     """The latest approved fragility curves: the rule-based score of the next advisory, and its
     p_fail too while the rules are the champion."""
     version = _latest_approved(session, "curves")
@@ -65,11 +65,11 @@ def curves(version: ModelVersion) -> list[FragilityCurve]:
 
 
 def approve(session: Session, version_id: int, role: Role) -> ModelVersion:
-    """A person approves a proposed version; scoring uses it from the next advisory on. Planning
-    maintains the risk list (P-3.3), the Director or Incident Commander commands."""
-    version = session.get(ModelVersion, version_id)
-    if version is None:
-        raise NotFound(f"model version {version_id} does not exist")
+    """A person approves a proposed version; it becomes the champion and ranks from the next
+    advisory on, replacing the previous champion of either kind (the latest approval wins; the
+    audit event names the version it replaces). Planning maintains the risk list (P-3.3), the
+    Director or Incident Commander commands."""
+    version = get(session, version_id)
     if role not in APPROVERS:
         raise DecisionRefused(
             "A model version is approved by Planning, the Director or the Incident Commander."
@@ -80,6 +80,7 @@ def approve(session: Session, version_id: int, role: Role) -> ModelVersion:
         raise NotProposed(
             f"model version {version_id} is in shadow: only a proposed version can be approved"
         )
+    replaced = champion(session)  # the latest approval wins: this one replaces it
     version.status = "approved"
     version.approved_by = role
     version.approved_at = datetime.now(UTC)
@@ -89,12 +90,26 @@ def approve(session: Session, version_id: int, role: Role) -> ModelVersion:
         session,
         "human",
         APPROVED_EVENT,
-        f"{role_label(role)} approved model version {version_id} "
-        f"({version.label}); scoring uses it from the next advisory",
+        f"{role_label(role)} approved model version {version_id} ({version.label}); it "
+        f"replaces model version {replaced.id} ({replaced.label}) as champion and ranks from "
+        "the next advisory",
         session.get(Advisory, current) if current else None,
-        {"model_version": version_id, "approved_by": role, "curves": version.curves},
+        {
+            "model_version": version_id,
+            "kind": version.kind,
+            "approved_by": role,
+            "replaces": replaced.id,
+            "curves": version.curves,
+        },
         {"model_version": version_id},
     )
     session.commit()
     session.refresh(version)
+    return version
+
+
+def get(session: Session, version_id: int) -> ModelVersion:
+    version = session.get(ModelVersion, version_id)
+    if version is None:
+        raise NotFound(f"model version {version_id} does not exist")
     return version

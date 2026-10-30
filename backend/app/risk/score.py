@@ -108,13 +108,11 @@ def score_assets(
 ) -> list[AssetScore]:
     """Scores every asset with the champion's p_fail. The wind and flood breakdown is the rules'
     whether or not they are the champion."""
-    other = champion is not rules
-    predictions = champion.predict(assets) if other else []
+    predictions = champion.predict(assets)
     scores = []
-    for i, features in enumerate(assets):
+    for features, prediction in zip(assets, predictions, strict=True):
         asset = features.asset
         b = rules.breakdown(features)
-        p_fail = predictions[i].p_fail if other else b.p_fail
         impact = consequence(asset.id, network, config.consequence_weights)
         level, reasons = confidence(
             features.exposure.elevation_imputed,
@@ -128,15 +126,16 @@ def score_assets(
                 asset_id=asset.id,
                 p_wind=b.wind.p_fail,
                 p_flood=b.flood.p_fail,
-                p_fail=p_fail,
+                p_fail=prediction.p_fail,
                 consequence=impact,
-                risk=p_fail * impact.total,
+                risk=prediction.p_fail * impact.total,
                 confidence=level,
                 confidence_reasons=reasons,
                 wind=b.wind,
                 flood=b.flood,
-                model_version=predictions[i].version if other else rules.version,
-                model_factors=predictions[i].factors if other else None,
+                model_version=prediction.version,
+                # the rules' own factors are the wind and flood breakdown already
+                model_factors=None if prediction.version == rules.version else prediction.factors,
             )
         )
     return scores

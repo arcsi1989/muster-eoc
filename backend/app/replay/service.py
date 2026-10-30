@@ -1,5 +1,6 @@
 """Replays the advisories one at a time and scores each one as it is issued."""
 
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from sqlmodel import Session, col, delete, select
@@ -77,11 +78,11 @@ def advance(
     assets = asset_features(
         [e for e in exposures if e.kind == "asset"], network, advisory.issued_at.year
     )
-    curves = versions.in_use(session)
+    curves = versions.latest_curves(session)
     rules = RuleBasedModel(curves.id, curves.curves, config.risk.condition_theta_reduction_per_step)
     champion = _champion(session, rules, challenger)
     scores = score_assets(assets, network, rules, champion, config, advisory.issued_at.date())
-    ranked = list(enumerate(sorted(scores, key=lambda s: (-s.risk, s.asset_id)), start=1))
+    ranked = _ranked_by_risk(scores, lambda s: (s.risk, s.asset_id))
     session.add_all(
         Score(
             asset_id=s.asset_id,
@@ -99,7 +100,7 @@ def advance(
         )
         for rank, s in ranked
     )
-    if challenger is not None and champion is not challenger:
+    if challenger is not None and champion.version != challenger.version:
         consequences = {s.asset_id: s.consequence.total for s in scores}
         session.add_all(_shadow_scores(advisory.advisory_no, challenger, assets, consequences))
 
@@ -138,7 +139,6 @@ def _shadow_scores(
 ) -> list[ShadowScore]:
     predictions = challenger.predict(assets)
     risk = {p.asset_id: p.p_fail * consequences[p.asset_id] for p in predictions}
-    ranked = sorted(predictions, key=lambda p: (-risk[p.asset_id], p.asset_id))
     return [
         ShadowScore(
             asset_id=p.asset_id,
@@ -149,8 +149,20 @@ def _shadow_scores(
             rank=rank,
             factors=p.factors,
         )
-        for rank, p in enumerate(ranked, start=1)
+        for rank, p in _ranked_by_risk(predictions, lambda p: (risk[p.asset_id], p.asset_id))
     ]
+
+
+def _ranked_by_risk[T](
+    items: Sequence[T], risk_and_id: Callable[[T], tuple[float, str]]
+) -> list[tuple[int, T]]:
+    """Rank 1 is the highest risk; equal risks go by asset ID."""
+
+    def order(item: T) -> tuple[float, str]:
+        risk, asset_id = risk_and_id(item)
+        return -risk, asset_id
+
+    return list(enumerate(sorted(items, key=order), start=1))
 
 
 def reset(session: Session, data_dir: Path) -> None:

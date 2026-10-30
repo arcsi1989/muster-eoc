@@ -9,9 +9,10 @@ from sqlmodel import Session, select
 
 from app import advisory_context
 from app.audit.log import record
+from app.calibration import versions
 from app.calibration.backtest import BacktestMetrics
 from app.challenger.model import ChallengerModel, Comparison, TrainedChallenger
-from app.errors import ConflictError, NotFound
+from app.errors import ConflictError
 from app.models import Advisory, ModelVersion
 from app.models_config import PromotionRule
 
@@ -59,18 +60,8 @@ def check(storm: str, held_out: Comparison, rule: PromotionRule) -> PromotionChe
     return PromotionCheck(
         storm,
         [
-            Criterion(
-                "brier_improvement",
-                brier_gain,
-                rule.min_brier_improvement,
-                brier_gain >= rule.min_brier_improvement,
-            ),
-            Criterion(
-                "top_capture_gain",
-                capture_gain,
-                rule.min_top_capture_gain,
-                capture_gain >= rule.min_top_capture_gain,
-            ),
+            _at_least("brier_improvement", brier_gain, rule.min_brier_improvement),
+            _at_least("top_capture_gain", capture_gain, rule.min_top_capture_gain),
             Criterion(
                 "calibration_error",
                 error,
@@ -79,6 +70,10 @@ def check(storm: str, held_out: Comparison, rule: PromotionRule) -> PromotionChe
             ),
         ],
     )
+
+
+def _at_least(name: str, value: float, threshold: float) -> Criterion:
+    return Criterion(name, value, threshold, value >= threshold)
 
 
 def register(session: Session, trained: TrainedChallenger) -> ChallengerModel:
@@ -106,9 +101,7 @@ def register(session: Session, trained: TrainedChallenger) -> ChallengerModel:
 def propose(session: Session, challenger: ChallengerModel, rule: PromotionRule) -> ModelVersion:
     """Proposes the challenger for approval if it passes the rule; refuses otherwise. Proposing
     changes no ranking: only a person's approval does."""
-    version = session.get(ModelVersion, challenger.version)
-    if version is None:
-        raise NotFound(f"model version {challenger.version} does not exist")
+    version = versions.get(session, challenger.version)
     if version.status != "shadow":
         raise AlreadyProposed(f"model version {version.id} is already {version.status}")
     trained = challenger.trained

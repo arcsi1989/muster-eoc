@@ -2,7 +2,6 @@
 risk model interface, shadow scores stored and never ranking, a challenger proposed only when it
 passes the promotion rule, and the rules champion until a person approves it."""
 
-import time
 from collections.abc import Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import replace
@@ -10,9 +9,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 from fastapi.testclient import TestClient
 from sqlmodel import Session, col, select
 
+from app.calibration import service as calibration
 from app.calibration import versions
 from app.challenger.dataset import (
     FEATURES,
@@ -151,7 +152,7 @@ def test_the_rules_and_the_challenger_both_implement_the_risk_model(
     assets = assets_at(seeded)
     rules = RuleBasedModel(
         PUBLISHED_VERSION,
-        versions.in_use(seeded.session).curves,
+        versions.latest_curves(seeded.session).curves,
         SCORING.risk.condition_theta_reduction_per_step,
     )
     challenger = ChallengerModel(7, trained)
@@ -296,7 +297,7 @@ def test_the_rules_stay_champion_until_a_person_approves_the_proposed_challenger
         assert approval.actor == "human"
 
 
-def test_the_app_loads_the_saved_challenger_and_scores_in_shadow_under_two_seconds(
+def test_the_app_loads_the_saved_challenger_and_scores_in_shadow(
     client: TestClient,
 ) -> None:
     body = client.get("/challenger").json()
@@ -310,11 +311,9 @@ def test_the_app_loads_the_saved_challenger_and_scores_in_shadow_under_two_secon
         "calibration_error",
     }
 
+    # Under 2 seconds with shadow scoring: test_storm_map times every advance with this model.
     for _ in range(3):
-        start = time.perf_counter()
-        response = client.post("/advisories/next")
-        assert response.status_code == 200
-        assert time.perf_counter() - start < 2.0
+        assert client.post("/advisories/next").status_code == 200
 
     engine: Any = client.app.state.engine  # type: ignore[attr-defined]
     with Session(engine) as session:
@@ -351,3 +350,60 @@ def test_without_a_saved_challenger_the_app_runs_without_shadow_scoring(tmp_path
         assert client.post("/advisories/next").status_code == 200
         versions_listed = client.get("/model-versions").json()
         assert [v["kind"] for v in versions_listed] == ["curves"]
+
+
+def test_a_later_approval_replaces_the_champion_and_the_audit_names_it(
+    make_seeded: SeededFactory, trained: TrainedChallenger
+) -> None:
+    """The latest approval wins, of either kind: approving calibrated curves after the
+    challenger makes the rules champion again, says so in the audit log, and the displaced
+    challenger goes back to scoring in shadow."""
+    with with_challenger(make_seeded, passing(trained)) as (seeded, challenger):
+        propose(seeded.session, challenger, RULE)
+        versions.approve(seeded.session, challenger.version, "planning")
+        seeded.issue_until(1)
+        assert {s.model_version for s in scores(seeded.session, 1)} == {challenger.version}
+
+        calibrated = calibration.run(seeded.session, SCORING).proposed
+        assert calibrated.id is not None
+        versions.approve(seeded.session, calibrated.id, "director")
+        assert versions.champion(seeded.session).id == calibrated.id
+        seeded.issue_until(2)
+
+        assert {s.model_version for s in scores(seeded.session, 2)} == {calibrated.id}
+        assert {s.model_version for s in shadow_scores(seeded.session, 2)} == {challenger.version}
+        approvals = seeded.session.exec(
+            select(AuditEvent)
+            .where(AuditEvent.type == versions.APPROVED_EVENT)
+            .order_by(col(AuditEvent.id))
+        ).all()
+        assert [e.payload["replaces"] for e in approvals] == [PUBLISHED_VERSION, challenger.version]
+        assert f"replaces model version {challenger.version}" in approvals[-1].summary
+
+
+def test_the_challenger_is_registered_once(
+    seeded: SeededScenario, trained: TrainedChallenger
+) -> None:
+    challenger = register(seeded.session, trained)
+    assert register(seeded.session, trained).version == challenger.version
+
+
+def test_proposing_a_challenger_that_fails_the_rule_answers_409_naming_the_criteria(
+    tmp_path: Path,
+) -> None:
+    strict = tmp_path / "models.yaml"
+    config = MODELS.model_copy(
+        update={"promotion": RULE.model_copy(update={"min_brier_improvement": 1.0})}
+    )
+    strict.write_text(yaml.safe_dump(config.model_dump(mode="json")))
+    settings = settings_in(tmp_path).model_copy(update={"models_config_path": strict})
+    with TestClient(create_app(settings)) as client:
+        status = client.get("/challenger").json()
+        assert not status["promotion"]["passed"]
+
+        response = client.post("/challenger/propose")
+        assert response.status_code == 409
+        error = response.json()["error"]
+        assert error["code"] == "not_promotable"
+        assert "brier_improvement" in error["message"]
+        assert client.get("/challenger").json()["model_version"]["status"] == "shadow"
