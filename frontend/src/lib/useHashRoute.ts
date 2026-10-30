@@ -10,6 +10,7 @@ export const PAGES = [
   { route: 'data-quality', hash: '#/data-quality', label: 'Data quality' },
   { route: 'calibration', hash: '#/calibration', label: 'Calibration' },
   { route: 'challenger', hash: '#/challenger', label: 'Champion and challenger' },
+  { route: 'trace', hash: '#/trace', label: 'Run trace' },
 ] as const
 
 export type Route = (typeof PAGES)[number]['route']

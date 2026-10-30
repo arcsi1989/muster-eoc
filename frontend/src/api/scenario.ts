@@ -26,6 +26,7 @@ import type {
   Planning,
   RiskList,
   Role,
+  RunTrace,
   Scenario,
   Sitrep,
   StagingArea,
@@ -107,3 +108,5 @@ export const getFieldTasks = (district: string) =>
 /** Reports a field task done or blocked; returns the district's tasks as they now stand. */
 export const postFieldReport = (itemId: number, outcome: FieldOutcome, report: FieldReport) =>
   api<FieldTask[]>(`/field/tasks/${itemId}/${outcome}`, { method: 'POST', body: JSON.stringify(report) })
+/** What the agent did for an issued advisory: its cycle nodes and generations as spans. */
+export const getTrace = (advisoryNo: number) => api<RunTrace>(`/advisories/${advisoryNo}/trace`)

@@ -1555,3 +1555,105 @@ button.link {
     break-inside: avoid;
   }
 }
+
+/* Run trace */
+
+.trace-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+
+.trace-picker button {
+  background: transparent;
+  color: var(--accent);
+}
+
+.trace-picker button[aria-pressed='true'] {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.trace-totals th,
+.trace-totals td,
+.trace-waterfall th,
+.trace-waterfall td {
+  padding: 0.25rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.trace-waterfall td:last-child {
+  white-space: normal;
+}
+
+.trace-waterfall {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trace-waterfall tbody tr {
+  border-top: 1px solid var(--border);
+}
+
+.trace-depth-1 {
+  padding-left: 1.6rem !important;
+  color: var(--muted);
+}
+
+.trace-axis,
+.trace-track {
+  position: relative;
+  width: 40%;
+  min-width: 12rem;
+}
+
+.trace-bar {
+  position: absolute;
+  top: 0.45rem;
+  height: 0.8rem;
+  min-width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.trace-bar-generation {
+  background: var(--track);
+}
+
+.trace-bar-paused {
+  background: var(--muted);
+}
+
+.trace-highlight .trace-bar,
+.trace-bar-error {
+  background: var(--danger);
+}
+
+.trace-break {
+  position: absolute;
+  top: 0.25rem;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.trace-highlight {
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.trace-badge-alert {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+.trace-reason {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+}

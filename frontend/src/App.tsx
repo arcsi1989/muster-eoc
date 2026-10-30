@@ -21,6 +21,7 @@ import { IntroPanel } from './features/scenario/IntroPanel'
 import { ScenarioHeader } from './features/scenario/ScenarioHeader'
 import { useScenario } from './features/scenario/useScenario'
 import { StormMapScreen } from './features/storm-map/StormMapScreen'
+import { RunTracePage } from './features/trace/RunTracePage'
 import { PAGES, useHashRoute } from './lib/useHashRoute'
 import { useLoad } from './lib/useLoad'
 import type { Role } from './types/scenario'
@@ -44,6 +45,7 @@ export default function App() {
       {route === 'data-quality' && <DataQualityPage />}
       {route === 'calibration' && <CalibrationPage />}
       {route === 'challenger' && <ChallengerPage />}
+      {route === 'trace' && <RunTracePage />}
       <DisclaimerFooter />
     </div>
   )
