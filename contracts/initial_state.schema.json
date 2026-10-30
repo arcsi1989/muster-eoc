@@ -9,6 +9,7 @@
         },
         "type": "object"
       },
+      "data_class": "internal",
       "title": "Entities",
       "type": "object"
     },
@@ -26,6 +27,7 @@
           }
         ]
       },
+      "data_class": "internal",
       "title": "Event",
       "type": "object"
     }

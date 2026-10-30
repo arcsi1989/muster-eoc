@@ -4,6 +4,7 @@
       "additionalProperties": false,
       "properties": {
         "geometry": {
+          "data_class": "public",
           "discriminator": {
             "mapping": {
               "LineString": "#/$defs/LineStringGeometry",
@@ -25,11 +26,13 @@
           "additionalProperties": {
             "type": "string"
           },
+          "data_class": "public",
           "title": "Properties",
           "type": "object"
         },
         "type": {
           "const": "Feature",
+          "data_class": "public",
           "title": "Type",
           "type": "string"
         }
@@ -46,6 +49,7 @@
       "additionalProperties": false,
       "properties": {
         "coordinates": {
+          "data_class": "restricted",
           "items": {
             "maxItems": 2,
             "minItems": 2,
@@ -64,6 +68,7 @@
         },
         "type": {
           "const": "LineString",
+          "data_class": "public",
           "title": "Type",
           "type": "string"
         }
@@ -79,6 +84,7 @@
       "additionalProperties": false,
       "properties": {
         "coordinates": {
+          "data_class": "restricted",
           "items": {
             "items": {
               "maxItems": 2,
@@ -100,6 +106,7 @@
         },
         "type": {
           "const": "Polygon",
+          "data_class": "public",
           "title": "Type",
           "type": "string"
         }
@@ -116,6 +123,7 @@
   "description": "GeoJSON with planar km coordinates ([x_km, y_km]) instead of longitude/latitude.",
   "properties": {
     "features": {
+      "data_class": "public",
       "items": {
         "$ref": "#/$defs/CoastlineFeature"
       },
@@ -124,6 +132,7 @@
     },
     "type": {
       "const": "FeatureCollection",
+      "data_class": "public",
       "title": "Type",
       "type": "string"
     }

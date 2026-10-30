@@ -4,10 +4,12 @@
       "additionalProperties": false,
       "properties": {
         "x_km": {
+          "data_class": "restricted",
           "title": "X Km",
           "type": "number"
         },
         "y_km": {
+          "data_class": "restricted",
           "title": "Y Km",
           "type": "number"
         }
@@ -23,25 +25,30 @@
       "additionalProperties": false,
       "properties": {
         "rmax_km": {
+          "data_class": "public",
           "exclusiveMinimum": 0,
           "title": "Rmax Km",
           "type": "number"
         },
         "t_hours": {
+          "data_class": "public",
           "minimum": 0,
           "title": "T Hours",
           "type": "number"
         },
         "vmax_mph": {
+          "data_class": "public",
           "exclusiveMinimum": 0,
           "title": "Vmax Mph",
           "type": "number"
         },
         "x_km": {
+          "data_class": "restricted",
           "title": "X Km",
           "type": "number"
         },
         "y_km": {
+          "data_class": "restricted",
           "title": "Y Km",
           "type": "number"
         }
@@ -60,6 +67,7 @@
   "additionalProperties": false,
   "properties": {
     "advisory_no": {
+      "data_class": "public",
       "minimum": 1,
       "title": "Advisory No",
       "type": "integer"
@@ -68,28 +76,34 @@
       "additionalProperties": {
         "type": "number"
       },
+      "data_class": "public",
       "title": "Cone Radius Km",
       "type": "object"
     },
     "hours_to_landfall": {
+      "data_class": "public",
       "minimum": 0,
       "title": "Hours To Landfall",
       "type": "integer"
     },
     "issued_at": {
+      "data_class": "public",
       "format": "date-time",
       "title": "Issued At",
       "type": "string"
     },
     "landfall": {
-      "$ref": "#/$defs/PointRecord"
+      "$ref": "#/$defs/PointRecord",
+      "data_class": "public"
     },
     "peak_surge_m": {
+      "data_class": "public",
       "minimum": 0,
       "title": "Peak Surge M",
       "type": "number"
     },
     "track": {
+      "data_class": "public",
       "items": {
         "$ref": "#/$defs/TrackPointRecord"
       },

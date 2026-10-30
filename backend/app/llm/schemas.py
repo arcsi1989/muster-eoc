@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_core import to_jsonable_python
 
+from app.classification import for_model
 from app.ids import CLAUSE_ID, SITE_ID, mentioned
 from app.replay.diff import AdvisoryChanges
 
@@ -132,11 +133,11 @@ class DraftRequest:
     feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
 
     def shown(self) -> dict[str, Any]:
-        """The data a provider shows the model."""
+        """The data a provider shows the model, without restricted fields (CR-03 C1)."""
         shown = {
             f.name: getattr(self, f.name) for f in fields(self) if f.metadata.get("shown", True)
         }
-        return dict(to_jsonable_python(shown))
+        return for_model(dict(to_jsonable_python(shown)))
 
     def _shown_text(self) -> str:
         """What is shown, without the quoted fields: the text a draft may cite from."""
@@ -221,10 +222,13 @@ class ObjectivesRequest:
     feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
 
     def shown(self) -> dict[str, Any]:
-        return {
-            "advisory_no": self.advisory_no,
-            "objectives": [o.model_dump() for o in self.objectives],
-        }
+        """The data a provider shows the model, without restricted fields (CR-03 C1)."""
+        return for_model(
+            {
+                "advisory_no": self.advisory_no,
+                "objectives": [o.model_dump() for o in self.objectives],
+            }
+        )
 
 
 @dataclass(frozen=True)

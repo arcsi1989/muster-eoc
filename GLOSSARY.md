@@ -129,6 +129,10 @@ _Avoid_: Auto-promotion, promotion gate
 Fitting the fragility curves to the failures of a past storm (Storm Delta) and back-testing the fit against the version in use: reliability table, Brier score and top-decile capture, before and after.
 _Avoid_: Training, tuning
 
+**Data class**:
+How sensitive a data field is: `public`, `internal` or `restricted`. Every field of the data contracts carries one. Restricted fields (coordinates, elevation, the dependency graph) never reach a model; the one dependency behind a finding is internal.
+_Avoid_: Sensitivity, security level
+
 ## Roles
 
 **Owner role**:

@@ -20,7 +20,7 @@ Where they and this file disagree, they win.
 | Format | `uv run ruff format .` | n/a |
 | Lint | `uv run ruff check .` | `pnpm run lint` (oxlint) |
 | Types | `uv run mypy` (strict) | `pnpm run typecheck` |
-| Test | `uv run pytest` | `pnpm run test` |
+| Test | `uv run pytest -n 4` (whole suite, parallel); `uv run pytest tests/test_x.py` while iterating | `pnpm run test`; `pnpm exec vitest run src/x.test.ts` while iterating |
 
 ## G: General
 
