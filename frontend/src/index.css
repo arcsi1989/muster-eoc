@@ -1500,6 +1500,16 @@ button.link {
     --panel: #fff;
     --card: #fff;
     --border: #999;
+    /* the light scheme's colours for badges, chips and highlighted rows */
+    --accent: #0969da;
+    --danger: #cf222e;
+    --up: #cf222e;
+    --down: #1a7f37;
+    --track: #8250df;
+    --prepare-bg: #fff1c2;
+    --prepare-text: #5c4400;
+    --full-bg: #ffd8d3;
+    --full-text: #7a1b10;
   }
 
   .app-nav,

@@ -39,12 +39,15 @@ export function usePlanning(advisoryNo: number) {
     [setData, reloadPlanning, reloadPackage],
   )
 
+  const draft = useCallback(() => send(() => draftPlanning(advisoryNo)), [send, advisoryNo])
+  const release = useCallback((role: Role) => send(() => releasePlanning(advisoryNo, role)), [send, advisoryNo])
+
   return {
     planning,
     pkg,
     busy,
     actionError,
-    draft: () => send(() => draftPlanning(advisoryNo)),
-    release: (role: Role) => send(() => releasePlanning(advisoryNo, role)),
+    draft,
+    release,
   }
 }

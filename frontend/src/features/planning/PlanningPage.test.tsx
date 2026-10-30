@@ -306,3 +306,15 @@ test('before advisory 1 there is nothing to draft', async () => {
 
   expect(await screen.findByText(/no advisory issued yet/i)).toBeInTheDocument()
 })
+
+test('a template fallback says the AI wording was not used, with its reason when there is one', async () => {
+  backend({
+    'GET /api/advisories': () => json(scenario(4)),
+    'GET /api/packages/4': () => json(pkg()),
+    [`GET ${PLANNING}`]: () => json(draft({ provider: 'template (fallback)', fallback: true, fallback_reason: null })),
+  })
+
+  render(<PlanningPage />)
+
+  expect(await screen.findByText('Template wording (the AI wording was not used)')).toBeInTheDocument()
+})

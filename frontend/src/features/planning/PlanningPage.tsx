@@ -8,8 +8,12 @@ import { usePlanning } from './usePlanning'
 
 const PLANNING_CHIEF = 'Planning Section Chief'
 
+/** The roles that give the two release approvals, in order. */
+type ReleaseRole = 'planning' | Commander
+
 function wordingLabel(planning: Planning): string {
-  if (planning.fallback) return `Template wording (the AI wording was not used: ${planning.fallback_reason})`
+  if (planning.fallback)
+    return `Template wording (the AI wording was not used${planning.fallback_reason ? `: ${planning.fallback_reason}` : ''})`
   if (planning.provider === 'template') return 'Template wording (offline)'
   return `AI wording (${planning.model ?? planning.provider}); the objectives and their citations come from the findings`
 }
@@ -116,7 +120,7 @@ interface DraftProps {
   busy: boolean
   actionError: ApiError | null
   onRedraft: () => void
-  onRelease: (role: 'planning' | Commander) => void
+  onRelease: (role: ReleaseRole) => void
 }
 
 function PlanningDraft({ planning, open, commander, busy, actionError, onRedraft, onRelease }: DraftProps) {
@@ -169,7 +173,7 @@ interface ApprovalsProps {
   open: boolean
   commander: Commander | null
   busy: boolean
-  onRelease: (role: 'planning' | Commander) => void
+  onRelease: (role: ReleaseRole) => void
 }
 
 /** The two release approvals, in order: the Planning Section Chief, then the commander. */
@@ -282,8 +286,8 @@ function Ics215Table({ rows }: { rows: Ics215Row[] }) {
 function Objectives({ objectives }: { objectives: IapObjective[] }) {
   return (
     <ol className="objectives">
-      {objectives.map((objective, i) => (
-        <li key={i}>
+      {objectives.map((objective) => (
+        <li key={objective.text}>
           {objective.text}{' '}
           <span className="chips" aria-label="Cited clauses">
             {objective.clause_ids.map((id) => (
