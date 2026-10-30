@@ -108,6 +108,7 @@ def _failures(session: Session, config: ScoringConfig) -> list[str]:
         "PS-14 is a pumping station within 5 km of the coast": (
             ps14.type == "pump_station" and ps14.distance_to_coast_km <= 5
         ),
+        "PS-14 is in Bayport East": ps14.district == "Bayport East",
         "PS-14 flood P90 > 0.5 m from advisory 3": all(
             exposure("PS-14", n).flood_depth_p90_m > 0.5 for n in (3, 4, 5)
         ),

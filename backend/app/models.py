@@ -49,6 +49,7 @@ class Asset(SQLModel, table=True):
     condition_score: int
     last_inspection_date: date
     customers_served: int
+    district: str
 
 
 class Dependency(SQLModel, table=True):
@@ -72,6 +73,7 @@ class StagingArea(SQLModel, table=True):
     y_km: float
     elevation_m: float
     distance_to_coast_km: float
+    district: str
 
 
 class FragilityCurve(SQLModel, table=True):

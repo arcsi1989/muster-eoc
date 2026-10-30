@@ -135,6 +135,20 @@ def coastline_points() -> list[tuple[float, float]]:
 COAST = coastline_points()
 
 
+# Fictional districts, west to east: each covers the territory from its western edge (x_km) to
+# the next district's. PS-14 and STG-02 are in Bayport East; the city centre in Bayport West.
+DISTRICTS = [
+    ("Westshore", 0.0),
+    ("Bayport West", 75.0),
+    ("Bayport East", 135.0),
+    ("Eastern Plains", 190.0),
+]
+
+
+def district_for(x_km: float) -> str:
+    return next(name for name, west in reversed(DISTRICTS) if x_km >= west)
+
+
 def place_names(rng: random.Random, count: int, kind: str) -> list[str]:
     names = [f"{w}{s} {kind}" for s in SUFFIXES for w in PLACE_WORDS]
     rng.shuffle(names)
@@ -265,6 +279,7 @@ def build_assets(rng: random.Random) -> list[dict[str, Any]]:
                 "condition_score": condition,
                 "last_inspection_date": inspected.isoformat(),
                 "customers_served": customers,
+                "district": district_for(x),
             }
         )
     return assets
@@ -309,6 +324,7 @@ def build_staging_areas(rng: random.Random) -> list[dict[str, Any]]:
                 "y_km": y,
                 "elevation_m": elevation if elevation is not None else elevation_for(rng, d),
                 "distance_to_coast_km": d,
+                "district": district_for(x),
             }
         )
     return areas
@@ -532,6 +548,7 @@ REJECTED_EXAMPLE = [
         "condition_score": 2,
         "last_inspection_date": "2025-11-02",
         "customers_served": -350,  # negative customers
+        "district": "Bayport West",
     },
     {
         "id": "SUB-122",
@@ -545,6 +562,7 @@ REJECTED_EXAMPLE = [
         "condition_score": 1,
         "last_inspection_date": "2026-03-14",
         "customers_served": 0,
+        "district": "Bayport East",
     },
 ]
 

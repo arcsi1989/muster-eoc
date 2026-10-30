@@ -190,3 +190,12 @@ def test_no_real_place_names_in_the_territory() -> None:
 
     offending = [n for n in names for place in REAL_PLACES if place.lower() in n.lower()]
     assert offending == []
+
+
+def test_every_asset_and_staging_area_has_a_district_and_bayport_east_holds_ps_14() -> None:
+    assets = {a["id"]: a for a in gold("assets.json")}
+    staging = gold("staging_areas.json")
+
+    assert all(r["district"] for r in [*assets.values(), *staging])
+    assert assets["PS-14"]["district"] == "Bayport East"
+    assert len({a["district"] for a in assets.values()}) > 1

@@ -30,6 +30,7 @@ class AssetRecord(Contract):
     condition_score: int = Field(ge=1, le=5)  # 1 good ... 5 very poor
     last_inspection_date: date
     customers_served: int = Field(ge=0)
+    district: str = Field(min_length=1)  # the fictional area a field supervisor works
 
 
 class DependencyRecord(Contract):
@@ -53,6 +54,7 @@ class StagingAreaRecord(Contract):
     y_km: float
     elevation_m: float
     distance_to_coast_km: float = Field(ge=0)
+    district: str = Field(min_length=1)
 
 
 class FragilityCurveRecord(Contract):
