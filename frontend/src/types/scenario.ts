@@ -423,3 +423,25 @@ export interface Calibration {
   after: Backtest
   model_version: ModelVersion
 }
+
+export type FieldTaskStatus = 'open' | 'done' | 'blocked'
+
+/** An approved item that needs field work, as a field supervisor sees it. */
+export interface FieldTask {
+  item_id: number
+  /** the advisory whose package approved it */
+  approved_in: number
+  rule_id: string
+  /** the clause's title, one line */
+  why: string
+  action: string
+  entity_id: string
+  entity_name: string | null
+  approved_by: string | null
+  approved_at: string | null
+  /** prohibitions in force at the site now (P-4.7); Done is refused */
+  stop_work: string[]
+  status: FieldTaskStatus
+  note: string | null
+  reported_at: string | null
+}

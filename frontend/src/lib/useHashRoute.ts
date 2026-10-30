@@ -4,6 +4,7 @@ import { useSyncExternalStore } from 'react'
 export const PAGES = [
   { route: 'storm-map', hash: '#/', label: 'Storm map' },
   { route: 'operations', hash: '#/operations', label: 'Operations' },
+  { route: 'field', hash: '#/field', label: 'Field tasks' },
   { route: 'audit', hash: '#/audit', label: 'Audit' },
   { route: 'data-quality', hash: '#/data-quality', label: 'Data quality' },
   { route: 'calibration', hash: '#/calibration', label: 'Calibration' },

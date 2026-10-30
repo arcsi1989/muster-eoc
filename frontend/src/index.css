@@ -1178,19 +1178,22 @@ button.link {
   color: var(--text);
 }
 
-.status-pending {
+.status-pending,
+.status-open {
   background: var(--panel);
   color: var(--muted);
 }
 
 .status-approved,
 .status-alternative,
-.status-deferred {
+.status-deferred,
+.status-done {
   background: color-mix(in srgb, var(--down) 22%, transparent);
 }
 
 .status-overridden,
-.status-not_decided {
+.status-not_decided,
+.status-blocked {
   background: var(--prepare-bg);
   color: var(--prepare-text);
 }
@@ -1460,4 +1463,13 @@ button.link {
 
 .legend-swatch.reliability-diagonal {
   background: var(--muted);
+}
+
+/* Field tasks */
+
+.field-tasks {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  max-width: 720px;
 }
