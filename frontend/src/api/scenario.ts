@@ -35,6 +35,16 @@ export const getRisk = (advisoryNo: number) => api<RiskList>(`/risk?advisory=${a
 export const getChanges = (advisoryNo: number) => api<AdvisoryChanges>(`/advisories/${advisoryNo}/changes`)
 export const getFacilities = () => api<Facility[]>('/facilities')
 export const getStagingAreas = () => api<StagingArea[]>('/staging-areas')
+/** Everything the maps draw that does not change with the advisory. */
+export const getTerritory = async () => {
+  const [assets, coastline, facilities, stagingAreas] = await Promise.all([
+    getAssets(),
+    getCoastline(),
+    getFacilities(),
+    getStagingAreas(),
+  ])
+  return { assets, coastline, facilities, stagingAreas }
+}
 export const getLineage = () => api<LineageEntry[]>('/lineage')
 export const getExposure = (advisoryNo: number) => api<Exposure[]>(`/exposure?advisory=${advisoryNo}`)
 export const getExplanation = (assetId: string, advisoryNo: number) =>

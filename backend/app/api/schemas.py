@@ -16,8 +16,9 @@ from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.replay.diff import AdvisoryChanges
 from app.risk.alerts import AlertKind
+from app.risk.bands import TopFactor
 from app.risk.confidence import Confidence
-from app.scoring_config import IntensityCategory
+from app.scoring_config import IntensityCategory, RiskBand
 
 
 class PointOut(BaseModel):
@@ -134,6 +135,8 @@ class RiskItemOut(BaseModel):
     rank: int
     previous_rank: int | None  # None at the first advisory
     confidence: Confidence
+    risk_band: RiskBand  # from p_fail (config/scoring.yaml)
+    top_factor: TopFactor  # the hazard with the higher p_fail on its own
 
 
 class RiskListOut(BaseModel):

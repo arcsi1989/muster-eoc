@@ -140,6 +140,10 @@ export interface Coastline {
 
 export type Confidence = 'high' | 'medium' | 'low'
 
+/** Storm map colour, from p_fail (config/scoring.yaml) */
+export type RiskBand = 'low' | 'moderate' | 'high' | 'severe'
+export type TopFactor = 'wind' | 'flood'
+
 export interface RiskItem {
   asset_id: string
   p_fail: number
@@ -151,6 +155,9 @@ export interface RiskItem {
   /** null at the first advisory */
   previous_rank: number | null
   confidence: Confidence
+  risk_band: RiskBand
+  /** the hazard with the higher p_fail on its own */
+  top_factor: TopFactor
 }
 
 export interface RiskList {

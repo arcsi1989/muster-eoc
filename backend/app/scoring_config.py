@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class Strict(BaseModel):
@@ -35,6 +35,10 @@ IntensityCategory = Literal[
     "tropical_depression", "tropical_storm", "cat_1", "cat_2", "cat_3", "cat_4", "cat_5"
 ]
 
+# Storm map risk bands, the same way: the names are the API contract, the thresholds are config.
+RiskBand = Literal["low", "moderate", "high", "severe"]
+RISK_BANDS: tuple[RiskBand, ...] = ("low", "moderate", "high", "severe")
+
 
 class HazardConfig(Strict):
     wind: WindConfig
@@ -54,7 +58,17 @@ class RiskConfig(Strict):
     condition_theta_reduction_per_step: float
     stale_inspection_years: float
     top_n: int
+    band_min_p_fail: dict[RiskBand, float]  # band -> lowest p_fail in it
     alert: AlertConfig
+
+    @field_validator("band_min_p_fail")
+    @classmethod
+    def every_band_from_zero_up(cls, bands: dict[RiskBand, float]) -> dict[RiskBand, float]:
+        """Every band once, rising thresholds, and the lowest at 0 so every p_fail has a band."""
+        thresholds = [bands.get(name, -1.0) for name in RISK_BANDS]
+        if thresholds[0] != 0 or thresholds != sorted(thresholds):
+            raise ValueError(f"needs {', '.join(RISK_BANDS)} with rising thresholds from 0")
+        return bands
 
 
 class DraftConfig(Strict):

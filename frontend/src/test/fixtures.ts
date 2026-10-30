@@ -18,5 +18,7 @@ export const makeRiskItem = (overrides: Partial<RiskItem> & Pick<RiskItem, 'asse
   risk: 3000,
   previous_rank: null,
   confidence: 'high',
+  risk_band: 'high',
+  top_factor: 'wind',
   ...overrides,
 })

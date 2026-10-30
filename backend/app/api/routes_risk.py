@@ -11,8 +11,9 @@ from app.api.schemas import (
     RiskItemOut,
     RiskListOut,
 )
-from app.deps import SessionDep
+from app.deps import ScoringConfigDep, SessionDep
 from app.replay import service
+from app.risk.bands import risk_band, top_factor
 from app.risk.explain import explain_asset
 
 router = APIRouter()
@@ -21,7 +22,7 @@ AdvisoryQuery = Annotated[int, Query(ge=1)]
 
 
 @router.get("/risk", response_model=RiskListOut)
-def get_risk(session: SessionDep, advisory: AdvisoryQuery) -> RiskListOut:
+def get_risk(session: SessionDep, config: ScoringConfigDep, advisory: AdvisoryQuery) -> RiskListOut:
     scores = service.ranked_scores(session, advisory)
     previous = service.ranks(session, advisory - 1)
     return RiskListOut(
@@ -36,6 +37,8 @@ def get_risk(session: SessionDep, advisory: AdvisoryQuery) -> RiskListOut:
                 rank=s.rank,
                 previous_rank=previous.get(s.asset_id),
                 confidence=s.confidence,
+                risk_band=risk_band(s.p_fail, config.risk.band_min_p_fail),
+                top_factor=top_factor(s.p_wind, s.p_flood),
             )
             for s in scores
         ],
