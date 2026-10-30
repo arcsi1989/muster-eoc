@@ -3,6 +3,7 @@ drawn from the true fragility curves (never written to gold) and, in the synthet
 effect the rule-based score does not model (`AgeConditionEffect`). Storm Delta's failures predate
 the effect (docs/decisions.md): the calibration and the demo seeds rest on them."""
 
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -13,6 +14,16 @@ from app.hazard.ensemble import Site, impute_elevations
 from app.models import FragilityCurve
 from app.models_config import AgeConditionEffect
 from app.scoring_config import ScoringConfig
+
+
+@dataclass(frozen=True)
+class HiddenTruth:
+    """How past storms really failed assets: the true curves and, if any, the age x condition
+    effect, with asset ages counted to `year`."""
+
+    curves: list[FragilityCurve]
+    effect: AgeConditionEffect | None
+    year: int
 
 
 def extra_failure_probability(
@@ -34,18 +45,17 @@ def extra_failure_probability(
 def true_failure_probability(
     observations: list[Observation],
     assets: dict[str, dict[str, Any]],
-    true_curves: list[FragilityCurve],
-    effect: AgeConditionEffect | None,
+    truth: HiddenTruth,
     reduction_per_step: float,
-    year: int,
 ) -> FloatArray:
     """The true curves with the condition adjustment, then the age x condition effect if any."""
-    p = predict(observations, true_curves, reduction_per_step)
+    p = predict(observations, truth.curves, reduction_per_step)
+    effect = truth.effect
     if effect is None:
         return p
     extra = np.array(
         [
-            extra_failure_probability(assets[o.asset_id], o.wind_mph, o.flood_m, effect, year)
+            extra_failure_probability(assets[o.asset_id], o.wind_mph, o.flood_m, effect, truth.year)
             for o in observations
         ]
     )
@@ -57,15 +67,13 @@ def simulate_failures(
     storm: dict[str, Any],
     assets: list[dict[str, Any]],
     coastline: dict[str, Any],
-    true_curves: list[FragilityCurve],
-    effect: AgeConditionEffect | None,
+    truth: HiddenTruth,
     config: ScoringConfig,
-    year: int,
     rng: np.random.Generator,
 ) -> list[dict[str, Any]]:
-    """Which assets failed in a past storm (a historical storm file's fields): drawn from the true
-    failure probability under the exposure the back-test computes from the best track. `year` is
-    the year asset ages are counted to."""
+    """Which assets failed in a past storm (a historical storm file's fields, gold asset rows and
+    coastline as the generator writes them): drawn from the true failure probability under the
+    exposure the back-test computes from the best track."""
     elevations = impute_elevations(
         [(a["id"], a["x_km"], a["y_km"], a["elevation_m"]) for a in assets],
         config.hazard.surge.imputation_neighbours,
@@ -104,10 +112,8 @@ def simulate_failures(
     p_true = true_failure_probability(
         observations,
         by_id,
-        true_curves,
-        effect,
+        truth,
         config.risk.condition_theta_reduction_per_step,
-        year,
     )
     draws = rng.random(len(observations))
     return [

@@ -19,7 +19,7 @@ import numpy as np
 from pydantic import BaseModel
 
 from app.config import REPO_ROOT
-from app.datagen.truth import simulate_failures
+from app.datagen.truth import HiddenTruth, simulate_failures
 from app.geo import distance_to_polyline
 from app.ingest.contracts import (
     AdvisoryRecord,
@@ -430,41 +430,30 @@ def build_advisory(index: int) -> dict[str, Any]:
     """A straight track at constant forward speed through the forecast landfall point, 6-hourly
     from issue time to 24 h after landfall. Weakening over land is the hazard model's job."""
     hours = HOURS_TO_LANDFALL[index]
-    lx = LANDFALL_X_KM[index]
-    ly = coast_y_km(lx)
-    heading = math.radians(HEADING_DEG_FROM_EAST)
-    track = []
-    for t in range(0, hours + 25, 6):
-        travelled = FORWARD_SPEED_KMH * (t - hours)
-        track.append(
-            {
-                "t_hours": float(t),
-                "x_km": round(lx + travelled * math.cos(heading), 3),
-                "y_km": round(ly + travelled * math.sin(heading), 3),
-                "vmax_mph": float(VMAX_MPH[index]),
-                "rmax_km": RMAX_KM,
-            }
-        )
+    track, landfall = straight_track(
+        LANDFALL_X_KM[index], HEADING_DEG_FROM_EAST, float(VMAX_MPH[index]), RMAX_KM, hours
+    )
     return {
         "advisory_no": index + 1,
         "issued_at": (FIRST_ISSUED_AT + timedelta(hours=12 * index)).isoformat(),
         "hours_to_landfall": hours,
         "track": track,
         "cone_radius_km": CONE_RADIUS_KM,
-        "landfall": {"x_km": lx, "y_km": round(ly, 3)},
+        "landfall": landfall,
         "peak_surge_m": PEAK_SURGE_M[index],
     }
 
 
-def best_track(
+def straight_track(
     landfall_x_km: float,
     heading_deg_from_east: float,
     vmax_mph: float,
     rmax_km: float,
     hours_before_landfall: int,
 ) -> tuple[list[dict[str, Any]], dict[str, float]]:
-    """A past storm's straight best track, 6-hourly from `hours_before_landfall` before landfall
-    to 24 h after, and its landfall point on the coast."""
+    """A straight track at constant forward speed (an advisory's forecast or a past storm's best
+    track), 6-hourly from `hours_before_landfall` before landfall to 24 h after, and its
+    landfall point on the coast."""
     lx, ly = landfall_x_km, coast_y_km(landfall_x_km)
     heading = math.radians(heading_deg_from_east)
     track = []
@@ -483,7 +472,7 @@ def best_track(
 
 
 def build_storm_delta() -> dict[str, Any]:
-    track, landfall = best_track(
+    track, landfall = straight_track(
         DELTA_LANDFALL_X_KM,
         DELTA_HEADING_DEG_FROM_EAST,
         DELTA_VMAX_MPH,
@@ -510,10 +499,8 @@ def build_storm_delta_outcomes(
         storm,
         assets,
         coastline,
-        TRUE_CURVES,
-        None,
+        HiddenTruth(TRUE_CURVES, effect=None, year=SCENARIO_START.year),
         load_scoring_config(REPO_ROOT / "config" / "scoring.yaml"),
-        SCENARIO_START.year,
         np.random.default_rng(SEED),
     )
 

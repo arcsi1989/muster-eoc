@@ -16,10 +16,10 @@ from app.config import REPO_ROOT, get_settings
 from app.datagen.generate import (
     SCENARIO_START,
     TRUE_CURVES,
-    best_track,
+    straight_track,
     write_json,
 )
-from app.datagen.truth import simulate_failures
+from app.datagen.truth import HiddenTruth, simulate_failures
 from app.ingest.contracts import SyntheticStormFile
 from app.models_config import HistoryConfig, load_models_config
 from app.scoring_config import ScoringConfig, load_scoring_config
@@ -50,10 +50,13 @@ def build_history(
             draw(history.rmax_km),
         )
         year = int(rng.integers(history.year_range[0], history.year_range[1] + 1))
+        # A label only (ages count to the scenario date): some day of the season's peak.
         landfall_at = datetime(year, 8, 1, 18, tzinfo=UTC) + timedelta(
             days=int(rng.integers(0, 70))
         )
-        track, landfall = best_track(landfall_x, heading, vmax, rmax, history.hours_before_landfall)
+        track, landfall = straight_track(
+            landfall_x, heading, vmax, rmax, history.hours_before_landfall
+        )
         storm: dict[str, Any] = {
             "name": f"Storm S{i + 1:02d}",
             "landfall_at": landfall_at.isoformat(),
@@ -66,10 +69,8 @@ def build_history(
             storm,
             assets,
             coastline,
-            TRUE_CURVES,
-            history.age_condition_effect,
+            HiddenTruth(TRUE_CURVES, history.age_condition_effect, SCENARIO_START.year),
             scoring,
-            SCENARIO_START.year,
             rng,
         )
         storms.append(SyntheticStormFile.model_validate(storm).model_dump(mode="json"))
