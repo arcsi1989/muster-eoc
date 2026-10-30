@@ -1,13 +1,6 @@
+import { formatWallClock } from '../../lib/format'
 import { roleLabel } from '../../lib/roles'
 import type { AuditEvent } from '../../types/scenario'
-
-const wallClock = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-})
 
 function scenarioTime(e: AuditEvent): string {
   if (e.advisory_no === null) return 'Before advisory 1'
@@ -67,7 +60,7 @@ export function AuditList({ events }: { events: AuditEvent[] }) {
           <div className="audit-head">
             <span className={`badge actor-badge-${e.actor}`}>{e.actor}</span>
             <span className="small">{scenarioTime(e)}</span>
-            <span className="hint small">{wallClock.format(new Date(e.recorded_at))}</span>
+            <span className="hint small">{formatWallClock(e.recorded_at, { seconds: true })}</span>
             <code className="small">{e.type}</code>
           </div>
           <p className="audit-summary">{e.summary}</p>

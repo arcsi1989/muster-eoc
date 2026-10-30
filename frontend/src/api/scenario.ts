@@ -15,6 +15,9 @@ import type {
   Explanation,
   Exposure,
   Facility,
+  FieldOutcome,
+  FieldReport,
+  FieldTask,
   Finding,
   LineageEntry,
   ModelVersion,
@@ -87,3 +90,9 @@ export const runCalibration = () => api<Calibration>('/calibration/run', { metho
 export const getModelVersions = () => api<ModelVersion[]>('/model-versions')
 export const approveModelVersion = (versionId: number, role: Role) =>
   api<ModelVersion>(`/model-versions/${versionId}/approve`, { method: 'POST', body: JSON.stringify({ role }) })
+export const getDistricts = () => api<string[]>('/field/districts')
+export const getFieldTasks = (district: string) =>
+  api<FieldTask[]>(`/field/tasks?district=${encodeURIComponent(district)}`)
+/** Reports a field task done or blocked; returns the district's tasks as they now stand. */
+export const postFieldReport = (itemId: number, outcome: FieldOutcome, report: FieldReport) =>
+  api<FieldTask[]>(`/field/tasks/${itemId}/${outcome}`, { method: 'POST', body: JSON.stringify(report) })

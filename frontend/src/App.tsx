@@ -7,6 +7,7 @@ import { CalibrationPage } from './features/calibration/CalibrationPage'
 import { CopilotPanel } from './features/copilot/CopilotPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
+import { FieldPage } from './features/field/FieldPage'
 import { PackagePanel } from './features/package/PackagePanel'
 import { RoleSelector } from './features/package/RoleSelector'
 import { TerritoryMap } from './features/map/TerritoryMap'
@@ -36,6 +37,7 @@ export default function App() {
       </nav>
       {route === 'storm-map' && <StormMapScreen />}
       {route === 'operations' && <OperationsScreen />}
+      {route === 'field' && <FieldPage />}
       {route === 'planning' && <PlanningPage />}
       {route === 'audit' && <AuditPage />}
       {route === 'data-quality' && <DataQualityPage />}

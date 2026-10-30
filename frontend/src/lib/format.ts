@@ -5,3 +5,11 @@ export function formatCustomers(value: number): string {
 
 /** 0.284 as "28%". */
 export const formatPercent = (p: number) => `${Math.round(p * 100)}%`
+
+const clockOptions: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
+const clock = new Intl.DateTimeFormat('en-GB', clockOptions)
+const clockSeconds = new Intl.DateTimeFormat('en-GB', { ...clockOptions, second: '2-digit' })
+
+/** When something happened, in the browser's time zone: "30 Oct, 09:15" (or "09:15:42"). */
+export const formatWallClock = (iso: string, { seconds = false } = {}) =>
+  (seconds ? clockSeconds : clock).format(new Date(iso))
