@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 
 class Strict(BaseModel):
@@ -100,12 +100,36 @@ class CalibrationConfig(Strict):
     prior_sd_log_beta: float
 
 
+class PlanningResource(Strict):
+    """What one site of a field-work kind needs, and where the stock comes from: an event state
+    key (the fuelled generators) or a count per usable staging area (crews)."""
+
+    kind: str
+    per_site: int
+    stock_state: str | None = None
+    per_staging_area: int | None = None
+
+    @model_validator(mode="after")
+    def one_stock_source(self) -> "PlanningResource":
+        if (self.stock_state is None) == (self.per_staging_area is None):
+            raise ValueError("needs exactly one of stock_state and per_staging_area")
+        return self
+
+
+class PlanningConfig(Strict):
+    period_hours: int
+    max_tokens: int
+    retries: int
+    resources: dict[str, PlanningResource]  # field-work state key -> resource
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
     risk: RiskConfig
     draft: DraftConfig
     copilot: CopilotConfig
     calibration: CalibrationConfig
+    planning: PlanningConfig
     consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 

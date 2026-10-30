@@ -21,6 +21,10 @@ _Avoid_: Phase, alert level, computed level
 A person's decision to put the EOC at an activation level, taken on the activation proposal: the Director declares Level 3 and Level 2, the Incident Commander Level 1 (P-2.5). It records who declared, when (in scenario time) and why; the Full declaration starts the regulator notification clock (P-7.2).
 _Avoid_: Activation, escalation (as a verb for what the system does)
 
+**Operational period**:
+The time between two advisories, during which one set of decisions and one situation report hold. The planning products are drafted for the next one.
+_Avoid_: Shift, cycle
+
 **Advisory context**:
 What holds at the current advisory: which advisory is current (none before advisory 1), its scenario time, its activation level, whether the EOC is at Full activation, and who commands (Incident Commander or Director). A new advisory starts a new operational period, which resets the per-advisory flags (risk list reviewed, situation report approved).
 _Avoid_: Current state, session state
@@ -85,6 +89,20 @@ _Avoid_: Job, work order, task (for an action)
 The written status issued once per operational period. It stays marked DRAFT until the Incident Commander approves it.
 _Avoid_: Sitrep (in UI text), summary
 
+## Planning products
+
+**ICS-215**:
+The operational planning worksheet drafted for the next operational period from approved field work only: per work assignment, its location, the resource kind it needs, how many are required, how many the operational state and staging data show available ("have"), the shortfall ("need" = required minus have), the staging area to report to and the requested arrival time. It stays DRAFT until released.
+_Avoid_: Work plan, resource sheet
+
+**IAP**:
+The Incident Action Plan. The prototype drafts its objectives section: three to six incident objectives derived from the open findings, each citing its clause IDs. Code writes them from a template; a model may only reword them, and never their citations. It stays DRAFT until released.
+_Avoid_: Action plan (alone), plan objectives
+
+**Release**:
+Taking the ICS-215 and IAP objectives out of DRAFT: two approvals in order, the Planning Section Chief and then the role that commands (the Incident Commander at Full activation), both recorded in the audit log. Any other order, or one approval alone, does not release.
+_Avoid_: Publish, sign-off
+
 ## Risk model
 
 **Model version**:
@@ -104,6 +122,10 @@ _Avoid_: Owner, responsible team
 **Incident Commander**:
 The person with authority over all playbook decisions once the EOC is at Full activation.
 _Avoid_: IC (in UI text), commander
+
+**Planning Section Chief**:
+The head of the Planning section, who approves the ICS-215 and IAP objectives first in their release.
+_Avoid_: Planner, planning lead
 
 **Director**:
 The EOC Director, who holds the decisions the Incident Commander would hold while the EOC is below Full activation.
