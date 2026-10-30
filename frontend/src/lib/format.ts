@@ -13,3 +13,17 @@ const clockSeconds = new Intl.DateTimeFormat('en-GB', { ...clockOptions, second:
 /** When something happened, in the browser's time zone: "30 Oct, 09:15" (or "09:15:42"). */
 export const formatWallClock = (iso: string, { seconds = false } = {}) =>
   (seconds ? clockSeconds : clock).format(new Date(iso))
+
+/** 120 ms as "120 ms", 1900 ms as "1.9 s", 125000 ms as "2.1 min". */
+export function formatDuration(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)} ms`
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)} s`
+  return `${(ms / 60_000).toFixed(1)} min`
+}
+
+/** An estimated model cost in USD: "$0" for none, else four decimals ("$0.0164"). */
+export const formatCost = (usd: number) => (usd === 0 ? '$0' : `$${usd.toFixed(4)}`)
+
+/** Tokens sent and received: "2,400 in / 610 out". */
+export const formatTokens = (tokensIn: number, tokensOut: number) =>
+  `${tokensIn.toLocaleString('en-US')} in / ${tokensOut.toLocaleString('en-US')} out`

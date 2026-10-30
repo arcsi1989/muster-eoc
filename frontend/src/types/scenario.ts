@@ -550,3 +550,53 @@ export interface Planning {
   released_by: string | null
   released_at: string | null
 }
+
+/** One span of the run trace: an advisory-cycle node or a grounded generation */
+export interface TraceSpan {
+  span_id: string
+  /** a generation's node, or a span not stored (the HTTP request) */
+  parent_span_id: string | null
+  advisory_no: number | null
+  kind: 'cycle_node' | 'generation'
+  /** the cycle node, or the generation task (sitrep_draft, copilot, iap_objectives) */
+  node: string
+  started_at: string
+  ended_at: string
+  duration_ms: number
+  /** paused: await_approval waiting for decisions */
+  status: 'ok' | 'error' | 'paused'
+  /** the provider that produced the result, or "template (fallback)" */
+  provider: string | null
+  model: string | null
+  tokens_in: number
+  tokens_out: number
+  /** null: tokens from a model with no price in config/llm.yaml */
+  cost_usd: number | null
+  retries: number
+  fallback: boolean
+  fallback_reason: string | null
+  /** generations only */
+  validation: 'passed' | 'failed' | 'error' | null
+  attempts: Record<string, unknown>[]
+}
+
+export interface TraceTotals {
+  /** top-level spans: a generation is inside its node's time */
+  latency_ms: number
+  tokens_in: number
+  tokens_out: number
+  cost_usd: number
+  unpriced_spans: number
+  retries: number
+  fallbacks: number
+}
+
+/** What the agent did for an advisory, with totals for the advisory and the demo run */
+export interface RunTrace {
+  /** the demo run since the backend started or the scenario was reset */
+  run_id: string
+  advisory_no: number
+  spans: TraceSpan[]
+  advisory_totals: TraceTotals
+  run_totals: TraceTotals
+}
