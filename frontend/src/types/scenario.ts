@@ -1,4 +1,4 @@
-// Mirrors the backend API response models (backend app/api/schemas.py), field for field.
+// Mirrors the backend API response models (backend muster/api/schemas.py), field for field.
 
 export type ActivationLevel = 'monitor' | 'prepare' | 'full'
 export type AssetType = 'substation' | 'pump_station' | 'treatment_plant'

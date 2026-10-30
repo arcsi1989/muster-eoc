@@ -7,15 +7,15 @@ from typing import Any, cast
 import pytest
 from sqlmodel import col, select
 
-from app import advisory_context
-from app.advisory_context import SITREP_FLAG
-from app.agent import lifecycle
-from app.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
-from app.agent.sitrep import SitrepAlreadyApproved
-from app.llm.schemas import Paragraph
-from app.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
-from app.playbook.activation import Level
-from app.playbook.package import SITREP_RULE
+from muster import advisory_context
+from muster.advisory_context import SITREP_FLAG
+from muster.agent import lifecycle
+from muster.agent.decisions import AlreadyDecided, DecisionRefused, DecisionRequest, Declaration
+from muster.agent.sitrep import SitrepAlreadyApproved
+from muster.llm.schemas import Paragraph
+from muster.models import AuditEvent, DecisionPackage, Finding, OpState, PackageItem, Sitrep
+from muster.playbook.activation import Level
+from muster.playbook.package import SITREP_RULE
 from tests.conftest import FakeProvider, SeededFactory, SeededScenario, draft_of
 
 

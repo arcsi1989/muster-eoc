@@ -9,13 +9,13 @@ or written into free text, would pass them. Each field name has one class in eve
 import json
 from typing import Any, get_args
 
-from app.agent.lifecycle import draft_planning
-from app.classification import RESTRICTED_KEYS, contract_models, data_classes, for_model
-from app.copilot.chat import answer
-from app.copilot.tools import TOOL_DEFINITIONS
-from app.ids import ASSET_ID, mentioned
-from app.ingest.contracts import DataClass
-from app.llm.schemas import (
+from muster.agent.lifecycle import draft_planning
+from muster.classification import RESTRICTED_KEYS, contract_models, data_classes, for_model
+from muster.copilot.chat import answer
+from muster.copilot.tools import TOOL_DEFINITIONS
+from muster.ids import ASSET_ID, mentioned
+from muster.ingest.contracts import DataClass
+from muster.llm.schemas import (
     ChatResult,
     ChatTurn,
     DraftRequest,
@@ -25,8 +25,8 @@ from app.llm.schemas import (
     Prompt,
     ToolRunner,
 )
-from app.llm.template import TemplateProvider
-from app.network import load_network
+from muster.llm.template import TemplateProvider
+from muster.network import load_network
 from tests.conftest import SeededFactory, SeededScenario
 
 

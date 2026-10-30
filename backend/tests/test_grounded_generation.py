@@ -8,11 +8,11 @@ from typing import Any
 
 from sqlmodel import select
 
-from app.agent.draft import produce_draft
-from app.config import REPO_ROOT
-from app.copilot.chat import answer
-from app.llm.grounded import FALLBACK_LABEL
-from app.llm.schemas import (
+from muster.agent.draft import produce_draft
+from muster.config import REPO_ROOT
+from muster.copilot.chat import answer
+from muster.llm.grounded import FALLBACK_LABEL
+from muster.llm.schemas import (
     ChatResult,
     ChatTurn,
     DraftItem,
@@ -28,10 +28,10 @@ from app.llm.schemas import (
     ToolRunner,
     TopAsset,
 )
-from app.llm.template import TemplateProvider
-from app.models import AuditEvent
-from app.replay.diff import AdvisoryChanges
-from app.scoring_config import load_scoring_config
+from muster.llm.template import TemplateProvider
+from muster.models import AuditEvent
+from muster.replay.diff import AdvisoryChanges
+from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededScenario
 
 TEMPLATE = TemplateProvider(top_risks=5, top_assets=3)

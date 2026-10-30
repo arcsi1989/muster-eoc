@@ -13,11 +13,11 @@ import yaml
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from app.config import REPO_ROOT
-from app.hazard.ensemble import StormInput, track_shift_sd
-from app.hazard.track import cone_circles, cone_polygon, intensity_category
-from app.risk.bands import risk_band, top_factor
-from app.scoring_config import IntensityCategory, RiskBand, RiskConfig, load_scoring_config
+from muster.config import REPO_ROOT
+from muster.hazard.ensemble import StormInput, track_shift_sd
+from muster.hazard.track import cone_circles, cone_polygon, intensity_category
+from muster.risk.bands import risk_band, top_factor
+from muster.scoring_config import IntensityCategory, RiskBand, RiskConfig, load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").hazard
 ADVISORIES = [

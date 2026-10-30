@@ -7,11 +7,11 @@ from typing import Any
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.config import REPO_ROOT
-from app.main import create_app
-from app.models import Score, ShadowScore
-from app.models_config import load_models_config
-from app.scoring_config import load_scoring_config
+from muster.config import REPO_ROOT
+from muster.main import create_app
+from muster.models import Score, ShadowScore
+from muster.models_config import load_models_config
+from muster.scoring_config import load_scoring_config
 from tests.conftest import test_settings as settings_in
 
 TOP_N = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").risk.top_n

@@ -7,18 +7,18 @@ from datetime import UTC, datetime
 import pytest
 from sqlmodel import select
 
-from app import advisory_context
-from app.agent import lifecycle
-from app.agent.decisions import DecisionRequest, Declaration
-from app.models import Advisory, Finding, OpState, PackageItem
-from app.playbook.package import (
+from muster import advisory_context
+from muster.agent import lifecycle
+from muster.agent.decisions import DecisionRequest, Declaration
+from muster.models import Advisory, Finding, OpState, PackageItem
+from muster.playbook.package import (
     StateChange,
     field_work,
     package_items,
     satisfying_state,
     stop_work,
 )
-from app.playbook.service import RuleInputs, entity_names, findings, reevaluate, rule_inputs
+from muster.playbook.service import RuleInputs, entity_names, findings, reevaluate, rule_inputs
 from tests.conftest import SeededScenario
 
 

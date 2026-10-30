@@ -1,9 +1,9 @@
 """Situation report citations: a draft may cite exactly what its draft request shows, matched
-by the shared ID patterns (app/ids.py). Requests are built by hand: no database, no replay."""
+by the shared ID patterns (muster/ids.py). Requests are built by hand: no database, no replay."""
 
-from app.agent.citations import citation_problems
-from app.ids import CLAUSE_ID, ENTITY_ID, SITE_ID
-from app.llm.schemas import (
+from muster.agent.citations import citation_problems
+from muster.ids import CLAUSE_ID, ENTITY_ID, SITE_ID
+from muster.llm.schemas import (
     DraftItem,
     DraftRequest,
     Paragraph,
@@ -13,8 +13,8 @@ from app.llm.schemas import (
     SitrepDraft,
     TopAsset,
 )
-from app.llm.template import TemplateProvider
-from app.replay.diff import AdvisoryChanges, RankMove
+from muster.llm.template import TemplateProvider
+from muster.replay.diff import AdvisoryChanges, RankMove
 
 
 def draft(text: str, clause_ids: list[str], asset_ids: list[str]) -> SitrepDraft:

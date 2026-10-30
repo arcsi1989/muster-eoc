@@ -9,19 +9,19 @@ import anthropic
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT, Settings
-from app.llm.anthropic_provider import AnthropicProvider
-from app.llm.factory import LLMConfigError, build_provider
-from app.llm.schemas import (
+from muster.config import REPO_ROOT, Settings
+from muster.llm.anthropic_provider import AnthropicProvider
+from muster.llm.factory import LLMConfigError, build_provider
+from muster.llm.schemas import (
     DraftRequest,
     LLMUnavailable,
     Paragraph,
     Prompt,
     SitrepDraft,
 )
-from app.main import create_app
-from app.replay.diff import AdvisoryChanges
-from app.scoring_config import load_scoring_config
+from muster.main import create_app
+from muster.replay.diff import AdvisoryChanges
+from muster.scoring_config import load_scoring_config
 from tests.conftest import ClientFactory, FakeProvider, draft_of
 
 

@@ -8,11 +8,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.schemas import PackageOut
-from app.llm.schemas import PackageDraft, Paragraph, Section
-from app.models import DecisionPackage
-from app.replay import service
-from app.replay.diff import AdvisoryChanges, LandfallShift, RankMove
+from muster.api.schemas import PackageOut
+from muster.llm.schemas import PackageDraft, Paragraph, Section
+from muster.models import DecisionPackage
+from muster.replay import service
+from muster.replay.diff import AdvisoryChanges, LandfallShift, RankMove
 from tests.conftest import SeededScenario
 
 # A real package response, checked against the TypeScript types by the frontend's type check.

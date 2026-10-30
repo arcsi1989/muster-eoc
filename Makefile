@@ -9,24 +9,24 @@ install: ## Install backend and frontend dependencies from the lockfiles
 	cd frontend && pnpm install --frozen-lockfile
 
 data: ## Regenerate the gold data and the synthetic storm history (deterministic)
-	cd backend && uv run python -m app.datagen.generate
+	cd backend && uv run python -m muster.datagen.generate
 	$(MAKE) history
 
 history: ## Regenerate the synthetic storm history the challenger trains on (seed 42)
-	cd backend && uv run python -m app.datagen.history
+	cd backend && uv run python -m muster.datagen.history
 
 train: ## Train the challenger, compare it with the rule-based champion on Storm Delta, save it for shadow scoring
-	cd backend && uv run python -m app.challenger.train
+	cd backend && uv run python -m muster.challenger.train
 
 eval: ## Run the golden set with the template provider (deterministic) and gate it; writes docs/eval/
-	cd backend && uv run python -m app.evals.run
+	cd backend && uv run python -m muster.evals.run
 
 eval-llm: ## The golden set against the configured provider, each case 3 times; writes docs/eval/
-	cd backend && uv run python -m app.evals.run --live
+	cd backend && uv run python -m muster.evals.run --live
 
 dev: ## Backend and frontend together; Ctrl-C stops both
 	@trap 'kill 0' INT TERM EXIT; \
-	(cd backend && uv run uvicorn app.main:app --reload --reload-dir app --port $(BACKEND_PORT)) & \
+	(cd backend && uv run uvicorn muster.main:app --reload --reload-dir muster --port $(BACKEND_PORT)) & \
 	(cd frontend && pnpm dev --port $(FRONTEND_PORT) --strictPort) & \
 	wait
 

@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 from sqlmodel import select
 
-from app import advisory_context
-from app.agent.cycle import reset_scenario
-from app.models import (
+from muster import advisory_context
+from muster.agent.cycle import reset_scenario
+from muster.models import (
     Advisory,
     AuditEvent,
     DecisionPackage,

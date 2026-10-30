@@ -6,11 +6,11 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT
-from app.hazard.ensemble import Site, StormInput, compute_exposure
-from app.hazard.surge import flood_depth, local_surge
-from app.hazard.wind import rankine_wind
-from app.scoring_config import load_scoring_config
+from muster.config import REPO_ROOT
+from muster.hazard.ensemble import Site, StormInput, compute_exposure
+from muster.hazard.surge import flood_depth, local_surge
+from muster.hazard.wind import rankine_wind
+from muster.scoring_config import load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").hazard
 

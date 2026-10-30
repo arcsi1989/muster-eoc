@@ -10,11 +10,11 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
-from app.config import REPO_ROOT
-from app.datagen.generate import export_schemas, generate
-from app.db import create_fresh_engine
-from app.ingest.loader import GoldDataMissing, load_gold
-from app.models import QualityIssue
+from muster.config import REPO_ROOT
+from muster.datagen.generate import export_schemas, generate
+from muster.db import create_fresh_engine
+from muster.ingest.loader import GoldDataMissing, load_gold
+from muster.models import QualityIssue
 
 GOLD = REPO_ROOT / "data" / "gold"
 FIRST_ADVISORY = date(2026, 9, 1)

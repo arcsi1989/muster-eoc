@@ -162,7 +162,7 @@ extra_checks() {
     # make eval or make eval-llm changes the committed docs/eval/report.md.
     local eval_out
     eval_out="$(mktemp -d)"
-    step backend "eval" uv run python -m app.evals.run --out "$eval_out"
+    step backend "eval" uv run python -m muster.evals.run --out "$eval_out"
     rm -rf "$eval_out"
   fi
 }

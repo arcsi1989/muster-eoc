@@ -1,8 +1,10 @@
-# SGW Storm Preparation Prototype
+# Muster: storm preparation decision support
 
-> **Fictional prototype.** Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW (Southeastern Grid & Water), Bayport County, every asset, facility and threshold are invented, and the storm is unnamed (its parameters are modelled on a real past landfall); all data is synthetic. Not for real operations.
+Muster replays a hurricane's forecast advisories for a utility's Emergency Operations Center (EOC) and, for each one, scores asset risk, checks the hurricane playbook with a deterministic rule engine, and assembles a decision package of gaps, conflicts and a draft situation report. People approve or override every item, and the audit trail records each decision; no AI output changes operational state. Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document.
 
-A local web app for the Emergency Operations Center (EOC) of a fictional utility, 72 hours before a hurricane lands. Five forecast advisories are replayed one at a time. For each one the app:
+> **Fictional prototype.** The bundled demo scenario, SGW (Southeastern Grid & Water) in Bayport County, and every asset, facility and threshold in it are invented, and the storm is unnamed (its parameters are modelled on a real past landfall); all data is synthetic. Not for real operations.
+
+The demo scenario starts 72 hours before a hurricane lands. Five forecast advisories are replayed one at a time. For each one the app:
 
 1. computes hazard exposure (wind, storm surge, flood depth) for about 200 assets from a 50-member forecast ensemble, and a transparent risk score per asset;
 2. evaluates the utility's hurricane playbook with a deterministic rule engine: which actions are required, which are not done (gaps), and where stop-work collides with field work (conflicts);

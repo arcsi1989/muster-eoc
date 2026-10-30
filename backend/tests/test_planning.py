@@ -7,8 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import select
 
-from app.llm.grounded import FALLBACK_LABEL
-from app.llm.schemas import (
+from muster.llm.grounded import FALLBACK_LABEL
+from muster.llm.schemas import (
     ChatResult,
     ChatTurn,
     DraftRequest,
@@ -21,9 +21,9 @@ from app.llm.schemas import (
     Prompt,
     ToolRunner,
 )
-from app.llm.template import TemplateProvider
-from app.models import Finding
-from app.planning.objectives import objectives, reword
+from muster.llm.template import TemplateProvider
+from muster.models import Finding
+from muster.planning.objectives import objectives, reword
 from tests.conftest import ClientFactory, SeededScenario
 from tests.test_demo_scenario import (
     advance_to,

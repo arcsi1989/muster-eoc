@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT
-from app.datagen.seed_check import check_seeds
-from app.risk.fragility import adjusted_theta, combine, failure_probability
-from app.scoring_config import load_scoring_config
+from muster.config import REPO_ROOT
+from muster.datagen.seed_check import check_seeds
+from muster.risk.fragility import adjusted_theta, combine, failure_probability
+from muster.scoring_config import load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
 STEP = CONFIG.risk.condition_theta_reduction_per_step

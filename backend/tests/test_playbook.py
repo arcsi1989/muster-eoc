@@ -6,11 +6,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import get_settings
-from app.datagen.generate import STATE_KEYS_ASSET
-from app.playbook.clauses import parse_clauses
-from app.playbook.engine import Entity, Finding, evaluate, holds
-from app.playbook.rules import Predicate, load_rulebook
+from muster.config import get_settings
+from muster.datagen.generate import STATE_KEYS_ASSET
+from muster.playbook.clauses import parse_clauses
+from muster.playbook.engine import Entity, Finding, evaluate, holds
+from muster.playbook.rules import Predicate, load_rulebook
 
 SETTINGS = get_settings()
 RULEBOOK = load_rulebook(SETTINGS.playbook_rules_path)

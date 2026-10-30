@@ -1,6 +1,6 @@
 import type { ChallengerFeature } from '../../types/scenario'
 
-/** The challenger's features (backend app/challenger/dataset.py FEATURES), as a person reads them. */
+/** The challenger's features (backend muster/challenger/dataset.py FEATURES), as a person reads them. */
 const FEATURE_LABEL: Record<string, string> = {
   wind_p50_mph: 'Wind P50',
   wind_p90_mph: 'Wind P90',

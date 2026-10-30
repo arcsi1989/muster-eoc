@@ -10,11 +10,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.agent.draft import sitrep_prompt
-from app.config import Settings
-from app.copilot.chat import ToolCall, copilot_prompt
-from app.evals import checks
-from app.evals.golden import (
+from muster.agent.draft import sitrep_prompt
+from muster.config import Settings
+from muster.copilot.chat import ToolCall, copilot_prompt
+from muster.evals import checks
+from muster.evals.golden import (
     CATEGORIES,
     Case,
     Expect,
@@ -23,10 +23,10 @@ from app.evals.golden import (
     load_eval_config,
     load_golden,
 )
-from app.evals.run import EVAL_CONFIG, GOLDEN, CaseResult, Run, evaluate, main, summarise
-from app.evals.scenario import DRAFT_REQUEST, Prompts, Transcript
-from app.ids import CLAUSE_ID, ENTITY_ID
-from app.llm.schemas import (
+from muster.evals.run import EVAL_CONFIG, GOLDEN, CaseResult, Run, evaluate, main, summarise
+from muster.evals.scenario import DRAFT_REQUEST, Prompts, Transcript
+from muster.ids import CLAUSE_ID, ENTITY_ID
+from muster.llm.schemas import (
     ChatResult,
     ChatTurn,
     DraftRequest,
@@ -36,10 +36,10 @@ from app.llm.schemas import (
     Prompt,
     ToolRunner,
 )
-from app.llm.template import TemplateProvider
-from app.llm.template_chat import template_chat
-from app.main import create_app
-from app.scoring_config import load_scoring_config
+from muster.llm.template import TemplateProvider
+from muster.llm.template_chat import template_chat
+from muster.main import create_app
+from muster.scoring_config import load_scoring_config
 from tests import conftest
 
 CITE = "Cite the asset IDs"  # the copilot prompt's citation instruction

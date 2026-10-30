@@ -92,6 +92,14 @@ const rankedIds = () =>
     .getAllByRole('button')
     .map((b) => b.textContent?.match(/(PS|SUB)-\d+/)?.[0])
 
+test('the header names the product and the demo scenario', async () => {
+  backend()
+  render(<StormMapScreen />)
+
+  expect(await screen.findByRole('heading', { level: 1, name: 'Muster' })).toBeInTheDocument()
+  expect(screen.getByText('Storm preparation decision support · Demo scenario: SGW, Bayport County (fictional)')).toBeInTheDocument()
+})
+
 test('the map shows the legend, the cone note and a local-time label on each 12-hour point', async () => {
   backend()
   render(<StormMapScreen />)
