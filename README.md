@@ -42,6 +42,8 @@ Other commands:
 |---|---|
 | `make demo-reset` | Back to before advisory 1 (the backend must be running). Restarting the backend also resets. |
 | `make data` | Regenerate the synthetic data (seed 42, byte-identical every run) and replay all five advisories to check every demo fact still holds. |
+| `make history` | Regenerate the synthetic storm history the challenger trains on (20 fictional storms, seed 42; `make data` runs it too). |
+| `make train` | Train the challenger model and compare it with the rule-based champion, by storm and on held-out Storm Delta; writes `docs/eval/challenger_results.json`. |
 | `make test` | Every check: ruff, mypy (strict), pytest, oxlint, tsc, vitest (`./scripts/check.sh`). |
 
 The 8-minute demo walkthrough is in [docs/demo_script.md](docs/demo_script.md).
