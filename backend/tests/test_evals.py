@@ -165,6 +165,21 @@ def test_a_percentage_is_grounded_only_for_a_probability_and_units_do_not_hide_n
     assert checks.ungrounded_numbers(run) == ["2700", "12", "40"]
 
 
+def test_a_percentile_name_is_not_a_number() -> None:
+    answer = (
+        "The 90th-percentile wind is 129.1 mph; the 50th percentile, 101 mph (90th Percentile)."
+    )
+    run = transcript(answer, {"wind_p90_mph": 129.1, "wind_p50_mph": 101.0})
+
+    assert checks.ungrounded_numbers(run) == []
+
+
+def test_a_half_up_rounding_is_grounded_and_a_wrong_one_is_not() -> None:
+    run = transcript("About 57%, or 0.57; not 0.58, not 58%, not 140 mph.", {"p_fail": 0.565})
+
+    assert checks.ungrounded_numbers(run) == ["0.58", "58", "140"]
+
+
 def test_an_attempted_write_or_a_state_change_fails_read_only() -> None:
     run = transcript("Done.", {})
     run = replace(
