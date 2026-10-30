@@ -231,6 +231,26 @@ export interface Explanation {
   confidence_reasons: string[]
   feeds: DependencyLink[]
   fed_by: DependencyLink[]
+  /** null when no challenger scored the asset in shadow */
+  challenger: ChallengerView | null
+}
+
+/** One of the challenger's features for an asset (backend ChallengerFeatureOut). */
+export interface ChallengerFeature {
+  feature: string
+  /** the asset type is a category */
+  value: number | string
+  /** p_fail minus p_fail with this feature alone at the training baseline */
+  contribution: number
+}
+
+/** The challenger's shadow score of an asset at an advisory (backend ChallengerViewOut). */
+export interface ChallengerView {
+  model_version: number
+  rank: number
+  p_fail: number
+  /** the largest contributions first */
+  top_features: ChallengerFeature[]
 }
 
 export interface Alert {
@@ -465,6 +485,28 @@ export interface Challenger {
   /** the published curves on the same storm */
   champion: ModelMetrics
   promotion: PromotionCheck
+}
+
+/** An asset the challenger ranks in its top N that the champion does not (backend DisagreementOut). */
+export interface Disagreement {
+  asset_id: string
+  asset_name: string
+  challenger_rank: number
+  champion_rank: number
+  challenger_p_fail: number
+  champion_p_fail: number
+  /** why the challenger ranks it higher */
+  top_features: ChallengerFeature[]
+}
+
+/** GET /challenger/disagreements (backend DisagreementsOut). */
+export interface Disagreements {
+  advisory_no: number
+  /** the challenger's model version */
+  model_version: number
+  top_n: number
+  /** by the challenger's rank; empty when it is the champion */
+  items: Disagreement[]
 }
 
 export type FieldTaskStatus = 'open' | 'done' | 'blocked'

@@ -192,6 +192,21 @@ class DependencyLinkOut(BaseModel):
     name: str
 
 
+class ChallengerFeatureOut(BaseModel):
+    feature: str  # one of the challenger's features (app/challenger/dataset.py FEATURES)
+    value: float | str  # the asset type is a category
+    contribution: float  # p_fail minus p_fail with this feature alone at the training baseline
+
+
+class ChallengerViewOut(BaseModel):
+    """The challenger's shadow score of an asset at an advisory, beside the champion's."""
+
+    model_version: int
+    rank: int
+    p_fail: float
+    top_features: list[ChallengerFeatureOut]  # config/models.yaml challenger.explain_features
+
+
 class ExplainOut(BaseModel):
     asset: AssetOut
     advisory_no: int
@@ -208,6 +223,7 @@ class ExplainOut(BaseModel):
     confidence_reasons: list[str]
     feeds: list[DependencyLinkOut]
     fed_by: list[DependencyLinkOut]
+    challenger: ChallengerViewOut | None  # None when no challenger scored it in shadow
 
 
 class AlertOut(BaseModel):
@@ -487,3 +503,22 @@ class ChallengerOut(BaseModel):
     challenger: ModelMetricsOut  # on the held-out storm
     champion: ModelMetricsOut  # the published curves on the same storm
     promotion: PromotionCheckOut
+
+
+class DisagreementOut(BaseModel):
+    asset_id: str
+    asset_name: str
+    challenger_rank: int
+    champion_rank: int
+    challenger_p_fail: float
+    champion_p_fail: float
+    top_features: list[ChallengerFeatureOut]  # why the challenger ranks it higher
+
+
+class DisagreementsOut(BaseModel):
+    """Assets the challenger ranks in its top N at an advisory that the champion does not."""
+
+    advisory_no: int
+    model_version: int  # the challenger's
+    top_n: int  # config/scoring.yaml risk.top_n
+    items: list[DisagreementOut]  # by the challenger's rank; empty when it is the champion

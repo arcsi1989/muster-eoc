@@ -1,5 +1,6 @@
 import { formatCustomers, formatPercent } from '../../lib/format'
 import type { Explanation } from '../../types/scenario'
+import { ChallengerFeatures } from '../challenger/ChallengerFeatures'
 
 function Bar({ label, value, max, text }: { label: string; value: number; max: number; text: string }) {
   const width = max > 0 ? Math.min(100, (100 * value) / max) : 0
@@ -48,6 +49,19 @@ export function ExplainPanel({ explanation: e }: { explanation: Explanation }) {
         {conditionCut > 0 &&
           ` Condition ${e.asset.condition_score}/5 lowers its capacity by ${formatPercent(conditionCut)}.`}
       </p>
+
+      {e.challenger && (
+        <section className="challenger-beside" aria-label="Challenger in shadow">
+          <h3>
+            Challenger: rank {e.challenger.rank} · {formatPercent(e.challenger.p_fail)}
+          </h3>
+          <ChallengerFeatures features={e.challenger.top_features} label="Challenger's top features" />
+          <p className="hint small">
+            In shadow (model version {e.challenger.model_version}): it ranks nothing until a person approves its
+            promotion. Each feature's points are how much it raises the challenger's failure probability.
+          </p>
+        </section>
+      )}
 
       <h3>Consequence {formatCustomers(c.total)} customer-equivalents</h3>
       <Bar label="Own customers" value={c.own_customers} max={c.total} text={formatCustomers(c.own_customers)} />

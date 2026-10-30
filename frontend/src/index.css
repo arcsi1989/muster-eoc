@@ -1434,12 +1434,12 @@ button.link {
   stroke-dasharray: 4 4;
 }
 
-.reliability-before {
+.reliability-first {
   stroke: var(--danger);
   fill: var(--danger);
 }
 
-.reliability-after {
+.reliability-second {
   stroke: var(--accent);
   fill: var(--accent);
 }
@@ -1456,16 +1456,29 @@ button.link {
   background: currentColor;
 }
 
-.legend-swatch.reliability-before {
+.legend-swatch.reliability-first {
   background: var(--danger);
 }
 
-.legend-swatch.reliability-after {
+.legend-swatch.reliability-second {
   background: var(--accent);
 }
 
 .legend-swatch.reliability-diagonal {
   background: var(--muted);
+}
+
+/* Champion and challenger */
+
+.challenger-features {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.challenger-beside {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.75rem;
+  margin: 0.75rem 0;
 }
 
 /* Field tasks */
