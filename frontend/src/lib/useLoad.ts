@@ -50,3 +50,12 @@ export function useLoad<T>(loader: (() => Promise<T>) | null) {
 
   return { state, retry, setData }
 }
+
+/** The latest loaded data, kept while the next load runs, so a view updates in place instead of
+ * flashing a loading state. Cleared when there is nothing to load. */
+export function useLatestData<T>(state: LoadState<T>): T | null {
+  const [latest, setLatest] = useState<T | null>(null)
+  const next = state.status === 'ok' ? state.data : state.status === 'idle' ? null : latest
+  if (next !== latest) setLatest(next)
+  return next
+}

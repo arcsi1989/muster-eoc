@@ -13,6 +13,8 @@
   --land: #f4f0e3;
   --coast: #5b7a99;
   --track: #8250df;
+  /* the storm map's redraw on each advisory (CR-02 C1); useFlip reads it too */
+  --storm-transition: 300ms;
   --prepare-bg: #fff1c2;
   --prepare-text: #5c4400;
   --full-bg: #ffd8d3;
@@ -729,6 +731,298 @@ button.link {
 
 .legend-scale .legend-dot:first-child {
   margin-left: 0;
+}
+
+/* Storm map (CR-02 C1): plain SVG on the km grid */
+
+.storm-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  min-width: 0;
+}
+
+.storm-map {
+  position: relative;
+  background: var(--water);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.storm-map-canvas {
+  display: block;
+  width: 100%;
+  height: min(72vh, 820px);
+}
+
+.storm-map-views {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.storm-map-views button[aria-pressed='true'] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.storm-map-empty {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.75rem;
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.storm-map-canvas .land {
+  fill: var(--land);
+}
+
+.storm-map-canvas .coast {
+  fill: none;
+  stroke: var(--coast);
+}
+
+.storm-map-canvas .cone {
+  fill: #fff;
+  fill-opacity: 0.45;
+  stroke: var(--text);
+  stroke-opacity: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.storm-map-canvas .track-forecast,
+.storm-map-canvas .track-past,
+.storm-map-canvas .track-previous {
+  fill: none;
+  stroke: var(--text);
+}
+
+.storm-map-canvas .track-previous {
+  stroke-opacity: 0.35;
+  stroke-dasharray: 2 4;
+}
+
+.storm-map-canvas .track-dot {
+  stroke: var(--text);
+  stroke-width: 0.6;
+  transition: transform var(--storm-transition) ease-out, fill var(--storm-transition);
+}
+
+.storm-map-canvas .time-label {
+  fill: var(--text);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: transform var(--storm-transition) ease-out;
+}
+
+.storm-redraw {
+  animation: storm-fade-in var(--storm-transition) ease-out;
+}
+
+.storm-fade-out {
+  opacity: 0;
+  animation: storm-fade-out var(--storm-transition) ease-in;
+  pointer-events: none;
+}
+
+@keyframes storm-fade-out {
+  from {
+    opacity: 1;
+  }
+}
+
+@keyframes storm-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.storm-map-canvas .icon {
+  cursor: default;
+  outline: none;
+}
+
+.storm-map-canvas .asset {
+  cursor: pointer;
+}
+
+.storm-map-canvas .asset-shape {
+  fill: #9aa0a6;
+  stroke: #222;
+  stroke-width: 0.6;
+  transition: fill var(--storm-transition);
+}
+
+.storm-map-canvas .icon:focus-visible .asset-shape,
+.storm-map-canvas .icon:focus-visible rect,
+.storm-map-canvas .icon:focus-visible polygon,
+.storm-map-canvas polygon.icon:focus-visible {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.storm-map-canvas .low-confidence {
+  fill: none;
+  stroke: var(--text);
+  stroke-dasharray: 1.5 1.5;
+}
+
+.storm-map-canvas .facility-hospital rect {
+  fill: #fff;
+  stroke: #d1242f;
+  stroke-width: 0.8;
+}
+
+.storm-map-canvas .facility-hospital path {
+  stroke: #d1242f;
+  stroke-width: 1.6;
+}
+
+.storm-map-canvas .facility-shelter polygon {
+  fill: #0969da;
+  stroke: #fff;
+  stroke-width: 0.6;
+}
+
+.storm-map-canvas .staging {
+  fill: #f2cc60;
+  stroke: #000;
+  stroke-width: 0.8;
+}
+
+.storm-map-canvas .hover-card rect {
+  fill: var(--card);
+  stroke: var(--border);
+}
+
+.storm-map-canvas .hover-card text {
+  fill: var(--text);
+}
+
+.cone-note {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.storm-legend {
+  font-size: 0.8rem;
+}
+
+.storm-legend p {
+  margin: 0.2rem 0;
+}
+
+.storm-legend .legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.8rem;
+}
+
+.storm-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.storm-legend .legend-dot {
+  margin-left: 0;
+  border: 1px solid var(--text);
+}
+
+.storm-legend .legend-line {
+  display: inline-block;
+  width: 24px;
+  border-top: 2px solid var(--text);
+}
+
+.storm-legend .legend-line.forecast {
+  border-top-style: dashed;
+}
+
+.storm-legend .legend-line.previous {
+  border-top-style: dotted;
+  opacity: 0.5;
+}
+
+.storm-legend .legend-swatch.cone {
+  display: inline-block;
+  width: 16px;
+  height: 10px;
+  background: #fff;
+  border: 1px solid var(--muted);
+}
+
+.storm-legend .legend-icon {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+
+.storm-legend .legend-icon.hospital {
+  background: #fff;
+  border: 2px solid #d1242f;
+}
+
+.storm-legend .legend-icon.shelter {
+  background: #0969da;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.storm-legend .legend-icon.plant {
+  background: #9aa0a6;
+  border: 1px solid #222;
+}
+
+.storm-legend .legend-icon.staging {
+  background: #f2cc60;
+  border: 1px solid #000;
+  transform: rotate(45deg) scale(0.8);
+}
+
+.storm-legend .legend-icon.ring {
+  border-radius: 50%;
+  border: 1px dashed var(--text);
+}
+
+.storm-facts {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.storm-facts dt {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.storm-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storm-redraw,
+  .storm-fade-out,
+  .storm-map-canvas .track-dot,
+  .storm-map-canvas .time-label,
+  .storm-map-canvas .asset-shape {
+    animation: none;
+    transition: none;
+  }
 }
 
 @media (max-width: 900px) {
