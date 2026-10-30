@@ -3,6 +3,7 @@
   "description": "Published lognormal fragility curve: P(fail | x) = Phi(ln(x / theta) / beta).",
   "properties": {
     "asset_type": {
+      "data_class": "public",
       "enum": [
         "substation",
         "pump_station",
@@ -12,11 +13,13 @@
       "type": "string"
     },
     "beta": {
+      "data_class": "public",
       "exclusiveMinimum": 0,
       "title": "Beta",
       "type": "number"
     },
     "hazard": {
+      "data_class": "public",
       "enum": [
         "wind",
         "flood"
@@ -25,6 +28,7 @@
       "type": "string"
     },
     "theta": {
+      "data_class": "public",
       "exclusiveMinimum": 0,
       "title": "Theta",
       "type": "number"
