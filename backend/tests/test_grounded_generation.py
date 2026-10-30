@@ -19,6 +19,8 @@ from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     LLMUnavailable,
+    ObjectivesRequest,
+    ObjectivesResult,
     Paragraph,
     Prompt,
     Section,
@@ -80,6 +82,9 @@ class FakeProvider:
         if isinstance(output, Exception):
             raise output
         return DraftResult(output, self.name, self.model, prompt.version, 7, {"input_tokens": 3})
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
+        raise LLMUnavailable("not used here")
 
     def chat(
         self,
@@ -207,6 +212,9 @@ class FakeChat:
         self.questions: list[str] = []
 
     def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
+        raise LLMUnavailable("not used here")
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
         raise LLMUnavailable("not used here")
 
     def chat(

@@ -9,6 +9,9 @@ from app.llm.schemas import (
     DraftItem,
     DraftRequest,
     DraftResult,
+    ObjectivesRequest,
+    ObjectivesResult,
+    ObjectiveWording,
     Paragraph,
     Prompt,
     Section,
@@ -54,6 +57,11 @@ class TemplateProvider:
     ) -> ChatResult:
         """Answers from the tools without a model, so `prompt` is not used."""
         return template_chat(question, run_tool, self._top_risks)
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
+        """Keeps the template wording: there is no model to reword it."""
+        wording = ObjectiveWording(texts=[o.text for o in request.objectives])
+        return ObjectivesResult(wording, self.name, self.model, None, 0, {})
 
     def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
         """Writes the draft from the request without a model, so `prompt` is not used."""

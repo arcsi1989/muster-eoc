@@ -68,3 +68,13 @@ calibration:
   top_fraction: 0.10          # top-decile capture: share of failures among the top 10 % predicted
   prior_sd_log_theta: 0.25    # MAP prior: lognormal around the published curves, sd of ln(theta)
   prior_sd_log_beta: 0.25     # ... and of ln(beta)
+
+planning:                     # CR-02 C3: the ICS-215 and IAP draft for the next operational period
+  period_hours: 12            # one operational period: the time between two advisories
+  max_tokens: 1000            # per objective rephrasing call
+  retries: 1                  # after a rephrasing fails citation validation
+  resources:                  # per field-work state key: what one site needs and where it comes from
+    generator_assigned: {kind: Portable generator, per_site: 1, stock_state: generators_fuelled}
+    barrier_installed: {kind: Flood barrier crew, per_site: 1, per_staging_area: 1}
+    inspection_completed: {kind: Inspection crew, per_site: 1, per_staging_area: 2}
+    relocated: {kind: Relocation crew, per_site: 1, per_staging_area: 1}

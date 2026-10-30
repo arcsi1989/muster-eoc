@@ -9,6 +9,7 @@ from sqlalchemy.types import TypeDecorator
 from sqlmodel import Field, SQLModel
 
 from app.llm.schemas import PackageDraft
+from app.planning.products import PlanningProducts
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
 from app.replay.diff import AdvisoryChanges
@@ -276,3 +277,15 @@ class Sitrep(SQLModel, table=True):
     approved_by: str
     approved_at: datetime
     edited: bool  # the approver changed the draft text
+
+
+class PlanningDraft(SQLModel, table=True):
+    """The ICS-215 and IAP objectives drafted for the operational period after an advisory. It
+    stays DRAFT until the Planning Section Chief and then the commanding role approve it."""
+
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    products: PlanningProducts = Field(sa_column=Column(Payload(PlanningProducts), nullable=False))
+    drafted_at: datetime
+    planning_approved_at: datetime | None = None
+    released_by: str | None = None  # the commanding role
+    released_at: datetime | None = None

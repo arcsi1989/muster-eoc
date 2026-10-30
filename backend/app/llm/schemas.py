@@ -171,3 +171,50 @@ class ChatResult:
     prompt_version: str | None  # the prompt the answer was written with; None for the template
     latency_ms: int
     usage: dict[str, int]
+
+
+class IapObjective(BaseModel):
+    """One incident objective of the IAP draft: its wording and the clauses and sites it cites.
+    The citations come from the findings, never from a model."""
+
+    text: str
+    clause_ids: list[str]
+    entity_ids: list[str]
+
+
+class ObjectiveWording(BaseModel):
+    """A model's rewording of the IAP objectives: one text per objective, in the same order."""
+
+    texts: list[str] = Field(
+        description=(
+            "One reworded objective per objective given, in the same order. Mention only the "
+            "clause and site IDs that objective cites."
+        )
+    )
+
+
+@dataclass(frozen=True)
+class ObjectivesRequest:
+    """The objectives to reword, built by deterministic code; what each may cite is its own
+    clause and entity IDs."""
+
+    advisory_no: int
+    objectives: list[IapObjective]
+    # Not shown: validation problems from the last try.
+    feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
+
+    def shown(self) -> dict[str, Any]:
+        return {
+            "advisory_no": self.advisory_no,
+            "objectives": [o.model_dump() for o in self.objectives],
+        }
+
+
+@dataclass(frozen=True)
+class ObjectivesResult:
+    wording: ObjectiveWording
+    provider: str
+    model: str | None
+    prompt_version: str | None  # None for the template, which keeps the wording
+    latency_ms: int
+    usage: dict[str, int]

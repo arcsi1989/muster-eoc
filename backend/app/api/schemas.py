@@ -11,6 +11,7 @@ from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 from app.llm.schemas import PackageDraft
 from app.models import ItemKind, ItemStatus, PackageStatus
+from app.planning.products import PlanningProducts, PlanningStatus
 from app.playbook.activation import Level
 from app.playbook.engine import Status
 from app.playbook.rules import EntityKind
@@ -370,4 +371,20 @@ class CalibrationOut(BaseModel):
 
 
 class ModelVersionApproveIn(BaseModel):
+    role: Role
+
+
+class PlanningOut(PlanningProducts):
+    """The ICS-215 and IAP objectives drafted for the period after an advisory, DRAFT until
+    the Planning Section Chief approves and the commanding role releases them."""
+
+    advisory_no: int
+    status: PlanningStatus
+    drafted_at: datetime
+    planning_approved_at: datetime | None
+    released_by: str | None
+    released_at: datetime | None
+
+
+class PlanningReleaseIn(BaseModel):
     role: Role

@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from typing import Any
 
 import anthropic
+from pydantic import BaseModel
 
 from app.llm.schemas import (
     ChatResult,
@@ -19,6 +20,9 @@ from app.llm.schemas import (
     DraftRequest,
     DraftResult,
     LLMUnavailable,
+    ObjectivesRequest,
+    ObjectivesResult,
+    ObjectiveWording,
     Prompt,
     SitrepDraft,
     ToolRunner,
@@ -56,14 +60,11 @@ class AnthropicProvider:
         self._client = client
         self.model: str | None = model
 
-    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
-        content = (
-            "<findings>\n"
-            + json.dumps(request.shown(), indent=1, default=str)
-            + "\n</findings>\n\nWrite the draft situation report from the findings above."
-        )
-        if request.feedback:
-            content += "\n\nYour previous draft was rejected:\n- " + "\n- ".join(request.feedback)
+    def _parse[O: BaseModel](
+        self, prompt: Prompt, content: str, output: type[O]
+    ) -> tuple[O, str, int, dict[str, int]]:
+        """One structured-output call: the parsed output, the model that answered, the latency
+        and the token usage."""
         started = time.monotonic()
         response = _call(
             lambda: self._client.beta.messages.parse(
@@ -71,8 +72,8 @@ class AnthropicProvider:
                 max_tokens=prompt.max_tokens,
                 system=prompt.system,
                 messages=[{"role": "user", "content": content}],
-                output_format=SitrepDraft,
-                output_config={"effort": "low"},  # a short narrative over prepared findings
+                output_format=output,
+                output_config={"effort": "low"},  # short text over prepared, deterministic data
                 fallbacks="default",
                 betas=[FALLBACK_BETA],
             )
@@ -93,9 +94,29 @@ class AnthropicProvider:
             raise LLMUnavailable("the model declined the request")
         if response.parsed_output is None:
             raise LLMUnavailable(f"no structured output (stop reason {response.stop_reason})")
-        return DraftResult(
-            response.parsed_output, self.name, response.model, prompt.version, latency_ms, usage
+        return response.parsed_output, response.model, latency_ms, usage
+
+    def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
+        content = (
+            "<findings>\n"
+            + json.dumps(request.shown(), indent=1, default=str)
+            + "\n</findings>\n\nWrite the draft situation report from the findings above."
         )
+        if request.feedback:
+            content += "\n\nYour previous draft was rejected:\n- " + "\n- ".join(request.feedback)
+        draft, model, latency_ms, usage = self._parse(prompt, content, SitrepDraft)
+        return DraftResult(draft, self.name, model, prompt.version, latency_ms, usage)
+
+    def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
+        content = (
+            "<objectives>\n"
+            + json.dumps(request.shown(), indent=1)
+            + "\n</objectives>\n\nReword the incident objectives above."
+        )
+        if request.feedback:
+            content += "\n\nYour previous wording was rejected:\n- " + "\n- ".join(request.feedback)
+        wording, model, latency_ms, usage = self._parse(prompt, content, ObjectiveWording)
+        return ObjectivesResult(wording, self.name, model, prompt.version, latency_ms, usage)
 
     def chat(
         self,

@@ -3,7 +3,16 @@ Providers are transport only: the task hands them its prompt, they send it and r
 
 from typing import Any, Protocol
 
-from app.llm.schemas import ChatResult, ChatTurn, DraftRequest, DraftResult, Prompt, ToolRunner
+from app.llm.schemas import (
+    ChatResult,
+    ChatTurn,
+    DraftRequest,
+    DraftResult,
+    ObjectivesRequest,
+    ObjectivesResult,
+    Prompt,
+    ToolRunner,
+)
 
 
 class LLMProvider(Protocol):
@@ -20,3 +29,7 @@ class LLMProvider(Protocol):
         run_tool: ToolRunner,
         prompt: Prompt,
     ) -> ChatResult: ...
+
+    def rephrase_objectives(
+        self, request: ObjectivesRequest, prompt: Prompt
+    ) -> ObjectivesResult: ...

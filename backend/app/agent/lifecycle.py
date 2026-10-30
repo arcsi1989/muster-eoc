@@ -5,12 +5,13 @@ The package row's status is the record (ADR 0001); the advisory cycle's checkpoi
 adapter for the approval pause, and only this module reads whether it is waiting. A package
 opens when its advisory is issued and stays open until the next advisory expires it.
 
-Every decision on a package takes the same path: item decisions, situation report approval and
-activation declarations are checked here, under the cycle's lock and before anything changes
-(so a refusal changes nothing), and then the cycle's decision step applies them. That step is
-the only writer of decided operational state; besides it, only the initial load, a scenario
-reset and the per-advisory flag reset when an advisory is issued write operational state. A
-declaration is the only code that sets the activation level.
+Every decision on a package takes the same path: item decisions, situation report approval,
+activation declarations and the planning draft's release approvals are checked here, under the
+cycle's lock and before anything changes (so a refusal changes nothing), and then the cycle's
+decision step applies them. That step is the only writer of decided operational state; besides
+it, only the initial load, a scenario reset and the per-advisory flag reset when an advisory is
+issued write operational state. A declaration is the only code that sets the activation level.
+The planning draft for the next operational period is written while the package is open.
 
 The cycle's steps do their work here too (`CycleSteps`): opening the package and its items,
 saving the draft, applying decisions, expiring and closing, and the audit record of each. The
@@ -43,9 +44,11 @@ from app.models import (
     OpState,
     PackageItem,
     PackageStatus,
+    PlanningDraft,
     Score,
     Sitrep,
 )
+from app.planning import service as planning
 from app.playbook.activation import LEVEL_NUMBER, PROPOSAL_RULE, activation_proposal
 from app.playbook.package import SITREP_RULE, package_items, satisfying_state
 from app.playbook.service import (
@@ -65,6 +68,7 @@ if TYPE_CHECKING:  # the cycle runs the graph, whose steps call back into this m
 EXPIRE = "expire"
 DECLARE = "declare"
 APPROVE_SITREP = "approve_sitrep"
+RELEASE = "release_planning"
 
 
 class PackageClosed(ConflictError):
@@ -272,6 +276,47 @@ def declare(session: Session, cycle: AdvisoryCycle, declaration: decisions.Decla
     return advisory_no
 
 
+def draft_planning(
+    session: Session,
+    playbook: Playbook,
+    cycle: AdvisoryCycle,
+    config: ScoringConfig,
+    llm: LLMProvider,
+    advisory_no: int,
+) -> PlanningDraft:
+    """Drafts the ICS-215 and IAP objectives for the period after `advisory_no` from its
+    package's decisions so far, while the package is open and the draft is not yet approved."""
+    advisory = service.require_issued(session, advisory_no)
+    _require_open(session, cycle, advisory_no)
+    planning.check_redraft(session, advisory_no)
+    fallback = TemplateProvider.from_config(config)
+    drafted = planning.draft(session, advisory, playbook, config.planning, llm, fallback)
+    session.commit()
+    session.refresh(drafted)
+    return drafted
+
+
+def release_planning(
+    session: Session,
+    playbook: Playbook,
+    cycle: AdvisoryCycle,
+    advisory_no: int,
+    role: decisions.Role,
+) -> PlanningDraft:
+    """The next release approval of the planning draft, behind the same gate as an item
+    decision: the package is open, then the Planning Section Chief approves and the role that
+    commands at the advisory releases. Then the cycle records it."""
+    advisory = service.require_issued(session, advisory_no)
+
+    def precheck() -> None:  # under the cycle's lock, so two approvals cannot both pass
+        lead = _commander_if_open(session, playbook, cycle, advisory)
+        planning.check_release(session, advisory_no, role, lead)
+
+    cycle.release_planning(advisory_no, role, precheck)
+    session.expire_all()
+    return planning.require_draft(session, advisory_no)
+
+
 class CycleSteps:
     """The work of each advisory cycle step, one transaction each (the graph opens it). Every
     step writes its audit event."""
@@ -449,13 +494,17 @@ class CycleSteps:
 
     def apply(self, session: Session, advisory_no: int, decision: dict[str, Any]) -> bool:
         """Applies a decision the lifecycle checked: an item decision, a declaration, the
-        situation report approval, or the next advisory expiring the package. The only writer
+        situation report approval, a planning release approval, or the next advisory expiring
+        the package. The only writer
         of decided operational state. Returns True when the package's decisions are over."""
         advisory = self._advisory(session, advisory_no)
         action = decision.get("action")
         if action == EXPIRE:
             self._expire_items(session, advisory)
             return True
+        if action == RELEASE:
+            planning.apply_release(session, advisory, decision["role"])
+            return False
         if action == APPROVE_SITREP:
             sitrep.apply_approval(session, advisory, decision["role"], decision["text"])
             session.flush()
