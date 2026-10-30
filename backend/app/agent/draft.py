@@ -31,4 +31,5 @@ def produce_draft(
         lambda result: citation_problems(result.draft, request),
         attempts,
         rejected="citations failed validation",
+        task="sitrep_draft",
     )

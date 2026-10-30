@@ -1,0 +1,7 @@
+# LLM settings that are not secrets (B9). Prices estimate the cost shown in the run trace only:
+# USD per million tokens, Anthropic list prices as of 2026-10. A model without a price here shows
+# its tokens with no cost estimate; the template provider uses no model and costs nothing.
+prices_usd_per_mtok:
+  claude-sonnet-5-5: { input: 2.00, output: 10.00 }
+  claude-opus-5-5: { input: 4.00, output: 20.00 }
+  claude-haiku-5-5: { input: 0.10, output: 0.50 }
