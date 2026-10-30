@@ -104,9 +104,8 @@ def test_done_at_advisory_3_satisfies_p_4_2_and_prevents_the_conflict_at_5(
     assert done.status_code == 200, done.text
     assert task(client, "P-4.2", "PS-14")["status"] == "done"
     assert finding(client, 3, "P-4.2", "PS-14")["status"] == "satisfied"
-    event = client.get("/audit", params={"actor": "human"}).json()[0]
+    event = client.get("/audit", params={"actor": "field_supervisor"}).json()[0]
     assert event["type"] == "field_task_done"
-    assert event["payload"]["role"] == "field_supervisor"
     assert event["payload"]["state_written"] == {"PS-14.inspection_completed": True}
     advance_to(client, 5)
     assert finding(client, 5, "P-4.2", "PS-14")["status"] == "satisfied"
@@ -123,7 +122,7 @@ def test_a_blocked_note_shows_as_a_gap_in_the_next_package(client: TestClient) -
         "blocked",
         JAMMED,
     )
-    event = client.get("/audit", params={"actor": "human"}).json()[0]
+    event = client.get("/audit", params={"actor": "field_supervisor"}).json()[0]
     assert (event["type"], event["payload"]["note"]) == ("field_task_blocked", JAMMED)
     advance_to(client, 4)
     gap = item(package(client, 4), "P-4.2", "PS-14")
@@ -156,7 +155,10 @@ def test_done_is_refused_under_stop_work(client: TestClient) -> None:
 
     assert refused.status_code == 409
     assert refused.json()["error"]["code"] == "stop_work"
-    assert "P-4.7" in refused.json()["error"]["message"]
+    assert (
+        "P-4.7 (Stop work where tropical-storm-force wind arrives within 12 hours)"
+        in (refused.json()["error"]["message"])
+    ), "the clause's own title, from the playbook"
     assert task(client, "P-4.2", "PS-14")["status"] == "blocked"
     assert len(client.get("/audit").json()) == audited, "a refusal changes nothing"
     assert ps14_conflict_at_5(client)
@@ -182,6 +184,24 @@ def test_reporting_refusals(client: TestClient) -> None:
     assert again.status_code == 409
     assert again.json()["error"]["code"] == "already_done"
     assert client.get("/field/tasks", params={"district": "Nowhere"}).status_code == 404
+
+
+def test_no_field_work_is_reported_before_a_package_opens(client: TestClient) -> None:
+    refused = report(client, 1, "done", None)
+
+    assert refused.status_code == 409
+    assert refused.json()["error"]["code"] == "package_closed"
+    assert tasks(client) == []
+
+
+def test_a_field_supervisor_cannot_decide_package_items(client: TestClient) -> None:
+    advance_declaring(client, 3)
+    pkg = package(client, 3)
+
+    refused = decide(client, 3, item(pkg, "P-4.2", "PS-14")["id"], "field_supervisor", "approve")
+
+    assert refused.status_code == 422, "not a decision role: no approvals, no priorities"
+    assert item(package(client, 3), "P-4.2", "PS-14")["status"] == "pending"
 
 
 def test_a_blocked_note_reaches_the_draft_only_as_quoted_data(make_client: ClientFactory) -> None:

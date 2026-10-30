@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from app.advisory_context import Commander
 from app.agent.decisions import Action, Role
 from app.agent.field import TaskStatus
+from app.audit.log import Actor
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 from app.llm.schemas import PackageDraft
@@ -317,7 +318,7 @@ class AuditEventOut(BaseModel):
     recorded_at: datetime  # wall-clock time
     advisory_no: int | None  # scenario time
     hours_to_landfall: int | None
-    actor: Literal["system", "agent", "human"]
+    actor: Actor
     type: str
     summary: str
     payload: dict[str, Any]

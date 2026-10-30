@@ -335,7 +335,7 @@ export interface DecisionPackage {
   sitrep: Sitrep | null
 }
 
-export type AuditActor = 'system' | 'agent' | 'human'
+export type AuditActor = 'system' | 'agent' | 'human' | 'field_supervisor'
 
 export interface AuditEvent {
   id: number

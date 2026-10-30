@@ -17,7 +17,7 @@ from sqlmodel import Session, delete
 from app.agent.decisions import DecisionRequest, Declaration, Role
 from app.agent.field import FieldReportRequest
 from app.agent.graph import build_graph
-from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE, FIELD_REPORT
+from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT
@@ -105,8 +105,7 @@ class AdvisoryCycle:
         precheck: Callable[[], None],
     ) -> None:
         """Like `decide`, for a field supervisor's report on a field task."""
-        resume = {"action": FIELD_REPORT, "item_id": item_id, **asdict(request)}
-        self._resume(advisory_no, resume, precheck)
+        self._resume(advisory_no, request.to_resume(item_id), precheck)
 
     def _resume(
         self, advisory_no: int, resume: dict[str, Any], precheck: Callable[[], None]

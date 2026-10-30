@@ -973,7 +973,8 @@ button.link {
   border-radius: 6px;
 }
 
-.actor-human {
+.actor-human,
+.actor-field_supervisor {
   border-left-color: var(--accent);
 }
 
@@ -992,7 +993,8 @@ button.link {
   margin: 0.25rem 0;
 }
 
-.actor-badge-human {
+.actor-badge-human,
+.actor-badge-field_supervisor {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 

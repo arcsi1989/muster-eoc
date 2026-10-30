@@ -66,7 +66,6 @@ if TYPE_CHECKING:  # the cycle runs the graph, whose steps call back into this m
 EXPIRE = "expire"
 DECLARE = "declare"
 APPROVE_SITREP = "approve_sitrep"
-FIELD_REPORT = "field_report"
 
 
 class PackageClosed(ConflictError):
@@ -492,7 +491,7 @@ class CycleSteps:
             session.flush()
             reevaluate(session, advisory, self._playbook, SITREP_RULE)
             return False
-        if action == FIELD_REPORT:
+        if action == field.FIELD_REPORT:
             self._report_field(session, advisory, decision)
             return False
         item = session.get(PackageItem, decision["item_id"])
@@ -598,22 +597,19 @@ class CycleSteps:
         )
 
     def _report_field(self, session: Session, advisory: Advisory, decision: dict[str, Any]) -> None:
-        request = field.FieldReportRequest(
-            district=decision["district"], outcome=decision["outcome"], note=decision["note"]
-        )
+        request = field.FieldReportRequest.from_resume(decision)
         task, written = field.apply(session, self._playbook, advisory, decision["item_id"], request)
         item = task.work.item
-        note = (request.note or "").strip() or None
+        note = request.note
         record(
             session,
-            "human",
+            field.FIELD_SUPERVISOR,
             f"field_task_{request.outcome}",
             f"Field supervisor ({request.district}) reported {item.rule_id} for {item.entity_id} "
             f"{request.outcome}" + (f": {note}" if note else ""),
             advisory,
             {
                 "item_id": item.id,
-                "role": field.FIELD_SUPERVISOR,
                 "rule_id": item.rule_id,
                 "entity_id": item.entity_id,
                 "district": request.district,

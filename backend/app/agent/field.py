@@ -9,20 +9,24 @@ as done, decisions.md 2026-10-28), so the finding opens again and the next packa
 carries the note.
 """
 
-from dataclasses import dataclass
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Any, Final, Literal
 
 from sqlmodel import Session, col, select
 
 from app import advisory_context
+from app.agent.decisions import write_state
 from app.errors import AppError, ConflictError, NotFound
-from app.models import Advisory, Asset, FieldReport, FieldStatus, OpState, PackageItem, StagingArea
-from app.playbook.package import FieldWork, field_work
+from app.models import Advisory, Asset, FieldReport, FieldStatus, PackageItem, StagingArea
+from app.playbook.package import FieldWork, StateChange, field_work
 from app.playbook.service import Playbook, entity_names, reevaluate
 from app.replay import service
 
-FIELD_SUPERVISOR = "field_supervisor"
+FIELD_SUPERVISOR: Final = "field_supervisor"  # the audit actor and the state's set_by
+FIELD_REPORT = "field_report"  # the decision step's action for a report
 TaskStatus = Literal["open", "done", "blocked"]
 
 
@@ -41,11 +45,23 @@ class NoteRequired(AppError):
 
 @dataclass(frozen=True)
 class FieldReportRequest:
-    """A field supervisor of `district` reports a task done or blocked."""
+    """A field supervisor of `district` reports a task done or blocked. The note is stripped;
+    a blank one is None."""
 
     district: str
     outcome: FieldStatus
     note: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "note", (self.note or "").strip() or None)
+
+    def to_resume(self, item_id: int) -> dict[str, Any]:
+        """The report as the cycle's decision step receives it."""
+        return {"action": FIELD_REPORT, "item_id": item_id, **asdict(self)}
+
+    @classmethod
+    def from_resume(cls, decision: dict[str, Any]) -> FieldReportRequest:
+        return cls(decision["district"], decision["outcome"], decision["note"])
 
 
 @dataclass(frozen=True)
@@ -66,8 +82,8 @@ def districts(session: Session) -> list[str]:
 
 
 def _district_of(session: Session) -> dict[str, str]:
-    where = {a.id: a.district for a in session.exec(select(Asset))}
-    return where | {s.id: s.district for s in session.exec(select(StagingArea))}
+    district_by_site = {a.id: a.district for a in session.exec(select(Asset))}
+    return district_by_site | {s.id: s.district for s in session.exec(select(StagingArea))}
 
 
 def current_tasks(session: Session, playbook: Playbook, district: str) -> list[FieldTask]:
@@ -80,8 +96,8 @@ def current_tasks(session: Session, playbook: Playbook, district: str) -> list[F
     return tasks(session, playbook, service.require_issued(session, advisory_no), district)
 
 
-def _require_district(where: dict[str, str], district: str) -> None:
-    if district not in where.values():
+def _require_district(district_by_site: dict[str, str], district: str) -> None:
+    if district not in district_by_site.values():
         raise NotFound(f"no district {district!r}")
 
 
@@ -90,8 +106,8 @@ def tasks(
 ) -> list[FieldTask]:
     """The field tasks at sites in `district` as they stand at `advisory`, oldest first; other
     districts' tasks are never included."""
-    where = _district_of(session)
-    _require_district(where, district)
+    district_by_site = _district_of(session)
+    _require_district(district_by_site, district)
     names = entity_names(session)
     reports = {r.item_id: r for r in session.exec(select(FieldReport))}
     return [
@@ -102,7 +118,7 @@ def tasks(
             reports.get(w.item.id or 0),
         )
         for w in field_work(session, advisory, playbook)
-        if where.get(w.item.entity_id) == district
+        if district_by_site.get(w.item.entity_id) == district
     ]
 
 
@@ -128,11 +144,9 @@ def check(
     if task.status == "done":
         raise AlreadyDone(f"field task {item_id} was already reported done")
     if request.outcome == "done" and task.work.stop_work:
-        raise StopWork(
-            f"Stop work: {', '.join(task.work.stop_work)}. Tropical-storm-force wind is due "
-            "within 12 hours; the task cannot be done now."
-        )
-    if request.outcome == "blocked" and not (request.note or "").strip():
+        in_force = "; ".join(f"{r} ({playbook.rule(r).title})" for r in task.work.stop_work)
+        raise StopWork(f"Stop work: {in_force}. The task cannot be done now.")
+    if request.outcome == "blocked" and not request.note:
         raise NoteRequired("A blocked task needs a note saying why.")
     return task
 
@@ -149,25 +163,14 @@ def apply(
     task = check(session, playbook, advisory, item_id, request)
     now = datetime.now(UTC)
     done = request.outcome == "done"
-    written: dict[str, object] = {}
-    for change in task.work.completes:
-        value = change.value if done else False
-        session.merge(
-            OpState(
-                entity=change.entity,
-                key=change.key,
-                value=value,
-                set_by=FIELD_SUPERVISOR,
-                set_at=now,
-            )
-        )
-        written[f"{change.entity}.{change.key}"] = value
+    changes = [c if done else StateChange(c.entity, c.key, False) for c in task.work.completes]
+    written = write_state(session, changes, FIELD_SUPERVISOR, now)
     session.merge(
         FieldReport(
             item_id=item_id,
             advisory_no=advisory.advisory_no,
             status=request.outcome,
-            note=(request.note or "").strip() or None,
+            note=request.note,
             reported_at=now,
         )
     )
