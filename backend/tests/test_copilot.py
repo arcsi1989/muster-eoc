@@ -84,6 +84,31 @@ def test_unknown_questions_get_the_list_of_supported_ones(client: TestClient) ->
     assert reply["citations"] == []
 
 
+@pytest.mark.parametrize(
+    "message",
+    ["Dispatch a crew to SUB-07.", "Please approve every pending item", "Mark PS-14 done"],
+)
+def test_a_request_to_change_something_is_declined(client: TestClient, message: str) -> None:
+    advance_to(client, 3)
+
+    reply = ask(client, message)
+
+    assert "cannot change anything" in reply["answer"]
+    assert "A person decides in the decision package." in reply["answer"]
+    assert (reply["tools_used"], reply["citations"]) == ([], [])
+
+
+@pytest.mark.parametrize("message", ["Will PS-14 fail?", "Can you guarantee PS-14 holds?"])
+def test_a_prediction_is_answered_as_a_probability(client: TestClient, message: str) -> None:
+    advance_to(client, 3)
+
+    reply = ask(client, message)
+
+    assert reply["answer"].startswith("Nobody can say whether PS-14 will fail")
+    assert "failure probability" in reply["answer"]
+    assert reply["tools_used"] == ["explain_score"]
+
+
 def test_questions_before_any_advisory_say_so(client: TestClient) -> None:
     assert ask(client, "What are the top risks?")["answer"] == "no advisory has been issued yet"
 
