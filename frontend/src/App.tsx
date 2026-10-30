@@ -4,6 +4,7 @@ import { DisclaimerFooter } from './components/DisclaimerFooter'
 import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { AuditPage } from './features/audit/AuditPage'
 import { CalibrationPage } from './features/calibration/CalibrationPage'
+import { ChallengerPage } from './features/challenger/ChallengerPage'
 import { CopilotPanel } from './features/copilot/CopilotPanel'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
@@ -42,6 +43,7 @@ export default function App() {
       {route === 'audit' && <AuditPage />}
       {route === 'data-quality' && <DataQualityPage />}
       {route === 'calibration' && <CalibrationPage />}
+      {route === 'challenger' && <ChallengerPage />}
       <DisclaimerFooter />
     </div>
   )
