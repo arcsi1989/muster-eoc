@@ -16,7 +16,7 @@ from app.errors import ConflictError, NotFound
 from app.llm.provider import LLMProvider
 from app.llm.schemas import ObjectivesRequest
 from app.models import Advisory, Finding, PlanningDraft
-from app.planning.ics215 import worksheet
+from app.planning.ics215 import period_start_hours, worksheet
 from app.planning.objectives import objectives, objectives_prompt, reword, worded
 from app.planning.products import PlanningProducts, PlanningStatus
 from app.playbook.service import Playbook
@@ -47,12 +47,18 @@ def require_draft(session: Session, advisory_no: int) -> PlanningDraft:
     return draft
 
 
+def _require_unreleased(draft: PlanningDraft) -> None:
+    if draft.released_at:
+        raise PlanningReleased(f"the planning draft for advisory {draft.advisory_no} is released")
+
+
 def check_redraft(session: Session, advisory_no: int) -> None:
     """Raises if the advisory's planning draft is in release or released."""
     draft = session.get(PlanningDraft, advisory_no)
-    if draft is not None and draft.released_at:
-        raise PlanningReleased(f"the planning draft for advisory {advisory_no} is released")
-    if draft is not None and draft.planning_approved_at:
+    if draft is None:
+        return
+    _require_unreleased(draft)
+    if draft.planning_approved_at:
         raise PlanningInRelease(
             f"the Planning Section Chief approved the draft for advisory {advisory_no}; "
             "it is no longer redrafted"
@@ -70,7 +76,7 @@ def draft(
     """Drafts the ICS-215 and the IAP objectives for the period after `advisory` and stores
     them as DRAFT, replacing an earlier draft. The rows and objectives are deterministic; the
     provider may only reword the objectives."""
-    start = advisory.hours_to_landfall - config.period_hours
+    start = period_start_hours(advisory, config)
     findings = session.exec(select(Finding).where(Finding.advisory_no == advisory.advisory_no))
     request = ObjectivesRequest(advisory.advisory_no, objectives(list(findings), start))
     outcome = reword(llm, fallback, objectives_prompt(config), request, 1 + config.retries)
@@ -117,17 +123,17 @@ def check_release(session: Session, advisory_no: int, role: Role, lead: Commande
     """Raises unless `role` gives the next release approval of the advisory's planning draft:
     the Planning Section Chief first, then `lead`, the role that commands at the advisory."""
     planning = require_draft(session, advisory_no)
-    if planning.released_at:
-        raise PlanningReleased(f"the planning draft for advisory {advisory_no} is released")
+    _require_unreleased(planning)
+    commander = role_label(lead)
     if planning.planning_approved_at is None and role != PLANNING_CHIEF:
         raise DecisionRefused(
-            f"The Planning Section Chief approves the planning draft first, then the "
-            f"{lead.replace('_', ' ')} releases it."
+            "The Planning Section Chief approves the planning draft first, then the "
+            f"{commander.lower()} releases it."
         )
     if planning.planning_approved_at is not None and role != lead:
         raise DecisionRefused(
-            f"The {lead.replace('_', ' ')} releases the planning draft the Planning Section "
-            "Chief approved."
+            f"The {commander.lower()} releases the planning draft the Planning Section Chief "
+            "approved."
         )
 
 
@@ -136,24 +142,16 @@ def apply_release(session: Session, advisory: Advisory, role: Role) -> None:
     after the lifecycle checked it."""
     planning = require_draft(session, advisory.advisory_no)
     now = datetime.now(UTC)
-    first = planning.planning_approved_at is None
-    if first:
+    if planning.planning_approved_at is None:
         planning.planning_approved_at = now
+        event, summary = "planning_approved", "Planning Section Chief approved the planning draft"
     else:
         planning.released_by, planning.released_at = role, now
+        event = "planning_released"
+        summary = f"{role_label(role)} released the ICS-215 and IAP objectives"
     session.add(planning)
     record(
-        session,
-        "human",
-        "planning_approved" if first else "planning_released",
-        (
-            "Planning Section Chief approved the planning draft"
-            if first
-            else f"{role_label(role)} released the ICS-215 and IAP objectives"
-        ),
-        advisory,
-        {"role": role, "status": status(planning)},
-        {},
+        session, "human", event, summary, advisory, {"role": role, "status": status(planning)}, {}
     )
 
 

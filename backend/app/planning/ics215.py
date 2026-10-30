@@ -4,38 +4,31 @@ model.
 
 "Have" is drawn from the stock the operational state and the staging data show, in approval
 order: portable generators from the fuelled fleet (`generators_fuelled`), crews from the staging
-areas still usable at the advisory (not forecast to flood, not vacated). "Need" is required
+areas still usable at the advisory (not asked to leave under P-4.6). "Need" is required
 minus have."""
 
 import math
 
 from sqlmodel import Session, col, select
 
-from app.models import Advisory, Asset, Exposure, OpState, StagingArea
+from app.models import Advisory, Asset, OpState, StagingArea
 from app.planning.products import Ics215Row
-from app.playbook.package import field_work
+from app.playbook.package import field_work, staging_to_leave
 from app.playbook.service import Playbook, entity_names
 from app.scoring_config import PlanningConfig, PlanningResource
 
 
+def period_start_hours(advisory: Advisory, config: PlanningConfig) -> int:
+    """When the operational period after `advisory` starts, in hours to landfall."""
+    return advisory.hours_to_landfall - config.period_hours
+
+
 def usable_staging_areas(session: Session, advisory: Advisory) -> list[StagingArea]:
-    """The staging areas crews can work from at `advisory`: not forecast to flood (P-4.6) and
-    not vacated."""
-    flooded = {
-        e.site_id
-        for e in session.exec(
-            select(Exposure).where(
-                Exposure.advisory_no == advisory.advisory_no, Exposure.flood_depth_p90_m > 0
-            )
-        )
-    }
-    vacated = {
-        s.entity
-        for s in session.exec(select(OpState).where(OpState.key == "relocated"))
-        if s.value is True
-    }
+    """The staging areas crews can work from at `advisory`: those the playbook has not asked
+    to leave (P-4.6)."""
+    left = staging_to_leave(session, advisory)
     areas = session.exec(select(StagingArea).order_by(col(StagingArea.id))).all()
-    return [a for a in areas if a.id not in flooded | vacated]
+    return [a for a in areas if a.id not in left]
 
 
 def worksheet(
@@ -79,7 +72,7 @@ def worksheet(
                     need=resource.per_site - have,
                     reporting_location_id=base.id if base else None,
                     reporting_location=base.name if base else None,
-                    requested_arrival_hours=advisory.hours_to_landfall - config.period_hours,
+                    requested_arrival_hours=period_start_hours(advisory, config),
                     stop_work=work.stop_work,
                 )
             )

@@ -21,6 +21,10 @@ _Avoid_: Phase, alert level, computed level
 A person's decision to put the EOC at an activation level, taken on the activation proposal: the Director declares Level 3 and Level 2, the Incident Commander Level 1 (P-2.5). It records who declared, when (in scenario time) and why; the Full declaration starts the regulator notification clock (P-7.2).
 _Avoid_: Activation, escalation (as a verb for what the system does)
 
+**Operational period**:
+The time between two advisories, during which one set of decisions and one situation report hold. The planning products are drafted for the next one.
+_Avoid_: Shift, cycle
+
 **Advisory context**:
 What holds at the current advisory: which advisory is current (none before advisory 1), its scenario time, its activation level, whether the EOC is at Full activation, and who commands (Incident Commander or Director). A new advisory starts a new operational period, which resets the per-advisory flags (risk list reviewed, situation report approved).
 _Avoid_: Current state, session state
@@ -114,6 +118,10 @@ _Avoid_: Owner, responsible team
 **Incident Commander**:
 The person with authority over all playbook decisions once the EOC is at Full activation.
 _Avoid_: IC (in UI text), commander
+
+**Planning Section Chief**:
+The head of the Planning section, who approves the ICS-215 and IAP objectives first in their release.
+_Avoid_: Planner, planning lead
 
 **Director**:
 The EOC Director, who holds the decisions the Incident Commander would hold while the EOC is below Full activation.

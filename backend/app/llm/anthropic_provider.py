@@ -53,6 +53,14 @@ def _call[T](fn: Callable[[], T]) -> T:
         return fn()
 
 
+def _content(tag: str, data: Any, task: str, rejected: str, feedback: list[str]) -> str:
+    """The user message: the data inside its tags, the task, and why the last try was rejected."""
+    content = f"<{tag}>\n{json.dumps(data, indent=1, default=str)}\n</{tag}>\n\n{task}"
+    if feedback:
+        content += f"\n\nYour previous {rejected} was rejected:\n- " + "\n- ".join(feedback)
+    return content
+
+
 class AnthropicProvider:
     name = "anthropic"
 
@@ -97,24 +105,24 @@ class AnthropicProvider:
         return response.parsed_output, response.model, latency_ms, usage
 
     def draft_sitrep(self, request: DraftRequest, prompt: Prompt) -> DraftResult:
-        content = (
-            "<findings>\n"
-            + json.dumps(request.shown(), indent=1, default=str)
-            + "\n</findings>\n\nWrite the draft situation report from the findings above."
+        content = _content(
+            "findings",
+            request.shown(),
+            "Write the draft situation report from the findings above.",
+            "draft",
+            request.feedback,
         )
-        if request.feedback:
-            content += "\n\nYour previous draft was rejected:\n- " + "\n- ".join(request.feedback)
         draft, model, latency_ms, usage = self._parse(prompt, content, SitrepDraft)
         return DraftResult(draft, self.name, model, prompt.version, latency_ms, usage)
 
     def rephrase_objectives(self, request: ObjectivesRequest, prompt: Prompt) -> ObjectivesResult:
-        content = (
-            "<objectives>\n"
-            + json.dumps(request.shown(), indent=1)
-            + "\n</objectives>\n\nReword the incident objectives above."
+        content = _content(
+            "objectives",
+            request.shown(),
+            "Reword the incident objectives above.",
+            "wording",
+            request.feedback,
         )
-        if request.feedback:
-            content += "\n\nYour previous wording was rejected:\n- " + "\n- ".join(request.feedback)
         wording, model, latency_ms, usage = self._parse(prompt, content, ObjectiveWording)
         return ObjectivesResult(wording, self.name, model, prompt.version, latency_ms, usage)
 

@@ -160,7 +160,28 @@ def test_every_playbook_rule_that_can_be_open_has_an_objective(seeded: SeededSce
 
     drafted = objectives(findings, by_hours=24)
 
-    assert {c for o in drafted for c in o.clause_ids} == {r.id for r in rules}
+    assert {r.id for r in rules} <= {c for o in drafted for c in o.clause_ids}
+
+
+def test_with_nothing_open_the_standing_objectives_still_make_three() -> None:
+    """Safety stands first; the risk list review and the situation report are due again every
+    operational period (P-4.1, P-7.1), split into two objectives to reach the floor of three."""
+    drafted = objectives([], by_hours=48)
+
+    assert [o.clause_ids for o in drafted] == [["P-4.7", "P-8.2"], ["P-4.1"], ["P-7.1"]]
+    assert drafted[0].text == "Keep crews safe: no field work where stop-work applies"
+    assert drafted[2].text == (
+        "Keep the EOC in step with the storm: approve the situation report by T-48"
+    )
+
+
+def test_safety_leads_even_without_conflicts(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    stored = seeded.session.exec(select(Finding).where(Finding.advisory_no == 1)).all()
+
+    safety = objectives(stored, by_hours=60)[0]
+
+    assert (safety.clause_ids, safety.entity_ids) == (["P-4.7", "P-8.2"], [])
 
 
 OBJECTIVES = ObjectivesRequest(
@@ -291,7 +312,7 @@ def test_the_template_provider_keeps_the_wording_and_is_no_fallback(client: Test
         False,
         None,
     )
-    assert drafted["objectives"][0]["text"].endswith("by T-60")
+    assert drafted["objectives"][1]["text"].endswith("by T-60")
 
 
 def test_release_takes_the_planning_section_chief_then_the_incident_commander(

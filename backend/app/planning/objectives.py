@@ -1,7 +1,8 @@
-"""The IAP incident objectives (CR-02 C3): derived from the open findings by a template, one per
-theme, each citing its clause IDs. A model may only reword them, through grounded generation:
-a wording that mentions a clause or site its objective does not cite is rejected, and the
-template wording stands in. The citations always come from the findings."""
+"""The IAP incident objectives (CR-02 C3): derived from the open findings by a template, a
+standing safety objective and then one per theme, each citing its clause IDs. A model may only
+reword them, through grounded generation: a wording that mentions a clause or site its objective
+does not cite is rejected, and the template wording stands in. The citations always come from
+the findings."""
 
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
@@ -12,23 +13,26 @@ from app.llm.grounded import GroundedOutcome, generate
 from app.llm.provider import LLMProvider
 from app.llm.schemas import IapObjective, ObjectivesRequest, ObjectivesResult, Prompt
 from app.models import Finding
+from app.playbook.package import actionable
 from app.scoring_config import PlanningConfig
 
 
 @dataclass(frozen=True)
 class Theme:
-    """One incident objective: what it protects, and the open findings it answers by rule, each
-    with the phrase it adds to the objective's text."""
+    """One incident objective: what it protects, and the findings it answers by rule, each with
+    the phrase it adds to the objective's text. A recurring rule is due again every operational
+    period (its flag resets with each advisory), so the next period's plan always includes it."""
 
     protects: str
     rules: dict[str, str]
+    recurring: tuple[str, ...] = ()
 
 
-# Life safety first (P-8.2), then supply to critical customers, then the networks and the EOC.
-SAFETY = (
-    "Keep crews safe: no field work where stop-work applies, and the Incident Commander decides "
-    "each conflict"
-)
+# Responder safety is the standing first objective (P-8.2): stop-work (P-4.7) and conflicts.
+SAFETY = "Keep crews safe: no field work where stop-work applies"
+SAFETY_CONFLICTS = ", and the Incident Commander decides each conflict"
+SAFETY_CLAUSES = ("P-4.7", "P-8.2")
+# Then supply to critical customers, then the networks and the EOC.
 THEMES = (
     Theme(
         "Protect the water supply to the treatment plant",
@@ -63,42 +67,61 @@ THEMES = (
             "P-7.1": "approve the situation report",
             "P-7.2": "notify the regulator",
         },
+        recurring=("P-4.1", "P-7.1"),
     ),
 )
-OPEN = ("open", "conflict")
+MIN_OBJECTIVES = 3  # CR-02 C3: three to six incident objectives
 
 
 def _joined(phrases: list[str]) -> str:
     return phrases[0] if len(phrases) == 1 else ", ".join(phrases[:-1]) + " and " + phrases[-1]
 
 
-def _objective(text: str, findings: Sequence[Finding]) -> IapObjective:
-    clauses = {f.rule_id for f in findings} | {c for f in findings for c in f.cites}
+def _objective(text: str, findings: Sequence[Finding], clauses: Sequence[str] = ()) -> IapObjective:
+    cited = set(clauses) | {f.rule_id for f in findings} | {c for f in findings for c in f.cites}
     sites = {f.entity_id for f in findings if f.entity_kind != "event"}
-    return IapObjective(text=text, clause_ids=sorted(clauses), entity_ids=sorted(sites))
+    return IapObjective(text=text, clause_ids=sorted(cited), entity_ids=sorted(sites))
+
+
+def _theme_objectives(
+    theme: Theme, open_findings: Sequence[Finding], by_hours: int, split: bool
+) -> list[IapObjective]:
+    """The theme's objective (none if nothing is due), or one per rule when `split`."""
+    answered = [f for f in open_findings if f.rule_id in theme.rules]
+    due = {f.rule_id for f in answered} | set(theme.recurring)
+    rules = [rule for rule in theme.rules if rule in due]
+    if not rules:
+        return []
+    groups = [[rule] for rule in rules] if split else [rules]
+    return [
+        _objective(
+            f"{theme.protects}: {_joined([theme.rules[r] for r in group])} by T-{by_hours}",
+            [f for f in answered if f.rule_id in group],
+            group,
+        )
+        for group in groups
+    ]
 
 
 def objectives(findings: Sequence[Finding], by_hours: int) -> list[IapObjective]:
-    """The objectives the open and conflicting `findings` call for, to be met by `by_hours`
-    hours to landfall: a safety objective when there are conflicts, then one per theme with an
-    open finding. Raises KeyError for a finding no theme answers, so no rule is left out."""
-    open_findings = [f for f in findings if f.status in OPEN]
+    """The objectives for the operational period that starts `by_hours` hours to landfall: the
+    standing safety objective, then one per theme with an actionable finding or a recurring
+    rule. While there are fewer than three, the last themes with several rules are split into
+    one objective per rule. Raises KeyError for a finding no theme answers, so no rule is left
+    out."""
+    open_findings = [f for f in findings if actionable(f)]
     themed = {rule for theme in THEMES for rule in theme.rules}
     unthemed = sorted({f.rule_id for f in open_findings} - themed)
     if unthemed:
         raise KeyError(f"no IAP objective answers {', '.join(unthemed)}")
-    result = []
     conflicts = [f for f in open_findings if f.status == "conflict"]
-    if conflicts:
-        result.append(_objective(SAFETY, conflicts))
-    for theme in THEMES:
-        answered = [f for f in open_findings if f.rule_id in theme.rules]
-        if answered:
-            rules = {f.rule_id for f in answered}
-            phrases = [phrase for rule, phrase in theme.rules.items() if rule in rules]
-            text = f"{theme.protects}: {_joined(phrases)} by T-{by_hours}"
-            result.append(_objective(text, answered))
-    return result
+    safety = _objective(SAFETY + (SAFETY_CONFLICTS if conflicts else ""), conflicts, SAFETY_CLAUSES)
+    per_theme = [_theme_objectives(t, open_findings, by_hours, split=False) for t in THEMES]
+    for index in reversed(range(len(THEMES))):
+        if 1 + sum(len(o) for o in per_theme) >= MIN_OBJECTIVES:
+            break
+        per_theme[index] = _theme_objectives(THEMES[index], open_findings, by_hours, split=True)
+    return [safety] + [o for theme in per_theme for o in theme]
 
 
 def objectives_prompt(config: PlanningConfig) -> Prompt:
