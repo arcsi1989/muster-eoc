@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ApiError } from '../../api/client'
+import { formatWallClock } from '../../lib/format'
 import { roleLabel } from '../../lib/roles'
 import type { FieldTask } from '../../types/scenario'
 
@@ -8,13 +9,6 @@ const STATUS_LABEL: Record<FieldTask['status'], string> = {
   done: 'Done',
   blocked: 'Blocked',
 }
-
-const wallClock = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-})
 
 interface Props {
   task: FieldTask
@@ -43,14 +37,14 @@ export function FieldTaskCard({ task, onDone, onBlocked, error, busy = false }: 
       <div className="finding-head">
         <span className="chip">{task.rule_id}</span>
         <span className="small">{where}</span>
-        {stopped && <span className="badge overdue">Stop work: {task.stop_work.join(', ')}</span>}
+        {stopped && <span className="badge stop-work">Stop work: {task.stop_work.join(', ')}</span>}
         <span className={`badge status-${task.status}`}>{STATUS_LABEL[task.status]}</span>
       </div>
       <p className="action-text">{task.action}</p>
       <p className="small">{task.why}</p>
       <div className="finding-meta">
         {task.approved_by ? `Approved by ${roleLabel(task.approved_by)}` : 'Approved'} at advisory {task.approved_in}
-        {task.approved_at && `, ${wallClock.format(new Date(task.approved_at))}`}
+        {task.approved_at && `, ${formatWallClock(task.approved_at)}`}
         {task.note && ` · “${task.note}”`}
       </div>
       {error && (

@@ -15,6 +15,8 @@ import type {
   Explanation,
   Exposure,
   Facility,
+  FieldOutcome,
+  FieldReport,
   FieldTask,
   Finding,
   LineageEntry,
@@ -80,5 +82,5 @@ export const getDistricts = () => api<string[]>('/field/districts')
 export const getFieldTasks = (district: string) =>
   api<FieldTask[]>(`/field/tasks?district=${encodeURIComponent(district)}`)
 /** Reports a field task done or blocked; returns the district's tasks as they now stand. */
-export const postFieldReport = (itemId: number, outcome: 'done' | 'blocked', district: string, note?: string) =>
-  api<FieldTask[]>(`/field/tasks/${itemId}/${outcome}`, { method: 'POST', body: JSON.stringify({ district, note }) })
+export const postFieldReport = (itemId: number, outcome: FieldOutcome, report: FieldReport) =>
+  api<FieldTask[]>(`/field/tasks/${itemId}/${outcome}`, { method: 'POST', body: JSON.stringify(report) })

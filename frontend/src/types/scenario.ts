@@ -425,6 +425,15 @@ export interface Calibration {
 }
 
 export type FieldTaskStatus = 'open' | 'done' | 'blocked'
+/** what a field supervisor reports */
+export type FieldOutcome = Exclude<FieldTaskStatus, 'open'>
+
+/** The request body of a report (backend FieldReportIn). */
+export interface FieldReport {
+  /** the supervisor's own district */
+  district: string
+  note?: string
+}
 
 /** An approved item that needs field work, as a field supervisor sees it. */
 export interface FieldTask {

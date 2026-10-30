@@ -1114,7 +1114,8 @@ button.link {
   color: var(--accent);
 }
 
-.badge.overdue {
+.badge.overdue,
+.badge.stop-work {
   background: var(--danger);
   color: #fff;
 }
@@ -1127,12 +1128,14 @@ button.link {
 
 /* Decision package */
 
-.role-selector {
+.role-selector,
+.district-selector {
   font-size: 0.85rem;
   color: var(--muted);
 }
 
-.role-selector select {
+.role-selector select,
+.district-selector select {
   font: inherit;
   padding: 0.2rem 0.3rem;
   border-radius: 6px;
