@@ -10,6 +10,7 @@ import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { PackagePanel } from './features/package/PackagePanel'
 import { RoleSelector } from './features/package/RoleSelector'
 import { TerritoryMap } from './features/map/TerritoryMap'
+import { PlanningPage } from './features/planning/PlanningPage'
 import { RiskPanel } from './features/risk/RiskPanel'
 import { AdvisoryCard } from './features/scenario/AdvisoryCard'
 import { ChangesPanel } from './features/scenario/ChangesPanel'
@@ -35,6 +36,7 @@ export default function App() {
       </nav>
       {route === 'storm-map' && <StormMapScreen />}
       {route === 'operations' && <OperationsScreen />}
+      {route === 'planning' && <PlanningPage />}
       {route === 'audit' && <AuditPage />}
       {route === 'data-quality' && <DataQualityPage />}
       {route === 'calibration' && <CalibrationPage />}

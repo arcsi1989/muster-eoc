@@ -18,13 +18,14 @@ import type {
   Finding,
   LineageEntry,
   ModelVersion,
+  Planning,
   RiskList,
   Role,
   Scenario,
   Sitrep,
   StagingArea,
 } from '../types/scenario'
-import { api } from './client'
+import { ApiError, api } from './client'
 
 export const getScenario = () => api<Scenario>('/advisories')
 export const nextAdvisory = () => api<Scenario>('/advisories/next', { method: 'POST' })
@@ -67,6 +68,17 @@ export const postDeclaration = (declaration: Declaration) =>
   api<DecisionPackage>('/activation/declare', { method: 'POST', body: JSON.stringify(declaration) })
 export const approveSitrep = (advisoryNo: number, role: Role, text: string) =>
   api<Sitrep>(`/sitrep/${advisoryNo}/approve`, { method: 'POST', body: JSON.stringify({ role, text }) })
+/** The planning draft of the period after the advisory; null while none is drafted. */
+export const getPlanning = (advisoryNo: number) =>
+  api<Planning>(`/packages/${advisoryNo}/planning`).catch((e: unknown) => {
+    if (e instanceof ApiError && e.status === 404) return null
+    throw e
+  })
+export const draftPlanning = (advisoryNo: number) =>
+  api<Planning>(`/packages/${advisoryNo}/planning/draft`, { method: 'POST' })
+/** The next release approval: the Planning Section Chief, then the role that commands. */
+export const releasePlanning = (advisoryNo: number, role: Role) =>
+  api<Planning>(`/packages/${advisoryNo}/planning/release`, { method: 'POST', body: JSON.stringify({ role }) })
 export const getAudit = (actor?: AuditActor) =>
   api<AuditEvent[]>(actor ? `/audit?actor=${encodeURIComponent(actor)}` : '/audit')
 export const postChat = (message: string, history: ChatTurn[]) =>
