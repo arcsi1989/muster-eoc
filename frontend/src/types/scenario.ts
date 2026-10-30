@@ -428,6 +428,45 @@ export interface Calibration {
   model_version: ModelVersion
 }
 
+/** A model's metrics on the held-out storm (backend ModelMetricsOut). */
+export interface ModelMetrics {
+  assets: number
+  failures: number
+  brier: number
+  /** null when every asset had the same outcome */
+  roc_auc: number | null
+  top_fraction: number
+  top_capture: number
+  reliability: ReliabilityBin[]
+}
+
+export interface PromotionCriterion {
+  name: 'brier_improvement' | 'top_capture_gain' | 'calibration_error'
+  /** the challenger's margin over the champion, or its calibration error */
+  value: number
+  /** config/models.yaml promotion */
+  threshold: number
+  passed: boolean
+}
+
+export interface PromotionCheck {
+  /** the held-out storm the rule is checked on */
+  storm: string
+  /** the challenger may be proposed */
+  passed: boolean
+  criteria: PromotionCriterion[]
+}
+
+/** GET /challenger (backend ChallengerOut). */
+export interface Challenger {
+  model_version: ModelVersion
+  /** on the held-out storm */
+  challenger: ModelMetrics
+  /** the published curves on the same storm */
+  champion: ModelMetrics
+  promotion: PromotionCheck
+}
+
 export type FieldTaskStatus = 'open' | 'done' | 'blocked'
 /** what a field supervisor reports */
 export type FieldOutcome = Exclude<FieldTaskStatus, 'open'>
