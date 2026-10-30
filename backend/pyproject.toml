@@ -12,6 +12,8 @@ dependencies = [
     "langgraph>=1.2.18",
     "langgraph-checkpoint-sqlite>=3.1.2",
     "numpy>=2.5.4",
+    "opentelemetry-api>=1.45.1",
+    "opentelemetry-sdk>=1.45.1",
     "pydantic-settings>=2.16.2",
     "pyyaml>=6.0.3",
     "rank-bm25>=0.2.2",
@@ -19,6 +21,11 @@ dependencies = [
     "shapely>=2.2.0",
     "sqlmodel>=0.0.48",
     "uvicorn[standard]>=0.54.0",
+]
+
+[project.optional-dependencies]
+otlp = [
+    "opentelemetry-exporter-otlp-proto-http>=1.45.1",
 ]
 
 [dependency-groups]
@@ -56,3 +63,7 @@ addopts = "-q"
 [[tool.mypy.overrides]]
 module = ["rank_bm25"]
 ignore_missing_imports = true  # no type stubs published
+
+[[tool.mypy.overrides]]
+module = ["opentelemetry.exporter.otlp.*"]
+ignore_missing_imports = true  # the optional otlp extra: not installed by uv sync --locked
