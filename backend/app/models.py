@@ -15,6 +15,7 @@ from app.replay.diff import AdvisoryChanges
 from app.risk.confidence import Confidence
 
 ItemKind = Literal["gap", "conflict", "proposal"]
+FieldStatus = Literal["done", "blocked"]
 ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
 PackageStatus = Literal["open", "closed"]
 ModelVersionStatus = Literal["proposed", "approved"]
@@ -254,6 +255,20 @@ class PackageItem(SQLModel, table=True):
     decided_by: str | None = None
     reason: str | None = None
     decided_at: datetime | None = None
+    # A field supervisor's note when the same work, approved in an earlier package, was
+    # reported blocked (CR-02 C2): the gap is back because the work was not done.
+    blocked_note: str | None = None
+
+
+class FieldReport(SQLModel, table=True):
+    """A field supervisor's report on a field task (an approved item that needs field work):
+    done, or blocked with a note. The latest report counts; done is final."""
+
+    item_id: int = Field(primary_key=True, foreign_key="packageitem.id")
+    advisory_no: int  # the advisory in force when it was reported
+    status: FieldStatus = Field(sa_type=String)
+    note: str | None
+    reported_at: datetime
 
 
 class AuditEvent(SQLModel, table=True):

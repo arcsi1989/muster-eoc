@@ -12,6 +12,7 @@ from app.api import (
     routes_calibration,
     routes_copilot,
     routes_exposure,
+    routes_field,
     routes_health,
     routes_packages,
     routes_playbook,
@@ -67,6 +68,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         routes_sitrep,
         routes_copilot,
         routes_calibration,
+        routes_field,
     ):
         app.include_router(router.router)
     return app
