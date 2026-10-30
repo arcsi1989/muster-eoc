@@ -13,9 +13,9 @@ import yaml
 from fastapi.testclient import TestClient
 from sqlmodel import Session, col, select
 
-from app.calibration import service as calibration
-from app.calibration import versions
-from app.challenger.dataset import (
+from muster.calibration import service as calibration
+from muster.calibration import versions
+from muster.challenger.dataset import (
     FEATURES,
     held_out_storm,
     history_storms,
@@ -23,8 +23,8 @@ from app.challenger.dataset import (
     stack,
     storm_sample,
 )
-from app.challenger.model import ChallengerModel, Comparison, TrainedChallenger, baseline
-from app.challenger.promotion import (
+from muster.challenger.model import ChallengerModel, Comparison, TrainedChallenger, baseline
+from muster.challenger.promotion import (
     PROPOSED_EVENT,
     NotPromotable,
     calibration_error,
@@ -32,19 +32,19 @@ from app.challenger.promotion import (
     propose,
     register,
 )
-from app.challenger.train import build_model, metrics
-from app.config import REPO_ROOT, Settings
-from app.db import create_fresh_engine
-from app.hazard.ensemble import StormInput, compute_exposure
-from app.ingest.contracts import SyntheticStormFile
-from app.ingest.loader import PUBLISHED_VERSION, load_gold
-from app.main import create_app
-from app.models import Advisory, AuditEvent, ModelVersion, PackageItem, Score, ShadowScore
-from app.models_config import PromotionRule, load_models_config
-from app.network import load_network
-from app.risk.model import AssetFeatures, RiskModel, asset_features
-from app.risk.score import RuleBasedModel
-from app.scoring_config import load_scoring_config
+from muster.challenger.train import build_model, metrics
+from muster.config import REPO_ROOT, Settings
+from muster.db import create_fresh_engine
+from muster.hazard.ensemble import StormInput, compute_exposure
+from muster.ingest.contracts import SyntheticStormFile
+from muster.ingest.loader import PUBLISHED_VERSION, load_gold
+from muster.main import create_app
+from muster.models import Advisory, AuditEvent, ModelVersion, PackageItem, Score, ShadowScore
+from muster.models_config import PromotionRule, load_models_config
+from muster.network import load_network
+from muster.risk.model import AssetFeatures, RiskModel, asset_features
+from muster.risk.score import RuleBasedModel
+from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededFactory, SeededScenario
 from tests.conftest import test_settings as settings_in
 from tests.test_challenger import FAST, history_slice

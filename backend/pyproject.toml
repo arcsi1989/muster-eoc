@@ -1,7 +1,7 @@
 [project]
-name = "backend"
+name = "muster"
 version = "0.1.0"
-description = "Add your description here"
+description = "Muster: storm preparation decision support"
 authors = [
     { name = "Aron Horvath", email = "arcsi1989@gmail.com" }
 ]
@@ -52,7 +52,7 @@ select = ["E", "F", "I", "B", "UP", "ASYNC"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["app", "tests"]
+files = ["muster", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

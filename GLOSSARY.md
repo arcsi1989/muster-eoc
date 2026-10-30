@@ -1,4 +1,4 @@
-# SGW Storm Preparation
+# Muster
 
 The language of the Emergency Operations Center (EOC) of a fictional utility preparing for a
 hurricane, as used by the prototype. All names and data are fictional.

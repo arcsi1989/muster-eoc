@@ -1,5 +1,5 @@
 # The golden set of the LLM evaluation (CR-03 C1): `make eval` and `make eval-llm` run it,
-# app/evals checks it by rules only (no model judges a run), config/evals.yaml gates it.
+# muster/evals checks it by rules only (no model judges a run), config/evals.yaml gates it.
 # Each case: the advisory it runs at, a copilot question or a situation report draft, setup steps
 # that happen before it (through the decision package lifecycle), and what a run must show.
 # Every case is also checked for grounding (IDs and numbers come from the turn's tool results),

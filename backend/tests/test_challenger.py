@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from app.challenger.dataset import (
+from muster.challenger.dataset import (
     FEATURES,
     StormSample,
     history_storms,
@@ -15,14 +15,14 @@ from app.challenger.dataset import (
     stack,
     storm_sample,
 )
-from app.challenger.train import build_model, cross_validate, failure_probability, run
-from app.config import REPO_ROOT
-from app.datagen.generate import SCENARIO_START
-from app.datagen.history import HISTORY_FILE, build_history
-from app.datagen.truth import extra_failure_probability
-from app.ingest.contracts import SyntheticStormFile
-from app.models_config import ChallengerConfig, HistoryConfig, load_models_config
-from app.scoring_config import load_scoring_config
+from muster.challenger.train import build_model, cross_validate, failure_probability, run
+from muster.config import REPO_ROOT
+from muster.datagen.generate import SCENARIO_START
+from muster.datagen.history import HISTORY_FILE, build_history
+from muster.datagen.truth import extra_failure_probability
+from muster.ingest.contracts import SyntheticStormFile
+from muster.models_config import ChallengerConfig, HistoryConfig, load_models_config
+from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededScenario
 
 GOLD = REPO_ROOT / "data" / "gold"

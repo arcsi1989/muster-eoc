@@ -5,9 +5,9 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-from app import advisory_context
-from app.api.schemas import FindingOut
-from app.playbook.service import finding_views
+from muster import advisory_context
+from muster.api.schemas import FindingOut
+from muster.playbook.service import finding_views
 from tests.conftest import SeededScenario
 
 

@@ -7,9 +7,9 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.config import REPO_ROOT
-from app.llm.config import load_llm_config
-from app.llm.schemas import LLMUnavailable, Paragraph
+from muster.config import REPO_ROOT
+from muster.llm.config import load_llm_config
+from muster.llm.schemas import LLMUnavailable, Paragraph
 from tests.conftest import ClientFactory, FakeProvider, draft_of
 
 CYCLE_NODES = {

@@ -16,7 +16,7 @@ Where they and this file disagree, they win.
 | What | Backend (`backend/`) | Frontend (`frontend/`) |
 | --- | --- | --- |
 | Install | `uv sync --locked` (or `make install`) | `pnpm install --frozen-lockfile` |
-| Run | `uv run uvicorn app.main:app --reload --reload-dir app --port 8000` | `pnpm dev` (proxies `/api/*` to the backend, prefix stripped) |
+| Run | `uv run uvicorn muster.main:app --reload --reload-dir muster --port 8000` | `pnpm dev` (proxies `/api/*` to the backend, prefix stripped) |
 | Format | `uv run ruff format .` | n/a |
 | Lint | `uv run ruff check .` | `pnpm run lint` (oxlint) |
 | Types | `uv run mypy` (strict) | `pnpm run typecheck` |

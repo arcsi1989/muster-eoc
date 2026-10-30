@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi.testclient import TestClient
 
-from app.llm.schemas import Paragraph
+from muster.llm.schemas import Paragraph
 from tests.conftest import ClientFactory, FakeProvider, draft_of
 from tests.test_demo_scenario import (
     PS14_OVERRIDE,

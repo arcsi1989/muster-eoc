@@ -8,19 +8,19 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from app import advisory_context
-from app.agent.cycle import AdvisoryCycle
-from app.agent.lifecycle import issue_next_advisory
-from app.challenger.model import ChallengerModel
-from app.config import Settings
-from app.db import create_fresh_engine
-from app.ingest.loader import load_gold
-from app.llm.factory import build_provider
-from app.llm.provider import LLMProvider
-from app.llm.schemas import DraftRequest, DraftResult, Paragraph, Prompt, Section, SitrepDraft
-from app.main import create_app
-from app.playbook.service import Playbook, load_playbook
-from app.scoring_config import ScoringConfig, load_scoring_config
+from muster import advisory_context
+from muster.agent.cycle import AdvisoryCycle
+from muster.agent.lifecycle import issue_next_advisory
+from muster.challenger.model import ChallengerModel
+from muster.config import Settings
+from muster.db import create_fresh_engine
+from muster.ingest.loader import load_gold
+from muster.llm.factory import build_provider
+from muster.llm.provider import LLMProvider
+from muster.llm.schemas import DraftRequest, DraftResult, Paragraph, Prompt, Section, SitrepDraft
+from muster.main import create_app
+from muster.playbook.service import Playbook, load_playbook
+from muster.scoring_config import ScoringConfig, load_scoring_config
 
 ClientFactory = Callable[..., AbstractContextManager[TestClient]]
 

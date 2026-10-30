@@ -8,12 +8,12 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from app.calibration.backtest import Observation, brier_score, predict, reliability, top_capture
-from app.calibration.fit import fit_map
-from app.config import REPO_ROOT
-from app.datagen.generate import FRAGILITY_CURVES, TRUE_FRAGILITY_CURVES
-from app.models import FragilityCurve
-from app.scoring_config import load_scoring_config
+from muster.calibration.backtest import Observation, brier_score, predict, reliability, top_capture
+from muster.calibration.fit import fit_map
+from muster.config import REPO_ROOT
+from muster.datagen.generate import FRAGILITY_CURVES, TRUE_FRAGILITY_CURVES
+from muster.models import FragilityCurve
+from muster.scoring_config import load_scoring_config
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
 STEP = CONFIG.risk.condition_theta_reduction_per_step

@@ -7,9 +7,9 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.copilot.tools import TOOL_DEFINITIONS
-from app.llm.anthropic_provider import AnthropicProvider
-from app.llm.schemas import (
+from muster.copilot.tools import TOOL_DEFINITIONS
+from muster.llm.anthropic_provider import AnthropicProvider
+from muster.llm.schemas import (
     ChatResult,
     ChatTurn,
     LLMUnavailable,

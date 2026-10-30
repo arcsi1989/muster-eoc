@@ -85,8 +85,8 @@ function OperationsScreen() {
     <div className="operations">
       <header className="app-header">
         <div className="title">
-          <h1>SGW Storm Preparation</h1>
-          <span className="hint">Fictional replay</span>
+          <h1>Muster</h1>
+          <span className="hint">Storm preparation decision support · Demo scenario: SGW, Bayport County (fictional)</span>
         </div>
         {scenario.state.status === 'ok' && (
           <ScenarioHeader
