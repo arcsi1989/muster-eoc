@@ -1,6 +1,8 @@
 """The copilot's tools (plan section 5): read-only views over the same domain functions the
 screens use. They return plain data and the asset and clause IDs it contains, so answers can
-cite only what a tool returned."""
+cite only what a tool returned. Coordinates, elevation and the dependency graph are restricted
+(CR-03 C1): the copilot filters every result before the model sees it, and the dependency tools
+show only the critical facilities an asset supports."""
 
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
@@ -55,7 +57,8 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
     },
     {
         "name": "get_asset",
-        "description": "An asset's static data: type, location, elevation, condition, customers.",
+        "description": "An asset's static data: type, district, distance to coast, install year, "
+        "condition, last inspection, customers.",
         "input_schema": _schema({"asset_id": ASSET}, ["asset_id"]),
     },
     {
@@ -68,8 +71,8 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
     },
     {
         "name": "get_dependencies",
-        "description": "What an asset feeds and what feeds it, including hospitals, shelters "
-        "and the treatment plant.",
+        "description": "The critical facilities an asset supports (hospitals, shelters) and "
+        "whether it serves the treatment plant.",
         "input_schema": _schema({"asset_id": ASSET}, ["asset_id"]),
     },
     {
@@ -159,11 +162,23 @@ class CopilotTools:
         asset = load_network(self._session).assets.get(asset_id)
         if asset is None:
             raise ToolError(f"unknown asset {asset_id}")
+        # Its coordinates and elevation are restricted: the copilot's filter drops them.
         return ToolOutput(asset.model_dump(mode="json"), asset_ids={asset_id})
 
     def explain_score(self, asset_id: str, advisory: int | None) -> ToolOutput:
         number = self._advisory(advisory)
         e = explain_asset(self._session, asset_id, number)
+        c = e.factors["consequence"]
+        # The consequence components without the assets it feeds (restricted): their customers
+        # as one number, and the critical facilities it supports.
+        consequence = {
+            "own_customers": c["own_customers"],
+            "downstream_customers": sum(a["customers"] for a in c["downstream_assets"]),
+            "facilities": [
+                {"id": f["id"], "type": f["type"], "weight": f["weight"]} for f in c["facilities"]
+            ],
+            "total": c["total"],
+        }
         data = {
             "asset_id": asset_id,
             "name": e.asset.name,
@@ -176,35 +191,35 @@ class CopilotTools:
             "condition_score": e.asset.condition_score,
             "exposure": e.exposure.model_dump(mode="json", exclude={"advisory_no", "site_kind"}),
             "fragility": {"wind": e.factors["wind"], "flood": e.factors["flood"]},
-            "consequence": e.factors["consequence"],
+            "consequence": consequence,
             "confidence": e.score.confidence,
             "confidence_reasons": e.score.confidence_reasons,
         }
+        plants = {f["id"] for f in consequence["facilities"] if f["type"] == "treatment_plant"}
         return ToolOutput(
-            data, asset_ids={asset_id} | {d.id for d in e.feeds + e.fed_by if d.kind == "asset"}
+            data,
+            asset_ids={asset_id} | plants,
+            other_ids={f["id"] for f in consequence["facilities"]} - plants,
         )
 
     def get_dependencies(self, asset_id: str) -> ToolOutput:
+        """Narrowed to the critical facilities the asset supports and whether it serves the
+        treatment plant: no upstream feeders, no asset-to-asset edges (CR-03 C1)."""
         network = load_network(self._session)
         if asset_id not in network.assets:
             raise ToolError(f"unknown asset {asset_id}")
-
-        def describe(entity_id: str) -> dict[str, str]:
-            kind, name = network.describe(entity_id) or ("unknown", entity_id)
-            return {"id": entity_id, "kind": kind, "name": name}
-
-        feeds = [describe(f.to_id) for f in network.feeds.get(asset_id, [])]
-        fed_by = [describe(a) for a in network.fed_by.get(asset_id, [])]
+        facilities = [
+            {"id": f.id, "type": f.type, "name": f.name}
+            for f in network.direct_facilities(asset_id)
+        ]
         data = {
             "asset_id": asset_id,
             "name": network.assets[asset_id].name,
-            "feeds": feeds,
-            "fed_by": fed_by,
+            "critical_facilities": facilities,
+            "serves_treatment_plant": network.serves_treatment_plant(asset_id),
             "feeds_facility_types": sorted(network.feeds_facility_types(asset_id)),
         }
-        assets: set[str] = {asset_id} | {d["id"] for d in feeds + fed_by if d["kind"] == "asset"}
-        others: set[str] = {d["id"] for d in feeds + fed_by if d["kind"] != "asset"}
-        return ToolOutput(data, asset_ids=assets, other_ids=others)
+        return ToolOutput(data, asset_ids={asset_id}, other_ids={f["id"] for f in facilities})
 
     def search_playbook(self, query: str) -> ToolOutput:
         wanted = query.strip().upper()

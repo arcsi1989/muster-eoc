@@ -25,7 +25,7 @@ def _pct(p: float) -> str:
 def why_ranked(data: dict[str, Any]) -> str:
     e, c = data["exposure"], data["consequence"]
     wind, flood = data["fragility"]["wind"], data["fragility"]["flood"]
-    downstream = round(sum(a["customers"] for a in c["downstream_assets"]))
+    downstream = round(c["downstream_customers"])
     facilities = ", ".join(f["id"] for f in c["facilities"]) or "none"
     total = round(c["total"])
     p_fail, p_wind, p_flood = _pct(data["p_fail"]), _pct(data["p_wind"]), _pct(data["p_flood"])
@@ -57,11 +57,13 @@ def top_risks(data: dict[str, Any]) -> str:
 
 
 def dependencies(data: dict[str, Any]) -> str:
-    feeds = ", ".join(f"{d['id']} {d['name']}" for d in data["feeds"]) or "nothing"
-    fed_by = ", ".join(f"{d['id']} {d['name']}" for d in data["fed_by"]) or "no upstream asset"
+    """From the narrowed result: the critical facilities only, never the assets around it."""
+    facilities = ", ".join(f"{d['id']} {d['name']}" for d in data["critical_facilities"])
+    plant = " It serves the treatment plant." if data["serves_treatment_plant"] else ""
     types = ", ".join(data["feeds_facility_types"]) or "no critical facility"
     return (
-        f"{data['asset_id']} {data['name']} feeds {feeds}. It is fed by {fed_by}. "
+        f"{data['asset_id']} {data['name']} supports "
+        f"{facilities or 'no hospital or shelter directly'}.{plant} "
         f"Critical facilities supplied: {types}."
     )
 

@@ -11,6 +11,7 @@ from sqlmodel import Session
 from app import advisory_context
 from app.agent.prompts import load_prompt
 from app.audit.log import record
+from app.classification import for_model
 from app.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from app.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID, mentioned
 from app.llm.grounded import generate
@@ -51,7 +52,9 @@ class CopilotAnswer:
 class _Recorder:
     """Runs tools for the provider and remembers the IDs they returned: asset and clause IDs,
     which become citations, and every ID anywhere in what a tool returned (an error that names
-    an unknown asset included), which an answer may name: what the model is shown is citable."""
+    an unknown asset included), which an answer may name: what the model is shown is citable.
+    Every result passes the data classification filter first, so a restricted field never
+    reaches the model and an ID only a restricted field held is not citable (CR-03 C1)."""
 
     def __init__(self, tools: CopilotTools) -> None:
         self._tools = tools
@@ -66,15 +69,18 @@ class _Recorder:
             return self._shown({"error": str(error)})
         except TypeError:
             return {"error": f"wrong arguments for {name}"}
-        self.asset_ids |= output.asset_ids
+        shown = self._shown(output.data)
+        ids = mentioned(ENTITY_ID, json.dumps(shown, default=str))
+        self.asset_ids |= output.asset_ids & ids
         self.clause_ids |= output.clause_ids
-        self.other_ids |= output.other_ids
-        return self._shown(output.data)
+        self.other_ids |= output.other_ids & ids
+        return shown
 
     def _shown(self, data: dict[str, Any]) -> dict[str, Any]:
-        text = json.dumps(data, default=str)
+        shown = for_model(data)
+        text = json.dumps(shown, default=str)
         self.other_ids |= mentioned(ENTITY_ID, text) | mentioned(CLAUSE_ID, text)
-        return data
+        return shown
 
 
 @dataclass(frozen=True)
