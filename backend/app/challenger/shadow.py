@@ -3,7 +3,6 @@ asset, and the assets it ranks in the top N that the champion does not. Read onl
 never drive the ranking, the playbook check or the package."""
 
 from dataclasses import dataclass
-from typing import Any
 
 from sqlmodel import Session, col, select
 
@@ -12,20 +11,36 @@ from app.replay import service
 
 
 @dataclass(frozen=True)
+class Feature:
+    """One of the challenger's features for an asset (app/challenger/model.py `_ranked`)."""
+
+    feature: str
+    value: float | str  # the asset type is a category
+    contribution: float  # p_fail minus p_fail with this feature alone at the training baseline
+
+
+@dataclass(frozen=True)
 class ShadowView:
     asset_id: str
     model_version: int
     rank: int
     p_fail: float
-    top_features: list[dict[str, Any]]  # the largest contributions first
+    top_features: list[Feature]  # the largest contributions first
 
 
 @dataclass(frozen=True)
 class Disagreement:
+    asset_id: str
     asset_name: str
-    challenger: ShadowView
+    challenger_rank: int
+    challenger_p_fail: float
     champion_rank: int
     champion_p_fail: float
+    top_features: list[Feature]  # why the challenger ranks it higher
+
+
+def _top_features(score: ShadowScore, shown: int) -> list[Feature]:
+    return [Feature(**f) for f in score.factors["features"][:shown]]
 
 
 def _view(score: ShadowScore, shown: int) -> ShadowView:
@@ -34,7 +49,7 @@ def _view(score: ShadowScore, shown: int) -> ShadowView:
         model_version=score.model_version,
         rank=score.rank,
         p_fail=score.p_fail,
-        top_features=score.factors["features"][:shown],
+        top_features=_top_features(score, shown),
     )
 
 
@@ -50,7 +65,8 @@ def disagreements(
     session: Session, advisory_no: int, model_version: int, top_n: int, shown: int
 ) -> list[Disagreement]:
     """The assets the challenger ranks in its top N and the champion does not, by the
-    challenger's rank; empty when it did not run in shadow (it is the champion)."""
+    challenger's rank; empty when it did not run in shadow (it is the champion). An asset the
+    champion did not score at the advisory is skipped: there is no rank to compare with."""
     champion = {s.asset_id: s for s in service.ranked_scores(session, advisory_no)}
     query = (
         select(ShadowScore, Asset)
@@ -62,13 +78,20 @@ def disagreements(
         )
         .order_by(col(ShadowScore.rank))
     )
-    return [
-        Disagreement(
-            asset_name=asset.name,
-            challenger=_view(s, shown),
-            champion_rank=champion[s.asset_id].rank,
-            champion_p_fail=champion[s.asset_id].p_fail,
+    found = []
+    for s, asset in session.exec(query):
+        ranked = champion.get(s.asset_id)
+        if ranked is None or ranked.rank <= top_n:
+            continue
+        found.append(
+            Disagreement(
+                asset_id=s.asset_id,
+                asset_name=asset.name,
+                challenger_rank=s.rank,
+                challenger_p_fail=s.p_fail,
+                champion_rank=ranked.rank,
+                champion_p_fail=ranked.p_fail,
+                top_features=_top_features(s, shown),
+            )
         )
-        for s, asset in session.exec(query)
-        if champion[s.asset_id].rank > top_n
-    ]
+    return found

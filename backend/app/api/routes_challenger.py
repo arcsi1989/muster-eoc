@@ -5,7 +5,6 @@ from fastapi import APIRouter, Query
 
 from app.api.model_version_out import version_out
 from app.api.schemas import (
-    ChallengerFeatureOut,
     ChallengerOut,
     DisagreementOut,
     DisagreementsOut,
@@ -74,18 +73,5 @@ def get_disagreements(
         advisory_no=advisory,
         model_version=version,
         top_n=top_n,
-        items=[
-            DisagreementOut(
-                asset_id=d.challenger.asset_id,
-                asset_name=d.asset_name,
-                challenger_rank=d.challenger.rank,
-                champion_rank=d.champion_rank,
-                challenger_p_fail=d.challenger.p_fail,
-                champion_p_fail=d.champion_p_fail,
-                top_features=[
-                    ChallengerFeatureOut.model_validate(f) for f in d.challenger.top_features
-                ],
-            )
-            for d in found
-        ],
+        items=[DisagreementOut.model_validate(d, from_attributes=True) for d in found],
     )

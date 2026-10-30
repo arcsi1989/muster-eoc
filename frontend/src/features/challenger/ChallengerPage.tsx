@@ -1,9 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { ApiError } from '../../api/client'
-import { getDisagreements } from '../../api/scenario'
 import { captureLabel, formatPercent } from '../../lib/format'
 import { roleLabel } from '../../lib/roles'
-import { useLoad } from '../../lib/useLoad'
 import type { Challenger, ModelMetrics, PromotionCriterion, Role } from '../../types/scenario'
 import { ReliabilityChart } from '../calibration/ReliabilityChart'
 import { RoleSelector } from '../package/RoleSelector'
@@ -11,17 +9,22 @@ import { currentAdvisories } from '../scenario/currentAdvisory'
 import { useScenario } from '../scenario/useScenario'
 import { ChallengerFeatures } from './ChallengerFeatures'
 import { useChallenger } from './useChallenger'
+import { useDisagreements } from './useDisagreements'
 
 const auc = (m: ModelMetrics) => (m.roc_auc === null ? 'n/a' : m.roc_auc.toFixed(3))
 
-const CRITERION: Record<PromotionCriterion['name'], { label: string; format: (v: number) => string; bound: string }> = {
-  brier_improvement: { label: 'Brier score lower by', format: (v) => v.toFixed(3), bound: 'at least' },
+/** Each criterion's label follows the configured top fraction, like the metric table's. */
+const CRITERION: Record<
+  PromotionCriterion['name'],
+  { label: (topFraction: number) => string; format: (v: number) => string; bound: string }
+> = {
+  brier_improvement: { label: () => 'Brier score lower by', format: (v) => v.toFixed(3), bound: 'at least' },
   top_capture_gain: {
-    label: 'Top-decile capture higher by',
+    label: (topFraction) => `${captureLabel(topFraction)} higher by`,
     format: (v) => `${(v * 100).toFixed(1)} pts`,
     bound: 'at least',
   },
-  calibration_error: { label: 'Calibration error', format: (v) => v.toFixed(3), bound: 'at most' },
+  calibration_error: { label: () => 'Calibration error', format: (v) => v.toFixed(3), bound: 'at most' },
 }
 
 /** Both risk models on the held-out storm, the promotion rule, and where they disagree now. */
@@ -67,7 +70,8 @@ export function ChallengerPage() {
 }
 
 function HeldOut({ challenger: c }: { challenger: Challenger }) {
-  const championLabel = 'Champion: published curves'
+  // The rule compares with the rules as published, whichever model is champion (decisions.md).
+  const rulesLabel = 'Rules: published curves'
   const challengerLabel = `Challenger: version ${c.model_version.id}`
   return (
     <section className="card calibration-result" aria-label="Held-out comparison">
@@ -76,7 +80,7 @@ function HeldOut({ challenger: c }: { challenger: Challenger }) {
       </h3>
       <div className="calibration-grid">
         <ReliabilityChart
-          first={{ label: championLabel, reliability: c.champion.reliability }}
+          first={{ label: rulesLabel, reliability: c.champion.reliability }}
           second={{ label: challengerLabel, reliability: c.challenger.reliability }}
         />
         <div>
@@ -85,7 +89,7 @@ function HeldOut({ challenger: c }: { challenger: Challenger }) {
               <tr>
                 <th scope="col">Metric</th>
                 <th scope="col" className="num">
-                  Champion
+                  Rules (published curves)
                 </th>
                 <th scope="col" className="num">
                   Challenger
@@ -132,6 +136,7 @@ function Promotion({ challenger: c, busy, actionError, onPropose, onApprove }: P
   const [role, setRole] = useState<Role>('planning')
   const version = c.model_version
   const failed = c.promotion.criteria.filter((x) => !x.passed)
+  const criterionLabel = (x: PromotionCriterion) => CRITERION[x.name].label(c.challenger.top_fraction)
 
   return (
     <section className="card" aria-label="Promotion">
@@ -151,10 +156,10 @@ function Promotion({ challenger: c, busy, actionError, onPropose, onApprove }: P
         </thead>
         <tbody>
           {c.promotion.criteria.map((x) => {
-            const { label, format, bound } = CRITERION[x.name]
+            const { format, bound } = CRITERION[x.name]
             return (
               <tr key={x.name}>
-                <th scope="row">{label}</th>
+                <th scope="row">{criterionLabel(x)}</th>
                 <td className="num">{format(x.value)}</td>
                 <td className="num">
                   {bound} {format(x.threshold)}
@@ -177,7 +182,7 @@ function Promotion({ challenger: c, busy, actionError, onPropose, onApprove }: P
       )}
       {version.status === 'shadow' && !c.promotion.passed && (
         <p className="hint">
-          The rule does not allow a proposal: {failed.map((x) => CRITERION[x.name].label.toLowerCase()).join(', ')}{' '}
+          The rule does not allow a proposal: {failed.map((x) => criterionLabel(x).toLowerCase()).join(', ')}{' '}
           failed. The rules stay champion.
         </p>
       )}
@@ -218,8 +223,7 @@ function Promotion({ challenger: c, busy, actionError, onPropose, onApprove }: P
 function DisagreementsSection() {
   const scenario = useScenario()
   const { currentNo } = currentAdvisories(scenario.state.status === 'ok' ? scenario.state.data : null)
-  const loader = useCallback(() => getDisagreements(currentNo), [currentNo])
-  const { state, retry } = useLoad(currentNo > 0 ? loader : null)
+  const { state, retry } = useDisagreements(currentNo)
 
   return (
     <section className="card" aria-label="Disagreements">

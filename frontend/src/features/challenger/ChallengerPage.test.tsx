@@ -117,7 +117,7 @@ test('shows both reliability curves and both models’ metrics on the held-out s
 
   expect(screen.getByText(/loading the challenger/i)).toBeInTheDocument()
   const chart = await screen.findByRole('img', { name: /reliability/i })
-  expect(within(chart).getByLabelText(/champion: published curves/i)).toBeInTheDocument()
+  expect(within(chart).getByLabelText(/rules: published curves/i)).toBeInTheDocument()
   expect(within(chart).getByLabelText(/challenger: version 3/i)).toBeInTheDocument()
   expect(within(chart).getByLabelText(/perfect calibration/i)).toBeInTheDocument()
 
@@ -205,8 +205,8 @@ test('a challenger failing the rule is never offered for promotion', async () =>
   render(<ChallengerPage />)
 
   const promotion = await screen.findByRole('region', { name: 'Promotion' })
-  expect(within(promotion).getByRole('row', { name: /top-decile capture higher by/i })).toHaveTextContent(/failed/)
-  expect(promotion).toHaveTextContent(/does not allow a proposal: top-decile capture higher by failed/i)
+  expect(within(promotion).getByRole('row', { name: /top-10% capture higher by/i })).toHaveTextContent(/failed/)
+  expect(promotion).toHaveTextContent(/does not allow a proposal: top-10% capture higher by failed/i)
   expect(within(promotion).queryByRole('button')).not.toBeInTheDocument()
 })
 
@@ -247,4 +247,17 @@ test('a refused approval is shown and the promotion stays proposed', async () =>
 
   expect(await within(promotion).findByRole('alert')).toHaveTextContent('this role cannot approve a model')
   expect(within(promotion).getByRole('button', { name: /approve the promotion/i })).toBeEnabled()
+})
+
+test('the capture criterion is named from the configured top fraction', async () => {
+  const c = challenger()
+  atAdvisory2({
+    'GET /api/challenger': () =>
+      json({ ...c, challenger: { ...c.challenger, top_fraction: 0.2 }, champion: { ...c.champion, top_fraction: 0.2 } }),
+  })
+
+  render(<ChallengerPage />)
+
+  const promotion = await screen.findByRole('region', { name: 'Promotion' })
+  expect(within(promotion).getByRole('row', { name: /top-20% capture higher by/i })).toBeInTheDocument()
 })

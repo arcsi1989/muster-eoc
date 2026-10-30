@@ -103,3 +103,20 @@ def test_once_the_challenger_is_champion_nothing_disagrees_and_it_explains_nothi
     assert body["items"] == []
     explained = client.get("/assets/PS-14/explain", params={"advisory": 1}).json()
     assert explained["challenger"] is None
+
+
+def test_an_asset_the_champion_did_not_score_is_skipped_not_an_error(client: TestClient) -> None:
+    client.post("/advisories/next")
+    items = client.get("/challenger/disagreements", params={"advisory": 1}).json()["items"]
+    assert items, "the saved challenger disagrees with the rules at advisory 1"
+    missing = items[0]["asset_id"]
+    engine: Any = client.app.state.engine  # type: ignore[attr-defined]
+    with Session(engine) as session:
+        score = session.get(Score, (missing, 1))
+        session.delete(score)
+        session.commit()
+
+    response = client.get("/challenger/disagreements", params={"advisory": 1})
+
+    assert response.status_code == 200
+    assert missing not in {i["asset_id"] for i in response.json()["items"]}
