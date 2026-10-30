@@ -41,12 +41,22 @@ class Citation:
 
 
 @dataclass(frozen=True)
+class ToolCall:
+    """One tool call of a turn, with the result as the model was shown it (filtered)."""
+
+    name: str
+    args: dict[str, Any]
+    result: dict[str, Any]
+
+
+@dataclass(frozen=True)
 class CopilotAnswer:
     text: str
     citations: list[Citation]
     provider: str
     fallback: bool
     tools_used: list[str]
+    tool_calls: list[ToolCall]  # what the answering turn called and was shown (the eval reads it)
 
 
 class _Recorder:
@@ -61,8 +71,14 @@ class _Recorder:
         self.asset_ids: set[str] = set()
         self.clause_ids: set[str] = set()
         self.other_ids: set[str] = set()
+        self.calls: list[ToolCall] = []
 
     def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        shown = self._run(name, args)
+        self.calls.append(ToolCall(name, args, shown))
+        return shown
+
+    def _run(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         try:
             output: ToolOutput = self._tools.run(name, args)
         except ToolError as error:
@@ -135,7 +151,9 @@ def answer(
     question: str,
     history: list[ChatTurn],
     scoring: ScoringConfig,
+    prompt: Prompt | None = None,
 ) -> CopilotAnswer:
+    """`prompt` replaces the copilot prompt (the evaluation tries a candidate prompt with it)."""
     config = scoring.copilot
     tools = CopilotTools(session, playbook, config)
     recent = history[-config.history_turns :]
@@ -148,15 +166,15 @@ def answer(
     outcome = generate(
         provider,
         TemplateProvider.from_config(scoring),
-        copilot_prompt(config),
+        prompt or copilot_prompt(config),
         ask,
         _problems,
         1 + config.retries,
         rejected="the answer was not grounded",
         task="copilot",
     )
-    result = outcome.result.chat
-    citations, _ = _cite(result.text, outcome.result.recorder)
+    result, recorder = outcome.result.chat, outcome.result.recorder
+    citations, _ = _cite(result.text, recorder)
 
     advisory = advisory_context.current(session, playbook.levels).advisory
     record(
@@ -177,5 +195,10 @@ def answer(
     )
     session.commit()
     return CopilotAnswer(
-        result.text, citations, outcome.provider, outcome.fallback, result.tools_used
+        result.text,
+        citations,
+        outcome.provider,
+        outcome.fallback,
+        result.tools_used,
+        recorder.calls,
     )

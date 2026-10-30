@@ -105,6 +105,12 @@ done
 #                step services/api "go test" go test ./...
 extra_checks() {
   step backend "types" uv run mypy
+  # make eval's gate (CR-03 C1), template mode; the report goes to a temporary folder, so only
+  # make eval or make eval-llm changes the committed docs/eval/report.md.
+  local eval_out
+  eval_out="$(mktemp -d)"
+  step backend "eval" uv run python -m app.evals.run --out "$eval_out"
+  rm -rf "$eval_out"
 }
 extra_checks
 

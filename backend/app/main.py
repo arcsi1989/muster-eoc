@@ -25,6 +25,7 @@ from app.api import (
 from app.config import Settings, get_settings
 from app.db import create_fresh_engine
 from app.errors import register_error_handlers
+from app.evals import audit as evals
 from app.ingest.loader import load_gold
 from app.llm.config import load_llm_config
 from app.llm.factory import build_provider
@@ -46,6 +47,8 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         engine = create_fresh_engine(settings.database_path)
         with Session(engine) as session:
             load_gold(session, settings.data_dir)
+            evals.record_latest(session, settings.eval_results_path)
+            session.commit()
         app.state.engine = engine
         llm_config = load_llm_config(settings.llm_config_path)
         tracing.start(

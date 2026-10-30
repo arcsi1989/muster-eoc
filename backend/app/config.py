@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
     llm_config_path: Path = REPO_ROOT / "config" / "llm.yaml"
     models_config_path: Path = REPO_ROOT / "config" / "models.yaml"
+    # The latest evaluation (make eval), recorded as an audit event at startup; None: none.
+    eval_results_path: Path | None = REPO_ROOT / "docs" / "eval" / "results.json"
 
     # LLM (decisions.md): template by default and in tests; make dev reads backend/.env.
     llm_provider: Literal["anthropic", "template", "azure_openai"] = "template"
