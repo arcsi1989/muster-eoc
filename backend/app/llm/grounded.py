@@ -11,6 +11,7 @@ from typing import Any, Protocol
 
 from app.llm.provider import LLMProvider
 from app.llm.schemas import LLMUnavailable, Prompt
+from app.tracing import instrument
 
 log = logging.getLogger(__name__)
 
@@ -49,12 +50,36 @@ def generate[R: ProviderResult](
     validate: Callable[[R], list[str]],
     attempts: int,
     rejected: str,
+    task: str,
 ) -> GroundedOutcome[R]:
     """Calls `provider` with the task's `prompt` up to `attempts` times, sending each retry the
     problems the validator found in the last result. If no result passes, or the provider
     raises, the result comes from `fallback`, unvalidated: it is deterministic and built from
     the same request. `rejected` is the task's words for a failed validation, in front of the
-    problems in the fallback reason."""
+    problems in the fallback reason. The whole generation is one span named after `task`."""
+    with instrument.generation(task) as span:
+        outcome = _generate(provider, fallback, prompt, call, validate, attempts, rejected)
+        model = outcome.attempts[-1].get("model") if outcome.attempts else outcome.result.model
+        instrument.record_generation(
+            span,
+            outcome.provider,
+            model,
+            outcome.attempts,
+            outcome.fallback,
+            outcome.fallback_reason,
+        )
+    return outcome
+
+
+def _generate[R: ProviderResult](
+    provider: LLMProvider,
+    fallback: LLMProvider,
+    prompt: Prompt,
+    call: Callable[[LLMProvider, Prompt, list[str]], R],
+    validate: Callable[[R], list[str]],
+    attempts: int,
+    rejected: str,
+) -> GroundedOutcome[R]:
     tries: list[dict[str, Any]] = []
     feedback: list[str] = []
     for _ in range(attempts):

@@ -12,7 +12,7 @@ from app.audit.log import Actor
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 from app.llm.schemas import PackageDraft
-from app.models import ItemKind, ItemStatus, PackageStatus
+from app.models import ItemKind, ItemStatus, PackageStatus, SpanKind, SpanStatus, ValidationResult
 from app.planning.products import PlanningProducts, PlanningStatus
 from app.playbook.activation import Level
 from app.playbook.engine import Status
@@ -414,3 +414,45 @@ class PlanningOut(PlanningProducts):
 
 class PlanningReleaseIn(BaseModel):
     role: Role
+
+
+class TraceSpanOut(BaseModel):
+    """One span of the run trace: an advisory-cycle node or a grounded generation."""
+
+    span_id: str
+    parent_span_id: str | None  # a generation's node, or a span not stored (the HTTP request)
+    advisory_no: int | None
+    kind: SpanKind
+    node: str  # the cycle node, or the generation task (sitrep_draft, copilot, iap_objectives)
+    started_at: datetime
+    ended_at: datetime
+    duration_ms: float
+    status: SpanStatus  # paused: await_approval waiting for decisions
+    provider: str | None  # the provider that produced the result, or "template (fallback)"
+    model: str | None
+    tokens_in: int
+    tokens_out: int
+    cost_usd: float | None  # None: tokens from a model with no price in config/llm.yaml
+    retries: int
+    fallback: bool
+    fallback_reason: str | None
+    validation: ValidationResult | None  # generations only
+    attempts: list[dict[str, Any]]
+
+
+class TraceTotalsOut(BaseModel):
+    latency_ms: float  # top-level spans: a generation is inside its node's time
+    tokens_in: int
+    tokens_out: int
+    cost_usd: float
+    unpriced_spans: int
+    retries: int
+    fallbacks: int
+
+
+class RunTraceOut(BaseModel):
+    run_id: str  # the demo run since the backend started or the scenario was reset
+    advisory_no: int
+    spans: list[TraceSpanOut]
+    advisory_totals: TraceTotalsOut
+    run_totals: TraceTotalsOut

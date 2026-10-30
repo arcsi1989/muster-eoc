@@ -147,6 +147,7 @@ def answer(
         _problems,
         1 + config.retries,
         rejected="the answer was not grounded",
+        task="copilot",
     )
     result = outcome.result.chat
     citations, _ = _cite(result.text, outcome.result.recorder)

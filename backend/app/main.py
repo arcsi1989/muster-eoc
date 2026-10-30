@@ -20,15 +20,18 @@ from app.api import (
     routes_risk,
     routes_sitrep,
     routes_territory,
+    routes_trace,
 )
 from app.config import Settings, get_settings
 from app.db import create_fresh_engine
 from app.errors import register_error_handlers
 from app.ingest.loader import load_gold
+from app.llm.config import load_llm_config
 from app.llm.factory import build_provider
 from app.llm.provider import LLMProvider
 from app.playbook.service import load_playbook
 from app.scoring_config import load_scoring_config
+from app.tracing import store as tracing
 
 
 def create_app(settings: Settings | None = None, llm: LLMProvider | None = None) -> FastAPI:
@@ -44,6 +47,8 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         with Session(engine) as session:
             load_gold(session, settings.data_dir)
         app.state.engine = engine
+        llm_config = load_llm_config(settings.llm_config_path)
+        tracing.start(engine, llm_config, settings.otel_exporter_otlp_endpoint)
         app.state.playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
         app.state.cycle = AdvisoryCycle(
             engine, app.state.playbook, settings.checkpoint_path, provider, scoring
@@ -51,6 +56,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         app.state.settings = settings
         app.state.scoring_config = scoring
         yield
+        tracing.stop()
         app.state.cycle.close()
         engine.dispose()
 
@@ -71,6 +77,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
         routes_copilot,
         routes_calibration,
         routes_field,
+        routes_trace,
     ):
         app.include_router(router.router)
     return app
