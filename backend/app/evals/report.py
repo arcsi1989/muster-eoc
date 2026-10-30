@@ -4,7 +4,9 @@ failed run with its transcript."""
 import json
 from typing import Any
 
-TITLES = {
+from app.evals.golden import verdict
+
+TITLES = {  # one per golden.Category
     "grounding": "Grounding and citations",
     "refusal": "Correct refusal",
     "classification": "Data classification",
@@ -47,7 +49,6 @@ def _failure(case: dict[str, Any], number: int, run: dict[str, Any]) -> list[str
 
 def markdown(results: dict[str, Any]) -> str:
     stamp, summary = results["stamp"], results["summary"]
-    verdict = "passed" if results["gate_passed"] else "FAILED"
     lines = [
         "# Evaluation report",
         "",
@@ -57,19 +58,20 @@ def markdown(results: dict[str, Any]) -> str:
         "Written by `make eval` (template provider) or `make eval-llm` (the configured provider); "
         "checks are rules only, thresholds in `config/evals.yaml` (CR-03 C1).",
         "",
-        f"- Gate: **{verdict}**",
+        f"- Gate: **{verdict(results['gate_passed'])}**",
         f"- Mode: {stamp['mode']}, provider {stamp['provider']}, "
         f"model {stamp['model'] or 'none'}, each case {stamp['repeats']} time(s)",
         "- Prompts: " + ", ".join(f"{k} {v}" for k, v in stamp["prompt_versions"].items()),
         f"- Git commit: {stamp['git_commit']}",
         "",
-        "| Category | Cases | Runs | Passed | Pass rate | Threshold | Gate |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Category | Cases | Runs | Passed | Pass rate | Failed elsewhere | Threshold | Gate |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for category, s in summary.items():
         lines.append(
             f"| {TITLES[category]} | {s['cases']} | {s['runs']} | {s['passed']} | "
-            f"{s['pass_rate']:.0%} | {s['threshold']} | {'ok' if s['gate_passed'] else 'FAILED'} |"
+            f"{s['pass_rate']:.0%} | {s['failed_elsewhere']} | {s['threshold']} | "
+            f"{'ok' if s['gate_passed'] else 'FAILED'} |"
         )
     for category in summary:
         lines += [

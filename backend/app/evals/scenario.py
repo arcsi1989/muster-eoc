@@ -23,8 +23,8 @@ from app.classification import RESTRICTED_KEYS
 from app.config import Settings
 from app.copilot.chat import ToolCall, answer
 from app.db import create_fresh_engine
-from app.errors import DataNotLoaded
 from app.evals.golden import Case, Step
+from app.ids import ENTITY_ID, mentioned
 from app.ingest.loader import load_gold
 from app.llm.provider import LLMProvider
 from app.llm.schemas import PackageDraft, Prompt
@@ -42,6 +42,11 @@ from app.models import (
 )
 from app.playbook.service import Playbook, load_playbook
 from app.scoring_config import ScoringConfig, load_scoring_config
+
+
+class GoldenSetError(ValueError):
+    """A golden case names an asset, item or package the scenario does not have."""
+
 
 DRAFT_REQUEST = "draft_request"  # the one "tool call" of a draft: the request it was shown
 
@@ -159,15 +164,16 @@ class World:
             )
         ).first()
         if item is None or item.id is None:
-            raise DataNotLoaded(f"no item {rule_id} {entity_id} at advisory {advisory_no}")
+            raise GoldenSetError(f"no item {rule_id} {entity_id} at advisory {advisory_no}")
         return item.id
 
     def apply(self, step: Step) -> None:
         self.issue_until(step.at)
         if step.rename_asset:
+            # Test data, not a decision: written directly, so no lifecycle step and no audit event.
             asset = self.session.get(Asset, step.rename_asset.asset_id)
             if asset is None:
-                raise DataNotLoaded(f"no asset {step.rename_asset.asset_id}")
+                raise GoldenSetError(f"no asset {step.rename_asset.asset_id}")
             asset.name = step.rename_asset.name
             self.session.add(asset)
             self.session.commit()
@@ -194,7 +200,9 @@ class World:
         else:
             transcript = self._draft(case, provider, prompts.sitrep)
         changes = _changes(before, _state(self.session))
-        restricted = _restricted_values(self.session, case.expect.restricted_values_of)
+        # The entities the case names and every entity the answer names.
+        named = dict.fromkeys(case.expect.restricted_values_of + sorted(_named(transcript.answer)))
+        restricted = _restricted_values(self.session, list(named))
         return replace(transcript, state_changes=changes, restricted_values=restricted)
 
     def _ask(self, case: Case, provider: LLMProvider, prompt: Prompt) -> Transcript:
@@ -216,7 +224,7 @@ class World:
         advisory = self.session.get(Advisory, case.advisory)
         package = self.session.get(DecisionPackage, case.advisory)
         if advisory is None or package is None:
-            raise DataNotLoaded(f"advisory {case.advisory} has no decision package")
+            raise GoldenSetError(f"advisory {case.advisory} has no decision package")
         config = self.scoring.draft
         request = draft_request(self.session, advisory, self.playbook, package.changes, config)
         outcome = produce_draft(provider, self._template, prompt, request, 1 + config.retries)
@@ -262,3 +270,7 @@ def world(folder: Path, settings: Settings) -> Iterator[World]:
         yield w
     finally:
         w.close()
+
+
+def _named(text: str) -> frozenset[str]:
+    return mentioned(ENTITY_ID, text)

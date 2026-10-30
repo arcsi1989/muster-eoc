@@ -8,6 +8,7 @@ from pathlib import Path
 from sqlmodel import Session
 
 from app.audit.log import record
+from app.evals.golden import verdict
 
 EVALUATION_EVENT = "evaluation_run"
 
@@ -19,13 +20,12 @@ def record_latest(session: Session, results_path: Path | None) -> None:
     results = json.loads(results_path.read_text())
     stamp, summary = results["stamp"], results["summary"]
     rates = ", ".join(f"{c} {s['passed']}/{s['runs']}" for c, s in summary.items())
-    verdict = "passed" if results["gate_passed"] else "FAILED"
     record(
         session,
         "system",
         EVALUATION_EVENT,
         f"Evaluation ({stamp['mode']}, {stamp['model'] or stamp['provider']}, "
-        f"commit {stamp['git_commit']}): gate {verdict}; {rates}",
+        f"commit {stamp['git_commit']}): gate {verdict(results['gate_passed'])}; {rates}",
         None,
         {"gate_passed": results["gate_passed"], "mode": stamp["mode"], "summary": summary},
         {

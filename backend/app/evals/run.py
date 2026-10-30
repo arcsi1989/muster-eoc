@@ -21,7 +21,7 @@ from app.agent.draft import sitrep_prompt
 from app.config import REPO_ROOT, Settings, get_settings
 from app.copilot.chat import copilot_prompt
 from app.evals import report
-from app.evals.checks import check
+from app.evals.checks import Verdict, check
 from app.evals.golden import (
     CATEGORIES,
     Case,
@@ -31,6 +31,7 @@ from app.evals.golden import (
     Step,
     load_eval_config,
     load_golden,
+    verdict,
 )
 from app.evals.scenario import Prompts, Transcript, world
 from app.llm.factory import build_provider
@@ -45,8 +46,12 @@ OUT = REPO_ROOT / "docs" / "eval"
 
 @dataclass(frozen=True)
 class Run:
-    problems: list[str]
+    verdict: Verdict
     transcript: Transcript
+
+    @property
+    def problems(self) -> list[str]:
+        return self.verdict.problems
 
     @property
     def passed(self) -> bool:
@@ -83,6 +88,7 @@ class CategorySummary:
     runs: int
     passed: int
     pass_rate: float
+    failed_elsewhere: int  # runs of other categories that leaked or wrote (zero gates only)
     threshold: str
     gate_passed: bool
 
@@ -144,26 +150,38 @@ def run_cases(
         steps: list[Step] = cases[0].setup
         timeline: list[tuple[int, int, Step | Case]] = [(s.at, 0, s) for s in steps]
         timeline += [(c.advisory, 1, c) for c in cases]
-        with world(folder / f"scenario-{n}", settings) as w:
+        with world(folder / f"scenario-{n}", settings) as scenario:
             for at, _, event in sorted(timeline, key=lambda e: (e[0], e[1])):
                 if isinstance(event, Step):
-                    w.apply(event)
+                    scenario.apply(event)
                     continue
-                w.issue_until(at)
+                scenario.issue_until(at)
                 runs = []
                 for _ in range(repeats):
-                    transcript = w.run(event, provider, prompts)
+                    transcript = scenario.run(event, provider, prompts)
                     runs.append(Run(check(transcript, event.expect), transcript))
                 results[event.id] = CaseResult(event, runs)
     return [results[c.id] for c in golden.cases]
 
 
+def _elsewhere(category: Category, runs: list[Run]) -> int:
+    """Runs of other categories that count against `category`'s gate: a leak against
+    classification, a write attempt or state change against injection, wherever it happened."""
+    if category == "classification":
+        return sum(run.verdict.leaked for run in runs)
+    if category == "injection":
+        return sum(run.verdict.wrote for run in runs)
+    return 0
+
+
 def summarise(results: list[CaseResult], config: EvalConfig) -> dict[Category, CategorySummary]:
     summary = {}
     for category in CATEGORIES:
-        mine = [r for r in results if r.case.category == category]
-        runs = [run for r in mine for run in r.runs]
+        cases = [r for r in results if r.case.category == category]
+        runs = [run for r in cases for run in r.runs]
+        others = [run for r in results if r.case.category != category for run in r.runs]
         passed = sum(run.passed for run in runs)
+        elsewhere = _elsewhere(category, others)
         gate = config.gates[category]
         threshold = (
             f"at most {gate.max_failures} failed"
@@ -171,12 +189,13 @@ def summarise(results: list[CaseResult], config: EvalConfig) -> dict[Category, C
             else f"pass rate at least {gate.min_pass_rate:.0%}"
         )
         summary[category] = CategorySummary(
-            cases=len(mine),
+            cases=len(cases),
             runs=len(runs),
             passed=passed,
             pass_rate=passed / len(runs) if runs else 0.0,
+            failed_elsewhere=elsewhere,
             threshold=threshold,
-            gate_passed=gate.passes(passed, len(runs)),
+            gate_passed=gate.passes(passed, len(runs), elsewhere),
         )
     return summary
 
@@ -249,9 +268,12 @@ def main(argv: Sequence[str] | None = None, settings: Settings | None = None) ->
     )
     write(evaluation, args.out)
     for category, s in evaluation.summary.items():
-        verdict = "ok" if s.gate_passed else "FAILED"
-        print(f"{category:<15} {s.passed}/{s.runs} ({s.pass_rate:.0%}; {s.threshold}): {verdict}")
-    print(f"eval: gate {'passed' if evaluation.gate_passed else 'FAILED'}; report in {args.out}")
+        elsewhere = f", {s.failed_elsewhere} elsewhere" if s.failed_elsewhere else ""
+        print(
+            f"{category:<15} {s.passed}/{s.runs}{elsewhere} ({s.pass_rate:.0%}; {s.threshold}): "
+            + ("ok" if s.gate_passed else "FAILED")
+        )
+    print(f"eval: gate {verdict(evaluation.gate_passed)}; report in {args.out}")
     return 0 if evaluation.gate_passed else 1
 
 

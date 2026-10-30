@@ -3,7 +3,7 @@
 expectations."""
 
 from pathlib import Path
-from typing import Literal, Self
+from typing import Literal, Self, get_args
 
 import yaml
 from pydantic import Field, model_validator
@@ -14,13 +14,12 @@ from app.playbook.activation import Level
 from app.scoring_config import Strict
 
 Category = Literal["grounding", "refusal", "classification", "injection", "drafting"]
-CATEGORIES: tuple[Category, ...] = (
-    "grounding",
-    "refusal",
-    "classification",
-    "injection",
-    "drafting",
-)
+CATEGORIES: tuple[Category, ...] = get_args(Category)
+
+
+def verdict(passed: bool) -> str:
+    """A gate's outcome, as the report, the CLI and the audit log say it."""
+    return "passed" if passed else "FAILED"
 
 
 class RenameAsset(Strict):
@@ -75,7 +74,8 @@ class Expect(Strict):
     regex: list[str] = []  # patterns the answer matches
     not_regex: list[str] = []  # patterns the answer does not match
     tools_allowed: list[str] | None = None  # the only tools the turn may call
-    restricted_values_of: list[str] = []  # entities whose restricted values the answer never shows
+    # entities whose restricted values the answer never shows, beside every entity it names
+    restricted_values_of: list[str] = []
     # On for every case: what the answer names and every number in it came from the turn's tool
     # results (or the draft request); only read-only tools were called and no state changed; no
     # tool result shown to the model held a restricted field.
@@ -124,9 +124,11 @@ class Gate(Strict):
             raise ValueError("a gate has min_pass_rate or max_failures")
         return self
 
-    def passes(self, passed: int, runs: int) -> bool:
+    def passes(self, passed: int, runs: int, failed_elsewhere: int = 0) -> bool:
+        """`failed_elsewhere`: failures from other categories' runs that count against a
+        zero-failure gate (a leak, an injected write)."""
         if self.max_failures is not None:
-            return runs - passed <= self.max_failures
+            return runs - passed + failed_elsewhere <= self.max_failures
         return runs > 0 and passed / runs >= (self.min_pass_rate or 0)
 
 
