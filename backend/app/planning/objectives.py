@@ -164,6 +164,7 @@ def reword(
         lambda result: wording_problems(result, request),
         attempts,
         rejected="objective citations failed validation",
+        task="iap_objectives",
     )
 
 

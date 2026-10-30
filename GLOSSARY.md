@@ -138,3 +138,17 @@ _Avoid_: Manager, duty officer
 **Field supervisor**:
 The person who leads field crews in one district. They see that district's field tasks and mark them done or blocked; they do not change priorities, approve actions or see other districts' tasks.
 _Avoid_: Crew lead, foreman
+
+## Observability
+
+**Span**:
+One timed step the agent took, recorded for observability: an advisory cycle step, or one LLM generation (the situation report draft, a copilot turn, the IAP objectives rewording) with its model, tokens, estimated cost, retries, fallback and validation result. Spans are not the record of what happened or who decided; the audit log is.
+_Avoid_: Log entry, event (those are audit log terms)
+
+**Demo run**:
+The scenario since the backend started or was last reset. Trace totals are per advisory and per demo run.
+_Avoid_: Session, run (alone)
+
+**Run trace**:
+The spans of one advisory in the current demo run, with the totals for the advisory and for the run (latency, tokens, estimated cost, retries, fallbacks).
+_Avoid_: Audit trail

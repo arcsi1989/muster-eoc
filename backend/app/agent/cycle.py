@@ -27,6 +27,7 @@ from app.planning.service import clear as clear_planning
 from app.playbook.service import Playbook, clear_findings
 from app.replay import service
 from app.scoring_config import ScoringConfig
+from app.tracing import store as tracing
 
 
 class AdvisoryCycle:
@@ -142,15 +143,16 @@ class AdvisoryCycle:
 
 
 def reset_scenario(session: Session, cycle: AdvisoryCycle, data_dir: Path) -> None:
-    """Back to before advisory 1: checkpoints deleted, decisions, findings and the audit log
-    cleared, the operational state restored from the initial state. Each module clears its own
-    tables. Model versions are not scenario state: they, their calibration runs and approvals
-    stay, so the replay scores with the approved version and the log still shows who approved
-    it."""
+    """Back to before advisory 1: checkpoints deleted, decisions, findings, the audit log and
+    the traces cleared (a new demo run begins), the operational state restored from the initial
+    state. Each module clears its own tables. Model versions are not scenario state: they, their
+    calibration runs and approvals stay, so the replay scores with the approved version and the
+    log still shows who approved it."""
     clear_planning(session)
     cycle.reset(session)
     clear_findings(session)
     clear_events(session, keep=(CALIBRATION_EVENT, APPROVED_EVENT))
+    tracing.clear(session)
     service.reset(session, data_dir)
     record(
         session,

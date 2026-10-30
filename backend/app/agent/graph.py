@@ -10,7 +10,7 @@ resuming; `apply_decision` applies it. Only `apply_decision` writes decided oper
 (item decisions, situation report approvals and activation declarations), and it is
 deterministic: the LLM never writes state, never decides whether a rule is met and never changes
 scores. The graph state holds only the advisory number and the decision being applied; the
-package, its items and the findings live in the database.
+package, its items and the findings live in the database. Every node runs inside a tracing span.
 """
 
 from collections.abc import Callable, Iterator
@@ -26,6 +26,7 @@ from app.agent.lifecycle import CycleSteps
 from app.llm.provider import LLMProvider
 from app.playbook.service import Playbook
 from app.scoring_config import ScoringConfig
+from app.tracing.instrument import cycle_node
 
 
 class CycleState(TypedDict, total=False):
@@ -96,7 +97,7 @@ def build_graph(
         ("finalise", finalise),
     ]
     for name, node in nodes:
-        graph.add_node(name, node)
+        graph.add_node(name, _traced(name, node))
     graph.add_edge(START, "load_context")
     graph.add_edge("load_context", "diff")
     graph.add_edge("diff", "evaluate_rules")
@@ -104,3 +105,14 @@ def build_graph(
     graph.add_edge("draft", "await_approval")
     graph.add_edge("finalise", END)
     return graph
+
+
+def _traced(name: str, node: Callable[..., Any]) -> Callable[..., Any]:
+    """The node, inside its span (CR-03 C3). A resumed `await_approval` runs again, so a paused
+    advisory has one paused span and one more per decision."""
+
+    def run(state: CycleState) -> Any:
+        with cycle_node(state["advisory_no"], name):
+            return node(state)
+
+    return run

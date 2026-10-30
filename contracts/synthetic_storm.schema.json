@@ -1,0 +1,150 @@
+{
+  "$defs": {
+    "PointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "x_km": {
+          "data_class": "restricted",
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "data_class": "restricted",
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x_km",
+        "y_km"
+      ],
+      "title": "PointRecord",
+      "type": "object"
+    },
+    "StormOutcomeRecord": {
+      "additionalProperties": false,
+      "description": "Whether an asset failed in the past storm.",
+      "properties": {
+        "asset_id": {
+          "data_class": "internal",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "failed": {
+          "data_class": "internal",
+          "title": "Failed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "asset_id",
+        "failed"
+      ],
+      "title": "StormOutcomeRecord",
+      "type": "object"
+    },
+    "TrackPointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "rmax_km": {
+          "data_class": "public",
+          "exclusiveMinimum": 0,
+          "title": "Rmax Km",
+          "type": "number"
+        },
+        "t_hours": {
+          "data_class": "public",
+          "minimum": 0,
+          "title": "T Hours",
+          "type": "number"
+        },
+        "vmax_mph": {
+          "data_class": "public",
+          "exclusiveMinimum": 0,
+          "title": "Vmax Mph",
+          "type": "number"
+        },
+        "x_km": {
+          "data_class": "restricted",
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "data_class": "restricted",
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t_hours",
+        "x_km",
+        "y_km",
+        "vmax_mph",
+        "rmax_km"
+      ],
+      "title": "TrackPointRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A past fictional storm of the synthetic history (history/synthetic_storms.json) with\nevery asset's outcome, for training the challenger model (CR-03 C2).",
+  "properties": {
+    "landfall": {
+      "$ref": "#/$defs/PointRecord",
+      "data_class": "public"
+    },
+    "landfall_at": {
+      "data_class": "public",
+      "format": "date-time",
+      "title": "Landfall At",
+      "type": "string"
+    },
+    "landfall_t_hours": {
+      "data_class": "public",
+      "minimum": 0,
+      "title": "Landfall T Hours",
+      "type": "number"
+    },
+    "name": {
+      "data_class": "public",
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "outcomes": {
+      "data_class": "internal",
+      "items": {
+        "$ref": "#/$defs/StormOutcomeRecord"
+      },
+      "minItems": 1,
+      "title": "Outcomes",
+      "type": "array"
+    },
+    "peak_surge_m": {
+      "data_class": "public",
+      "minimum": 0,
+      "title": "Peak Surge M",
+      "type": "number"
+    },
+    "track": {
+      "data_class": "public",
+      "items": {
+        "$ref": "#/$defs/TrackPointRecord"
+      },
+      "minItems": 2,
+      "title": "Track",
+      "type": "array"
+    }
+  },
+  "required": [
+    "name",
+    "landfall_at",
+    "landfall_t_hours",
+    "track",
+    "landfall",
+    "peak_surge_m",
+    "outcomes"
+  ],
+  "title": "SyntheticStormFile",
+  "type": "object"
+}

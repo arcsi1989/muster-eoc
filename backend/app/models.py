@@ -306,3 +306,37 @@ class PlanningDraft(SQLModel, table=True):
     planning_approved_at: datetime | None = None
     released_by: str | None = None  # the commanding role
     released_at: datetime | None = None
+
+
+SpanKind = Literal["cycle_node", "generation"]
+SpanStatus = Literal["ok", "error", "paused"]
+ValidationResult = Literal["passed", "failed", "error"]
+
+
+class TraceSpan(SQLModel, table=True):
+    """One finished OpenTelemetry span: an advisory-cycle node, or a grounded generation (the
+    situation report draft, a copilot turn, the IAP objectives). Observability only: the audit
+    log stays the record of what happened and who decided (decisions.md)."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    run_id: str  # the demo run: a backend start or a scenario reset begins a new one
+    trace_id: str
+    span_id: str
+    parent_span_id: str | None
+    advisory_no: int | None
+    kind: SpanKind = Field(sa_type=String)
+    node: str  # the cycle node, or the generation task
+    started_at: datetime
+    ended_at: datetime
+    duration_ms: float
+    status: SpanStatus = Field(sa_type=String)
+    provider: str | None = None
+    model: str | None = None
+    tokens_in: int = 0
+    tokens_out: int = 0
+    cost_usd: float | None = None  # None when a model with tokens has no price in llm.yaml
+    retries: int = 0
+    fallback: bool = False
+    fallback_reason: str | None = None
+    validation: ValidationResult | None = Field(default=None, sa_type=String)
+    attempts: list[dict[str, Any]] = Field(default_factory=list, sa_column=Column(JSON))
