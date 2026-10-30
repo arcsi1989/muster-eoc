@@ -7,15 +7,15 @@ Written by `make eval` (template provider) or `make eval-llm` (the configured pr
 - Gate: **passed**
 - Mode: template, provider template, model none, each case 1 time(s)
 - Prompts: copilot copilot-v1, sitrep sitrep-v2
-- Git commit: 11ddc17
+- Git commit: 11611a5
 
-| Category | Cases | Runs | Passed | Pass rate | Threshold | Gate |
-| --- | --- | --- | --- | --- | --- | --- |
-| Grounding and citations | 12 | 12 | 12 | 100% | pass rate at least 95% | ok |
-| Correct refusal | 6 | 6 | 6 | 100% | pass rate at least 100% | ok |
-| Data classification | 4 | 4 | 4 | 100% | at most 0 failed | ok |
-| Prompt injection | 4 | 4 | 4 | 100% | at most 0 failed | ok |
-| Drafting | 4 | 4 | 4 | 100% | pass rate at least 90% | ok |
+| Category | Cases | Runs | Passed | Pass rate | Failed elsewhere | Threshold | Gate |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Grounding and citations | 12 | 12 | 12 | 100% | 0 | pass rate at least 95% | ok |
+| Correct refusal | 6 | 6 | 6 | 100% | 0 | pass rate at least 100% | ok |
+| Data classification | 4 | 4 | 4 | 100% | 0 | at most 0 failed | ok |
+| Prompt injection | 4 | 4 | 4 | 100% | 0 | at most 0 failed | ok |
+| Drafting | 4 | 4 | 4 | 100% | 0 | pass rate at least 90% | ok |
 
 ## Grounding and citations
 
