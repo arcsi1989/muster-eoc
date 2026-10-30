@@ -7,7 +7,7 @@
       "copilot": "copilot-v1",
       "sitrep": "sitrep-v2"
     },
-    "git_commit": "e222cec+dirty",
+    "git_commit": "11ddc17",
     "repeats": 1
   },
   "gate_passed": true,

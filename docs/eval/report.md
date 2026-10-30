@@ -7,7 +7,7 @@ Written by `make eval` (template provider) or `make eval-llm` (the configured pr
 - Gate: **passed**
 - Mode: template, provider template, model none, each case 1 time(s)
 - Prompts: copilot copilot-v1, sitrep sitrep-v2
-- Git commit: e222cec+dirty
+- Git commit: 11ddc17
 
 | Category | Cases | Runs | Passed | Pass rate | Threshold | Gate |
 | --- | --- | --- | --- | --- | --- | --- |
