@@ -66,21 +66,21 @@ class _Recorder:
         try:
             output: ToolOutput = self._tools.run(name, args)
         except ToolError as error:
-            return self._shown({"error": str(error)})
+            return self._shown({"error": str(error)})[0]
         except TypeError:
             return {"error": f"wrong arguments for {name}"}
-        shown = self._shown(output.data)
-        ids = mentioned(ENTITY_ID, json.dumps(shown, default=str))
+        shown, ids = self._shown(output.data)
         self.asset_ids |= output.asset_ids & ids
         self.clause_ids |= output.clause_ids
-        self.other_ids |= output.other_ids & ids
         return shown
 
-    def _shown(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _shown(self, data: dict[str, Any]) -> tuple[dict[str, Any], frozenset[str]]:
+        """The filtered data and every ID in it, all of which an answer may name."""
         shown = for_model(data)
         text = json.dumps(shown, default=str)
-        self.other_ids |= mentioned(ENTITY_ID, text) | mentioned(CLAUSE_ID, text)
-        return shown
+        ids = mentioned(ENTITY_ID, text) | mentioned(CLAUSE_ID, text)
+        self.other_ids |= ids
+        return shown, ids
 
 
 @dataclass(frozen=True)

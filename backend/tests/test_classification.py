@@ -1,16 +1,19 @@
 """Data classification (CR-03 C1): every contract field is public, internal or restricted, and
 no restricted field reaches a model: not in a generation task's input, not in any copilot tool
-result. Coordinates, elevation and the dependency graph are restricted (docs/decisions.md)."""
+result. Coordinates, elevation and the dependency graph are restricted (docs/decisions.md).
+
+The leak checks go by key name, as the filter does: a restricted value under another key name,
+or written into free text, would pass them. Each field name has one class in every contract
+(checked at import), and no tool writes coordinates or graph edges into text."""
 
 import json
 from typing import Any, get_args
 
 from app.agent.lifecycle import draft_planning
-from app.classification import RESTRICTED_KEYS, data_classes, for_model
+from app.classification import RESTRICTED_KEYS, contract_models, data_classes, for_model
 from app.copilot.chat import answer
 from app.copilot.tools import TOOL_DEFINITIONS
 from app.ids import ASSET_ID, mentioned
-from app.ingest import contracts
 from app.ingest.contracts import DataClass
 from app.llm.schemas import (
     ChatResult,
@@ -37,11 +40,7 @@ def keys(data: Any) -> set[str]:
 
 
 def test_every_contract_field_has_a_data_class() -> None:
-    models = [
-        m
-        for m in vars(contracts).values()
-        if isinstance(m, type) and issubclass(m, contracts.Contract) and m is not contracts.Contract
-    ]
+    models = contract_models()
     assert models
     for model in models:
         classes = data_classes(model)
@@ -137,7 +136,8 @@ def test_get_dependencies_shows_only_the_critical_facilities_an_asset_supports(
     for (_, result), asset_id in zip(provider.results, network.assets, strict=True):
         others = mentioned(ASSET_ID, json.dumps(result)) - {asset_id}
         assert not others, (asset_id, others)  # no upstream feeders, no asset-to-asset edges
-        assert result["serves_treatment_plant"] == network.serves_treatment_plant(asset_id)
+        assert set(result) == {"asset_id", "name", "critical_facilities", "serves_treatment_plant"}
+        assert result["serves_treatment_plant"] == bool(network.treatment_plants_fed(asset_id))
         facilities = {f.id for f in network.direct_facilities(asset_id)}
         assert {f["id"] for f in result["critical_facilities"]} == facilities
 

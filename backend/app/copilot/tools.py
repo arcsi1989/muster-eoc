@@ -168,17 +168,7 @@ class CopilotTools:
     def explain_score(self, asset_id: str, advisory: int | None) -> ToolOutput:
         number = self._advisory(advisory)
         e = explain_asset(self._session, asset_id, number)
-        c = e.factors["consequence"]
-        # The consequence components without the assets it feeds (restricted): their customers
-        # as one number, and the critical facilities it supports.
-        consequence = {
-            "own_customers": c["own_customers"],
-            "downstream_customers": sum(a["customers"] for a in c["downstream_assets"]),
-            "facilities": [
-                {"id": f["id"], "type": f["type"], "weight": f["weight"]} for f in c["facilities"]
-            ],
-            "total": c["total"],
-        }
+        consequence = e.consequence_for_model()
         data = {
             "asset_id": asset_id,
             "name": e.asset.name,
@@ -203,8 +193,9 @@ class CopilotTools:
         )
 
     def get_dependencies(self, asset_id: str) -> ToolOutput:
-        """Narrowed to the critical facilities the asset supports and whether it serves the
-        treatment plant: no upstream feeders, no asset-to-asset edges (CR-03 C1)."""
+        """Narrowed to the critical facilities the asset supports and whether it feeds a treatment
+        plant directly: no upstream feeders, no asset-to-asset edges, nothing two hops away
+        (CR-03 C1)."""
         network = load_network(self._session)
         if asset_id not in network.assets:
             raise ToolError(f"unknown asset {asset_id}")
@@ -216,8 +207,7 @@ class CopilotTools:
             "asset_id": asset_id,
             "name": network.assets[asset_id].name,
             "critical_facilities": facilities,
-            "serves_treatment_plant": network.serves_treatment_plant(asset_id),
-            "feeds_facility_types": sorted(network.feeds_facility_types(asset_id)),
+            "serves_treatment_plant": bool(network.treatment_plants_fed(asset_id)),
         }
         return ToolOutput(data, asset_ids={asset_id}, other_ids={f["id"] for f in facilities})
 

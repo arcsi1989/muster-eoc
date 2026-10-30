@@ -60,11 +60,9 @@ def dependencies(data: dict[str, Any]) -> str:
     """From the narrowed result: the critical facilities only, never the assets around it."""
     facilities = ", ".join(f"{d['id']} {d['name']}" for d in data["critical_facilities"])
     plant = " It serves the treatment plant." if data["serves_treatment_plant"] else ""
-    types = ", ".join(data["feeds_facility_types"]) or "no critical facility"
     return (
         f"{data['asset_id']} {data['name']} supports "
-        f"{facilities or 'no hospital or shelter directly'}.{plant} "
-        f"Critical facilities supplied: {types}."
+        f"{facilities or 'no hospital or shelter directly'}.{plant}"
     )
 
 

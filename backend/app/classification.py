@@ -26,14 +26,19 @@ def data_classes(model: type[BaseModel]) -> dict[str, DataClass]:
     return classes
 
 
+def contract_models() -> list[type[contracts.Contract]]:
+    """Every data contract, without their shared base."""
+    return [
+        m
+        for m in vars(contracts).values()
+        if isinstance(m, type) and issubclass(m, contracts.Contract) and m is not contracts.Contract
+    ]
+
+
 def _restricted_keys() -> frozenset[str]:
     """Every field name a contract classes restricted. A name is restricted in every contract or
     in none, so the filter can go by name."""
-    models = [
-        m
-        for m in vars(contracts).values()
-        if isinstance(m, type) and issubclass(m, contracts.Contract)
-    ]
+    models = contract_models()
     restricted = {n for m in models for n, c in data_classes(m).items() if c == "restricted"}
     for model in models:
         for name, data_class in data_classes(model).items():
