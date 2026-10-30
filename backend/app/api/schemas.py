@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 
 from app.advisory_context import Commander
 from app.agent.decisions import Action, Role
+from app.agent.field import TaskStatus
+from app.audit.log import Actor
 from app.hazard.ensemble import SiteKind
 from app.ingest.contracts import AssetType, FacilityType
 from app.llm.schemas import PackageDraft
@@ -251,6 +253,7 @@ class PackageItemOut(BaseModel):
     decided_by: str | None
     reason: str | None
     decided_at: datetime | None
+    blocked_note: str | None  # the same work, approved earlier, was reported blocked
 
 
 class SitrepOut(BaseModel):
@@ -285,6 +288,29 @@ class DecisionIn(BaseModel):
     reason: str | None = None
 
 
+class FieldReportIn(BaseModel):
+    district: str  # the supervisor's own district
+    note: str | None = None
+
+
+class FieldTaskOut(BaseModel):
+    """An approved item that needs field work, as a field supervisor sees it."""
+
+    item_id: int
+    approved_in: int  # the advisory whose package approved it
+    rule_id: str
+    why: str
+    action: str
+    entity_id: str
+    entity_name: str | None
+    approved_by: str | None
+    approved_at: datetime | None
+    stop_work: list[str]  # prohibitions in force at the site now (P-4.7); Done is refused
+    status: TaskStatus
+    note: str | None
+    reported_at: datetime | None
+
+
 class DeclarationIn(BaseModel):
     level: Level
     declared_by: Role
@@ -296,7 +322,7 @@ class AuditEventOut(BaseModel):
     recorded_at: datetime  # wall-clock time
     advisory_no: int | None  # scenario time
     hours_to_landfall: int | None
-    actor: Literal["system", "agent", "human"]
+    actor: Actor
     type: str
     summary: str
     payload: dict[str, Any]

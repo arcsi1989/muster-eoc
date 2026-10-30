@@ -81,6 +81,10 @@ _Avoid_: Sign-off, confirmation
 A person declining a proposed action, with a recorded reason. The gap stays open and normally reappears at the next advisory.
 _Avoid_: Rejection, dismissal
 
+**Field task**:
+An approved action that needs field work at a site (an inspection, a barrier, a generator staged, a relocation), as a field supervisor sees it. Marking it **done** records the state that completes it; marking it **blocked**, with a note, records it as not done, so its gap returns in the next decision package with the note. Done is refused while stop-work (P-4.7) is in force at the site. Everywhere outside the field view the word is "action".
+_Avoid_: Job, work order, task (for an action)
+
 **Situation report**:
 The written status issued once per operational period. It stays marked DRAFT until the Incident Commander approves it.
 _Avoid_: Sitrep (in UI text), summary
@@ -126,3 +130,7 @@ _Avoid_: Planner, planning lead
 **Director**:
 The EOC Director, who holds the decisions the Incident Commander would hold while the EOC is below Full activation.
 _Avoid_: Manager, duty officer
+
+**Field supervisor**:
+The person who leads field crews in one district. They see that district's field tasks and mark them done or blocked; they do not change priorities, approve actions or see other districts' tasks.
+_Avoid_: Crew lead, foreman

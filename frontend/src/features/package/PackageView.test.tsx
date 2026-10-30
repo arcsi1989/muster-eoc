@@ -19,6 +19,7 @@ const item = (overrides: Partial<PackageItem> & Pick<PackageItem, 'id' | 'rule_i
   decided_by: null,
   reason: null,
   decided_at: null,
+  blocked_note: null,
   ...overrides,
 })
 

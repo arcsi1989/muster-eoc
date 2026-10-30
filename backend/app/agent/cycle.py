@@ -15,13 +15,14 @@ from sqlalchemy import Engine
 from sqlmodel import Session, delete
 
 from app.agent.decisions import DecisionRequest, Declaration, Role
+from app.agent.field import FieldReportRequest
 from app.agent.graph import build_graph
 from app.agent.lifecycle import APPROVE_SITREP, DECLARE, EXPIRE, RELEASE
 from app.audit.log import clear_events, record
 from app.calibration.service import CALIBRATION_EVENT
 from app.calibration.versions import APPROVED_EVENT
 from app.llm.provider import LLMProvider
-from app.models import DecisionPackage, PackageItem, Sitrep
+from app.models import DecisionPackage, FieldReport, PackageItem, Sitrep
 from app.planning.service import clear as clear_planning
 from app.playbook.service import Playbook, clear_findings
 from app.replay import service
@@ -101,6 +102,16 @@ class AdvisoryCycle:
         """Like `decide`, for a release approval of the advisory's planning draft."""
         self._resume(advisory_no, {"action": RELEASE, "role": role}, precheck)
 
+    def report_field_work(
+        self,
+        advisory_no: int,
+        item_id: int,
+        request: FieldReportRequest,
+        precheck: Callable[[], None],
+    ) -> None:
+        """Like `decide`, for a field supervisor's report on a field task."""
+        self._resume(advisory_no, request.to_resume(item_id), precheck)
+
     def _resume(
         self, advisory_no: int, resume: dict[str, Any], precheck: Callable[[], None]
     ) -> None:
@@ -116,12 +127,13 @@ class AdvisoryCycle:
                 self._graph.invoke(Command(resume={"action": EXPIRE}), self._thread(advisory_no))
 
     def reset(self, session: Session) -> None:
-        """Deletes every advisory's thread and the decision packages, their items and situation
-        reports."""
+        """Deletes every advisory's thread and the decision packages, their items, field reports
+        and situation reports."""
         with self._lock:
             for advisory_no in range(1, service.total_advisories(session) + 1):
                 self._saver.delete_thread(f"advisory-{advisory_no}")
             session.exec(delete(Sitrep))
+            session.exec(delete(FieldReport))
             session.exec(delete(PackageItem))
             session.exec(delete(DecisionPackage))
 

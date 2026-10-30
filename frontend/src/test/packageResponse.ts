@@ -66,7 +66,8 @@ export const packageResponse = {
       "status": "pending",
       "decided_by": null,
       "reason": null,
-      "decided_at": null
+      "decided_at": null,
+      "blocked_note": null
     },
     {
       "id": 25,
@@ -85,7 +86,8 @@ export const packageResponse = {
       "status": "approved",
       "decided_by": "planning",
       "reason": null,
-      "decided_at": "2026-10-29T23:07:50.347725Z"
+      "decided_at": "2026-10-30T00:13:55.172985Z",
+      "blocked_note": null
     },
     {
       "id": 26,
@@ -104,7 +106,8 @@ export const packageResponse = {
       "status": "pending",
       "decided_by": null,
       "reason": null,
-      "decided_at": null
+      "decided_at": null,
+      "blocked_note": null
     }
   ],
   "draft": {
@@ -171,7 +174,7 @@ export const packageResponse = {
     "advisory_no": 3,
     "approved_text": "Situation\n\nAdvisory 3, 48 h to landfall; activation level monitor. The forecast landfall moved 41 km east.\n\nHighest risk assets: SUB-97, SUB-112, SUB-11, SUB-119, SUB-103.\n\nPlaybook actions\n\nP-4.1: Review the ranked risk list for this advisory and record the review.\n\nP-4.2: Pre-inspect PS-14 Seawall Pumping Station: pumps, controls and the flood door, before crews withdraw.\n\nP-4.2: Pre-inspect PS-27 Eastgate West Pumping Station: pumps, controls and the flood door, before crews withdraw.\n\nP-4.2: Pre-inspect PS-74 Juniper North Pumping Station: pumps, controls and the flood door, before crews withdraw.\n\nP-4.3: Fuel 4 more portable generators (10 needed, 6 fuelled).\n\nP-4.4: Inspect SUB-07 Medical District Substation.\n\nP-4.4: Inspect SUB-32 Pinewold Ridge East Substation.\n\nP-4.4: Inspect SUB-33 Elm Park Substation.\n\nP-4.4: Inspect SUB-97 Seabreeze Substation.\n\nP-4.4: Inspect SUB-103 Highfield Substation.\n\nP-4.4: Inspect SUB-112 Harbor East Substation.\n\nP-4.5: Assign a portable generator to PS-09 Saltmeadow East Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-19 Mangrove South Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-21 Driftwood East Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-34 Eastgate Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-40 Dune Crest Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-42 Westmoor West Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-48 Coral Lane South Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-53 Brinemoor Run West Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-54 Sandy Flats North Pumping Station (feeds WTP-01).\n\nP-4.5: Assign a portable generator to PS-60 Bluewater South Pumping Station (feeds WTP-01).\n\nP-5.2: Confirm backup power and remote monitoring at PS-14 Seawall Pumping Station.\n\nP-5.2: Confirm backup power and remote monitoring at PS-27 Eastgate West Pumping Station.\n\nP-5.2: Confirm backup power and remote monitoring at PS-74 Juniper North Pumping Station.\n\nP-6.2: Contact the hospitals fed by SUB-07 Medical District Substation (HOSP-01); confirm on-site backup power is tested with 96 hours of fuel, and record who, when and what was confirmed.\n\nP-6.2: Contact the hospitals fed by SUB-33 Elm Park Substation (HOSP-03); confirm on-site backup power is tested with 96 hours of fuel, and record who, when and what was confirmed.\n\nP-6.2: Contact the hospitals fed by SUB-91 Orchard North Substation (HOSP-02); confirm on-site backup power is tested with 96 hours of fuel, and record who, when and what was confirmed.\n\nP-6.2: Contact the hospitals fed by SUB-103 Highfield Substation (HOSP-04, HOSP-07); confirm on-site backup power is tested with 96 hours of fuel, and record who, when and what was confirmed.\n\nP-6.2: Contact the hospitals fed by SUB-106 Bluewater South Substation (HOSP-06, SHEL-16); confirm on-site backup power is tested with 96 hours of fuel, and record who, when and what was confirmed.",
     "approved_by": "director",
-    "approved_at": "2026-10-29T23:07:50.391750Z",
+    "approved_at": "2026-10-30T00:13:55.204076Z",
     "edited": false
   }
 } satisfies DecisionPackage

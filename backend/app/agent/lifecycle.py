@@ -6,12 +6,13 @@ adapter for the approval pause, and only this module reads whether it is waiting
 opens when its advisory is issued and stays open until the next advisory expires it.
 
 Every decision on a package takes the same path: item decisions, situation report approval,
-activation declarations and the planning draft's release approvals are checked here, under the
-cycle's lock and before anything changes (so a refusal changes nothing), and then the cycle's
-decision step applies them. That step is the only writer of decided operational state; besides
-it, only the initial load, a scenario reset and the per-advisory flag reset when an advisory is
-issued write operational state. A declaration is the only code that sets the activation level.
-The planning draft for the next operational period is written while the package is open.
+activation declarations, field supervisors' reports on field tasks and the planning draft's
+release approvals are checked here, under the cycle's lock and before anything changes (so a
+refusal changes nothing), and then the cycle's decision step applies them. That step is the only
+writer of decided operational state; besides it, only the initial load, a scenario reset and the
+per-advisory flag reset when an advisory is issued write operational state. A declaration is the
+only code that sets the activation level. The planning draft for the next operational period is
+written while the package is open.
 
 The cycle's steps do their work here too (`CycleSteps`): opening the package and its items,
 saving the draft, applying decisions, expiring and closing, and the audit record of each. The
@@ -28,7 +29,7 @@ from typing import TYPE_CHECKING, Any
 from sqlmodel import Session, col, select
 
 from app import advisory_context
-from app.agent import decisions, sitrep
+from app.agent import decisions, field, sitrep
 from app.agent.draft import produce_draft, sitrep_prompt
 from app.agent.draft_request import draft_request
 from app.audit.log import record
@@ -317,6 +318,32 @@ def release_planning(
     return planning.require_draft(session, advisory_no)
 
 
+def report_field_work(
+    session: Session,
+    playbook: Playbook,
+    cycle: AdvisoryCycle,
+    item_id: int,
+    request: field.FieldReportRequest,
+) -> int:
+    """A field supervisor reports a field task done or blocked, at the current advisory, behind
+    the same gate as a decision: checked first (the current package is open, the task is in the
+    supervisor's district, Done is not under stop-work), then the cycle applies it. Returns the
+    advisory number."""
+    advisory_no = advisory_context.current_advisory_no(session)
+    if not advisory_no or not is_open(session, cycle, advisory_no):
+        raise PackageClosed("no decision package is open; field work is reported during one")
+    advisory = service.require_issued(session, advisory_no)
+
+    def precheck() -> None:  # under the cycle's lock, so two reports cannot both pass
+        _require_open(session, cycle, advisory_no)
+        session.expire_all()
+        field.check(session, playbook, advisory, item_id, request)
+
+    cycle.report_field_work(advisory_no, item_id, request, precheck)
+    session.expire_all()
+    return advisory_no
+
+
 class CycleSteps:
     """The work of each advisory cycle step, one transaction each (the graph opens it). Every
     step writes its audit event."""
@@ -403,9 +430,10 @@ class CycleSteps:
     def _add_items(
         self, session: Session, advisory: Advisory, stored: Sequence[Finding]
     ) -> list[str]:
-        """Adds a pending item for each package item the playbook proposes for `stored`;
-        returns their rule IDs."""
+        """Adds a pending item for each package item the playbook proposes for `stored`, with
+        the note of earlier work on it reported blocked; returns their rule IDs."""
         proposals = package_items(session, self._playbook, stored)
+        blocked = field.blocked_notes(session, advisory.advisory_no)
         session.add_all(
             PackageItem(
                 advisory_no=advisory.advisory_no,
@@ -416,6 +444,7 @@ class CycleSteps:
                 proposed_action=p.proposed_action,
                 owner_role=p.owner_role,
                 status="pending",
+                blocked_note=blocked.get((p.finding.rule_id, p.finding.entity_id)),
             )
             for p in proposals
         )
@@ -494,9 +523,9 @@ class CycleSteps:
 
     def apply(self, session: Session, advisory_no: int, decision: dict[str, Any]) -> bool:
         """Applies a decision the lifecycle checked: an item decision, a declaration, the
-        situation report approval, a planning release approval, or the next advisory expiring
-        the package. The only writer
-        of decided operational state. Returns True when the package's decisions are over."""
+        situation report approval, a field report, a planning release approval, or the next
+        advisory expiring the package. The only writer of decided operational state. Returns True
+        when the package's decisions are over."""
         advisory = self._advisory(session, advisory_no)
         action = decision.get("action")
         if action == EXPIRE:
@@ -509,6 +538,9 @@ class CycleSteps:
             sitrep.apply_approval(session, advisory, decision["role"], decision["text"])
             session.flush()
             reevaluate(session, advisory, self._playbook, SITREP_RULE)
+            return False
+        if action == field.FIELD_REPORT:
+            self._report_field(session, advisory, decision)
             return False
         item = session.get(PackageItem, decision["item_id"])
         finding = session.get(Finding, item.finding_id) if item else None
@@ -608,6 +640,30 @@ class CycleSteps:
                 "reason": item.reason,
                 "state_written": written,
                 "items_added": added,
+            },
+            self._versions(session, advisory),
+        )
+
+    def _report_field(self, session: Session, advisory: Advisory, decision: dict[str, Any]) -> None:
+        request = field.FieldReportRequest.from_resume(decision)
+        task, written = field.apply(session, self._playbook, advisory, decision["item_id"], request)
+        item = task.work.item
+        note = request.note
+        record(
+            session,
+            field.FIELD_SUPERVISOR,
+            f"field_task_{request.outcome}",
+            f"Field supervisor ({request.district}) reported {item.rule_id} for {item.entity_id} "
+            f"{request.outcome}" + (f": {note}" if note else ""),
+            advisory,
+            {
+                "item_id": item.id,
+                "rule_id": item.rule_id,
+                "entity_id": item.entity_id,
+                "district": request.district,
+                "outcome": request.outcome,
+                "note": note,
+                "state_written": written,
             },
             self._versions(session, advisory),
         )

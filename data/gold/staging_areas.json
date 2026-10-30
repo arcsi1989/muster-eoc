@@ -1,6 +1,7 @@
 [
   {
     "distance_to_coast_km": 69.99,
+    "district": "Westshore",
     "elevation_m": 8.8,
     "id": "STG-01",
     "name": "Northfield Depot",
@@ -9,6 +10,7 @@
   },
   {
     "distance_to_coast_km": 0.98,
+    "district": "Bayport East",
     "elevation_m": 2.3,
     "id": "STG-02",
     "name": "Harborfront Yard",
@@ -17,6 +19,7 @@
   },
   {
     "distance_to_coast_km": 96.46,
+    "district": "Bayport West",
     "elevation_m": 12.3,
     "id": "STG-03",
     "name": "Ridgeline Depot",
@@ -25,6 +28,7 @@
   },
   {
     "distance_to_coast_km": 77.06,
+    "district": "Eastern Plains",
     "elevation_m": 9.7,
     "id": "STG-04",
     "name": "Eastern Plains Depot",
@@ -33,6 +37,7 @@
   },
   {
     "distance_to_coast_km": 127.85,
+    "district": "Bayport West",
     "elevation_m": 16.3,
     "id": "STG-05",
     "name": "Upland Fairground",

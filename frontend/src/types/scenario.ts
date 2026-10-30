@@ -295,6 +295,8 @@ export interface PackageItem {
   decided_by: string | null
   reason: string | null
   decided_at: string | null
+  /** the same work, approved in an earlier package, was reported blocked in the field */
+  blocked_note: string | null
 }
 
 export interface DraftParagraph {
@@ -340,7 +342,7 @@ export interface DecisionPackage {
   sitrep: Sitrep | null
 }
 
-export type AuditActor = 'system' | 'agent' | 'human'
+export type AuditActor = 'system' | 'agent' | 'human' | 'field_supervisor'
 
 export interface AuditEvent {
   id: number

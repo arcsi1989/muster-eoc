@@ -92,6 +92,17 @@ class RetrievedClause:
 
 
 HIDDEN = {"shown": False}  # field metadata: kept from the model, so never citable
+QUOTED = {"citable": False}  # field metadata: shown to the model as data, never citable
+
+
+@dataclass(frozen=True)
+class FieldNote:
+    """A field supervisor's note on a blocked field task: human free text, so quoted data that
+    a draft may neither follow nor cite from."""
+
+    rule_id: str
+    entity_id: str
+    note: str
 
 
 @dataclass(frozen=True)
@@ -105,7 +116,8 @@ class TopAsset:
 @dataclass(frozen=True)
 class DraftRequest:
     """Everything a provider may see: plain data only, no database session, so no provider can
-    write state (CLAUDE.md hard rules). What it shows is exactly what a draft may cite."""
+    write state (CLAUDE.md hard rules). What it shows is exactly what a draft may cite, except
+    the quoted field notes."""
 
     advisory_no: int
     hours_to_landfall: int
@@ -114,6 +126,8 @@ class DraftRequest:
     items: list[DraftItem]
     top_assets: list[TopAsset]
     clauses: list[RetrievedClause]
+    # Blocked field tasks reported before this advisory, with the supervisor's note.
+    field_reports: list[FieldNote] = field(default_factory=list, metadata=QUOTED)
     # Not shown: validation problems from the last try (a rejection, not data to cite).
     feedback: list[str] = field(default_factory=list, metadata=HIDDEN)
 
@@ -125,7 +139,10 @@ class DraftRequest:
         return dict(to_jsonable_python(shown))
 
     def _shown_text(self) -> str:
-        return json.dumps(self.shown(), default=str)
+        """What is shown, without the quoted fields: the text a draft may cite from."""
+        quoted = {f.name for f in fields(self) if not f.metadata.get("citable", True)}
+        citable = {k: v for k, v in self.shown().items() if k not in quoted}
+        return json.dumps(citable, default=str)
 
     @property
     def citable_clauses(self) -> frozenset[str]:

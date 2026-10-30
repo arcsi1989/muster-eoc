@@ -11,6 +11,7 @@ const FILTERS: { value: ActorFilter; label: string }[] = [
   { value: 'system', label: 'System' },
   { value: 'agent', label: 'Agent (LLM)' },
   { value: 'human', label: 'People' },
+  { value: 'field_supervisor', label: 'Field supervisors' },
 ]
 
 export function AuditPage() {
