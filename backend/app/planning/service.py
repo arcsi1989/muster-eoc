@@ -146,8 +146,11 @@ def apply_release(session: Session, advisory: Advisory, role: Role) -> None:
         session,
         "human",
         "planning_approved" if first else "planning_released",
-        f"{role_label(role)} "
-        + ("approved the planning draft" if first else "released the ICS-215 and IAP objectives"),
+        (
+            "Planning Section Chief approved the planning draft"
+            if first
+            else f"{role_label(role)} released the ICS-215 and IAP objectives"
+        ),
         advisory,
         {"role": role, "status": status(planning)},
         {},

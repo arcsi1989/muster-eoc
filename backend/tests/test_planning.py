@@ -321,13 +321,17 @@ def test_release_takes_the_planning_section_chief_then_the_incident_commander(
     assert (again.status_code, again.json()["error"]["code"]) == (409, "planning_released")
     assert client.get("/packages/3/planning").json()["status"] == "released"
     logged = [
-        (e["type"], e["payload"]["role"])
+        (e["type"], e["payload"]["role"], e["summary"])
         for e in client.get("/audit", params={"actor": "human"}).json()
         if e["type"].startswith("planning_")
     ]
     assert sorted(logged) == [
-        ("planning_approved", "planning"),
-        ("planning_released", "incident_commander"),
+        ("planning_approved", "planning", "Planning Section Chief approved the planning draft"),
+        (
+            "planning_released",
+            "incident_commander",
+            "Incident commander released the ICS-215 and IAP objectives",
+        ),
     ]
 
 
