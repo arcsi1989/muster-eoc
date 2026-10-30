@@ -106,8 +106,24 @@ _Avoid_: Publish, sign-off
 ## Risk model
 
 **Model version**:
-A set of fragility curves risk scoring can use. Version 1 is the published curves; a calibration proposes a new one, and only an approved version is ever used. Each score records the version that produced it.
+A model risk scoring can use: a set of fragility curves or the challenger. Version 1 is the published curves; a calibration proposes a new set, the promotion rule lets the challenger be proposed, and only an approved version is ever used to rank. Each score records the version that produced it.
 _Avoid_: Model, curve set
+
+**Champion**:
+The model version that ranks the assets: the latest approved one. The rule-based score (the published curves) is the champion until a person approves another version.
+_Avoid_: Production model, active model
+
+**Challenger**:
+The gradient-boosted model trained on the synthetic storm history. It runs in shadow until a person approves its promotion.
+_Avoid_: ML model, new model
+
+**Shadow score**:
+The challenger's failure probability, risk and rank for an asset at an advisory, stored with its model version beside the champion's score. It never drives the ranking, the playbook check or the decision package.
+_Avoid_: Test score, preview score
+
+**Promotion rule**:
+When the challenger may be proposed: on the held-out storm it beats the champion's Brier score and top-decile capture by set margins and its calibration error stays under a set limit (`config/models.yaml`). Passing it only proposes; a person approves.
+_Avoid_: Auto-promotion, promotion gate
 
 **Calibration**:
 Fitting the fragility curves to the failures of a past storm (Storm Delta) and back-testing the fit against the version in use: reliability table, Brier score and top-decile capture, before and after.

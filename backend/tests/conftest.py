@@ -10,6 +10,7 @@ from sqlmodel import Session
 from app import advisory_context
 from app.agent.cycle import AdvisoryCycle
 from app.agent.lifecycle import issue_next_advisory
+from app.challenger.model import ChallengerModel
 from app.config import Settings
 from app.db import create_fresh_engine
 from app.ingest.loader import load_gold
@@ -67,13 +68,14 @@ class SeededScenario:
     playbook: Playbook
     scoring: ScoringConfig
     cycle: AdvisoryCycle
+    challenger: ChallengerModel | None = None  # scores in shadow when set, as the app's does
 
     def issue_until(self, advisory_no: int) -> None:
         """Issues advisories until `advisory_no` is current, through the app's own replay and
         advisory cycle (scoring, findings, decision package). Past the last advisory it raises
         ScenarioComplete, as the API does."""
         while advisory_context.current_advisory_no(self.session) < advisory_no:
-            issue_next_advisory(self.session, self.scoring, self.cycle)
+            issue_next_advisory(self.session, self.scoring, self.cycle, self.challenger)
             self.session.expire_all()  # the cycle writes through its own sessions
 
 

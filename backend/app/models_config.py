@@ -61,9 +61,19 @@ class ChallengerConfig(Strict):
         return self
 
 
+class PromotionRule(Strict):
+    """When the challenger may be proposed: on the held-out storm it beats the champion by both
+    margins and its calibration error is at most `max_calibration_error`."""
+
+    min_brier_improvement: float
+    min_top_capture_gain: float
+    max_calibration_error: float
+
+
 class ModelsConfig(Strict):
     history: HistoryConfig
     challenger: ChallengerConfig
+    promotion: PromotionRule
 
 
 def load_models_config(path: Path) -> ModelsConfig:

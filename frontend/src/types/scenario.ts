@@ -406,9 +406,13 @@ export interface Backtest {
 export interface ModelVersion {
   id: number
   label: string
-  status: 'proposed' | 'approved'
-  /** the latest approved: scores the next advisory */
+  /** fragility curves, or the challenger model (CR-03 C2) */
+  kind: 'curves' | 'challenger'
+  /** a challenger starts in shadow: it scores every advisory but ranks nothing */
+  status: 'shadow' | 'proposed' | 'approved'
+  /** the champion (the latest approved): ranks the next advisory */
   in_use: boolean
+  /** empty for the challenger */
   curves: Curve[]
   created_at: string
   approved_by: string | null
@@ -422,6 +426,45 @@ export interface Calibration {
   /** the proposed version */
   after: Backtest
   model_version: ModelVersion
+}
+
+/** A model's metrics on the held-out storm (backend ModelMetricsOut). */
+export interface ModelMetrics {
+  assets: number
+  failures: number
+  brier: number
+  /** null when every asset had the same outcome */
+  roc_auc: number | null
+  top_fraction: number
+  top_capture: number
+  reliability: ReliabilityBin[]
+}
+
+export interface PromotionCriterion {
+  name: 'brier_improvement' | 'top_capture_gain' | 'calibration_error'
+  /** the challenger's margin over the champion, or its calibration error */
+  value: number
+  /** config/models.yaml promotion */
+  threshold: number
+  passed: boolean
+}
+
+export interface PromotionCheck {
+  /** the held-out storm the rule is checked on */
+  storm: string
+  /** the challenger may be proposed */
+  passed: boolean
+  criteria: PromotionCriterion[]
+}
+
+/** GET /challenger (backend ChallengerOut). */
+export interface Challenger {
+  model_version: ModelVersion
+  /** on the held-out storm */
+  challenger: ModelMetrics
+  /** the published curves on the same storm */
+  champion: ModelMetrics
+  promotion: PromotionCheck
 }
 
 export type FieldTaskStatus = 'open' | 'done' | 'blocked'

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
     llm_config_path: Path = REPO_ROOT / "config" / "llm.yaml"
     models_config_path: Path = REPO_ROOT / "config" / "models.yaml"
+    challenger_model_path: Path = REPO_ROOT / "data" / "models" / "challenger.pkl"  # make train
     # The latest evaluation (make eval), recorded as an audit event at startup; None: none.
     eval_results_path: Path | None = REPO_ROOT / "docs" / "eval" / "results.json"
 

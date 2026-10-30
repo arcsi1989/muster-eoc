@@ -33,6 +33,7 @@ from app.agent import decisions, field, sitrep
 from app.agent.draft import produce_draft, sitrep_prompt
 from app.agent.draft_request import draft_request
 from app.audit.log import record
+from app.challenger.model import ChallengerModel
 from app.errors import AppError, ConflictError, DataNotLoaded, NotFound
 from app.llm.grounded import GroundedOutcome
 from app.llm.provider import LLMProvider
@@ -107,11 +108,17 @@ class PackageView:
     sitrep: Sitrep | None
 
 
-def issue_next_advisory(session: Session, config: ScoringConfig, cycle: AdvisoryCycle) -> int:
-    """Expires the current advisory's package, issues and scores the next advisory, and opens
-    its package: the cycle runs until it pauses for decisions."""
+def issue_next_advisory(
+    session: Session,
+    config: ScoringConfig,
+    cycle: AdvisoryCycle,
+    challenger: ChallengerModel | None = None,
+) -> int:
+    """Expires the current advisory's package, issues and scores the next advisory (the
+    challenger, if loaded, in shadow), and opens its package: the cycle runs until it pauses for
+    decisions."""
     expire(session, cycle, advisory_context.current_advisory_no(session))
-    advisory = service.advance(session, config)
+    advisory = service.advance(session, config, challenger)
     advisory_context.reset_per_advisory_flags(session, advisory)
     session.commit()  # one transaction: the advisory is never current with stale flags
     cycle.start(advisory.advisory_no)

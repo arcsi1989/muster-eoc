@@ -381,9 +381,10 @@ class BacktestOut(BaseModel):
 class ModelVersionOut(BaseModel):
     id: int
     label: str
-    status: Literal["proposed", "approved"]
-    in_use: bool  # the latest approved: scores the next advisory
-    curves: list[CurveOut]
+    kind: Literal["curves", "challenger"]
+    status: Literal["shadow", "proposed", "approved"]
+    in_use: bool  # the champion (the latest approved): ranks the next advisory
+    curves: list[CurveOut]  # empty for the challenger
     created_at: datetime
     approved_by: str | None
     approved_at: datetime | None
@@ -456,3 +457,33 @@ class RunTraceOut(BaseModel):
     spans: list[TraceSpanOut]
     advisory_totals: TraceTotalsOut
     run_totals: TraceTotalsOut
+
+
+class ModelMetricsOut(BaseModel):
+    assets: int
+    failures: int
+    brier: float
+    roc_auc: float | None  # None when every asset had the same outcome
+    top_fraction: float
+    top_capture: float
+    reliability: list[ReliabilityBinOut]
+
+
+class PromotionCriterionOut(BaseModel):
+    name: Literal["brier_improvement", "top_capture_gain", "calibration_error"]
+    value: float  # the challenger's margin over the champion, or its calibration error
+    threshold: float  # config/models.yaml promotion
+    passed: bool
+
+
+class PromotionCheckOut(BaseModel):
+    storm: str  # the held-out storm the rule is checked on
+    passed: bool  # the challenger may be proposed
+    criteria: list[PromotionCriterionOut]
+
+
+class ChallengerOut(BaseModel):
+    model_version: ModelVersionOut
+    challenger: ModelMetricsOut  # on the held-out storm
+    champion: ModelMetricsOut  # the published curves on the same storm
+    promotion: PromotionCheckOut
