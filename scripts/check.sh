@@ -18,6 +18,14 @@
 # Checks it can't discover (another language, a framework's own checker) go in extra_checks below.
 #
 # A run where nothing was checked FAILS: a gate that checks nothing must not look green.
+#
+# Changed-only mode (the commit gate, ~/.claude/hooks/quality_gate.py, sets it):
+#   CHECK_CHANGED_ONLY=1 ./scripts/check.sh
+# checks only the projects with uncommitted changes, and passes without checking when only
+# documentation or tool config changed. A change outside every project folder (config/, data/,
+# contracts/, this script) still checks everything. ALSO_CHECK below names files a project's
+# checks read from outside its folder. A passing run records the tree it checked, so the gate
+# skips a commit whose tree already passed.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -30,6 +38,48 @@ find_projects() {  # find_projects <marker file>
 PY_DIRS="${PY_DIRS-$(find_projects pyproject.toml)}"   # set but empty = none
 JS_DIRS="${JS_DIRS-$(find_projects package.json)}"
 echo "check.sh: python projects: ${PY_DIRS:-none} | js projects: ${JS_DIRS:-none}" | tr '\n' ' '; echo
+
+# <project dir>:<path prefix> pairs: files a project's checks read from outside its folder.
+ALSO_CHECK="backend:frontend/src/test/packageResponse.ts backend:docs/playbook.md"
+# Changes that no check reads (unless ALSO_CHECK names them): documentation and tool config.
+NEUTRAL='\.(md|mdx|rst|txt)$|^(docs|\.scratch|\.claude)/|^\.git(attributes|ignore)$'
+
+# The working tree as a git tree id: HEAD's files plus every uncommitted change, gitignored
+# files left out. The commit gate computes it the same way.
+tree_id() {
+  local idx; idx=$(mktemp) || return 1
+  cp "$(git rev-parse --git-path index 2>/dev/null)" "$idx" 2>/dev/null
+  GIT_INDEX_FILE="$idx" git add -A . >/dev/null 2>&1 && GIT_INDEX_FILE="$idx" git write-tree 2>/dev/null
+  rm -f "$idx"
+}
+tree_before=$(tree_id)
+
+wanted() {  # wanted <dir>: does a changed-only run check the project in <dir>?
+  local pair
+  [ "$1" = "." ] && return 0
+  grep -vE "$NEUTRAL" <<<"$changed" | grep -q "^$1/" && return 0
+  for pair in $ALSO_CHECK; do
+    [ "${pair%%:*}" = "$1" ] && grep -qF -- "${pair#*:}" <<<"$changed" && return 0
+  done
+  return 1
+}
+if [ -n "${CHECK_CHANGED_ONLY:-}" ]; then
+  changed=$({ git diff HEAD --name-only; git ls-files -o --exclude-standard; } 2>/dev/null | sort -u)
+  outside=$(grep -vE "$NEUTRAL" <<<"$changed")
+  for d in $PY_DIRS $JS_DIRS; do outside=$(grep -v "^$d/" <<<"$outside"); done
+  if [ -n "$outside" ]; then
+    echo "check.sh: changed outside the projects ($(head -1 <<<"$outside")): checking everything"
+  else
+    keep_py= keep_js=
+    for d in $PY_DIRS; do if wanted "$d"; then keep_py="$keep_py $d"; else echo "==> [$d] skipped: unchanged"; fi; done
+    for d in $JS_DIRS; do if wanted "$d"; then keep_js="$keep_js $d"; else echo "==> [$d] skipped: unchanged"; fi; done
+    PY_DIRS=$keep_py JS_DIRS=$keep_js
+    if [ -z "$PY_DIRS$JS_DIRS" ]; then
+      echo "check.sh: only documentation or tool config changed: nothing to check"
+      exit 0
+    fi
+  fi
+fi
 
 failed=0
 ran=0
@@ -103,8 +153,10 @@ done
 # Checks this script can't discover. One line each:  step <dir> <label> <command...>
 # For example:   step frontend "svelte-check" pnpm exec svelte-check
 #                step services/api "go test" go test ./...
+# checking <dir> is false when a changed-only run skipped that project.
+checking() { [[ " $PY_DIRS $JS_DIRS " == *" $1 "* ]]; }
 extra_checks() {
-  step backend "types" uv run mypy
+  checking backend && step backend "types" uv run mypy
 }
 extra_checks
 
@@ -118,3 +170,7 @@ if [ "$failed" -ne 0 ]; then
   exit 1
 fi
 echo "check.sh: all $ran checks passed"
+# Record the tree that passed, unless it changed while the checks ran.
+if [ -n "$tree_before" ] && [ "$(tree_id)" = "$tree_before" ]; then
+  echo "$tree_before" >"$(git rev-parse --git-path check-green)"
+fi
