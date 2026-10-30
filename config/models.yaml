@@ -30,6 +30,8 @@ challenger:
   calibration_folds: 3            # isotonic calibration fitted on held-out storms inside a fold
   permutation_repeats: 5
   top_features: 4                 # the importance ranking the report highlights
+  explain_features: 3             # per asset: the challenger's top features the explain panel and
+                                  # the disagreements list show (CR-03: "top three")
   hgb:                            # scikit-learn HistGradientBoostingClassifier
     max_iter: 200
     learning_rate: 0.05

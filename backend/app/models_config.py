@@ -52,6 +52,7 @@ class ChallengerConfig(Strict):
     calibration_folds: int
     permutation_repeats: int
     top_features: int
+    explain_features: int
     hgb: HgbConfig
 
     @model_validator(mode="after")

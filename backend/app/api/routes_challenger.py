@@ -1,13 +1,22 @@
 from dataclasses import asdict
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.api.model_version_out import version_out
-from app.api.schemas import ChallengerOut, ModelMetricsOut, ModelVersionOut, PromotionCheckOut
+from app.api.schemas import (
+    ChallengerFeatureOut,
+    ChallengerOut,
+    DisagreementOut,
+    DisagreementsOut,
+    ModelMetricsOut,
+    ModelVersionOut,
+    PromotionCheckOut,
+)
 from app.calibration import versions
-from app.challenger import promotion
+from app.challenger import promotion, shadow
 from app.challenger.model import ChallengerModel
-from app.deps import ChallengerDep, ModelsConfigDep, SessionDep
+from app.deps import ChallengerDep, ModelsConfigDep, ScoringConfigDep, SessionDep
 from app.errors import NotFound
 
 router = APIRouter(prefix="/challenger")
@@ -44,3 +53,39 @@ def propose_challenger(
     It ranks nothing until a person approves it at POST /model-versions/{id}/approve."""
     version = promotion.propose(session, _loaded(challenger), config.promotion)
     return version_out(session, version)
+
+
+@router.get("/disagreements", response_model=DisagreementsOut)
+def get_disagreements(
+    session: SessionDep,
+    challenger: ChallengerDep,
+    models: ModelsConfigDep,
+    scoring: ScoringConfigDep,
+    advisory: Annotated[int, Query(ge=1)],
+) -> DisagreementsOut:
+    """The assets the challenger ranks in its top N at an advisory that the champion does not,
+    with the challenger's top features: why it ranks them higher."""
+    version = _loaded(challenger).version
+    top_n = scoring.risk.top_n
+    found = shadow.disagreements(
+        session, advisory, version, top_n, models.challenger.explain_features
+    )
+    return DisagreementsOut(
+        advisory_no=advisory,
+        model_version=version,
+        top_n=top_n,
+        items=[
+            DisagreementOut(
+                asset_id=d.challenger.asset_id,
+                asset_name=d.asset_name,
+                challenger_rank=d.challenger.rank,
+                champion_rank=d.champion_rank,
+                challenger_p_fail=d.challenger.p_fail,
+                champion_p_fail=d.champion_p_fail,
+                top_features=[
+                    ChallengerFeatureOut.model_validate(f) for f in d.challenger.top_features
+                ],
+            )
+            for d in found
+        ],
+    )
