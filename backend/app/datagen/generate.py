@@ -18,10 +18,9 @@ from typing import Any
 import numpy as np
 from pydantic import BaseModel
 
-from app.calibration.backtest import BestTrack, Observation, best_track_exposure, predict
 from app.config import REPO_ROOT
+from app.datagen.truth import HiddenTruth, simulate_failures
 from app.geo import distance_to_polyline
-from app.hazard.ensemble import Site, impute_elevations
 from app.ingest.contracts import (
     AdvisoryRecord,
     AssetRecord,
@@ -33,6 +32,7 @@ from app.ingest.contracts import (
     InitialStateFile,
     StagingAreaRecord,
     StormOutcomeRecord,
+    SyntheticStormFile,
 )
 from app.models import FragilityCurve
 from app.playbook.activation import Level
@@ -378,6 +378,7 @@ FRAGILITY_CURVES: list[dict[str, Any]] = [
 TRUE_FRAGILITY_CURVES: list[dict[str, Any]] = [
     {**c, "theta": round(c["theta"] / 1.2, 3)} for c in FRAGILITY_CURVES
 ]
+TRUE_CURVES = [FragilityCurve(**c) for c in TRUE_FRAGILITY_CURVES]
 
 # Storm Delta, a past fictional storm: a straight best track through the eastern half of the
 # territory, 6-hourly from 36 h before landfall to 24 h after.
@@ -429,53 +430,61 @@ def build_advisory(index: int) -> dict[str, Any]:
     """A straight track at constant forward speed through the forecast landfall point, 6-hourly
     from issue time to 24 h after landfall. Weakening over land is the hazard model's job."""
     hours = HOURS_TO_LANDFALL[index]
-    lx = LANDFALL_X_KM[index]
-    ly = coast_y_km(lx)
-    heading = math.radians(HEADING_DEG_FROM_EAST)
-    track = []
-    for t in range(0, hours + 25, 6):
-        travelled = FORWARD_SPEED_KMH * (t - hours)
-        track.append(
-            {
-                "t_hours": float(t),
-                "x_km": round(lx + travelled * math.cos(heading), 3),
-                "y_km": round(ly + travelled * math.sin(heading), 3),
-                "vmax_mph": float(VMAX_MPH[index]),
-                "rmax_km": RMAX_KM,
-            }
-        )
+    track, landfall = straight_track(
+        LANDFALL_X_KM[index], HEADING_DEG_FROM_EAST, float(VMAX_MPH[index]), RMAX_KM, hours
+    )
     return {
         "advisory_no": index + 1,
         "issued_at": (FIRST_ISSUED_AT + timedelta(hours=12 * index)).isoformat(),
         "hours_to_landfall": hours,
         "track": track,
         "cone_radius_km": CONE_RADIUS_KM,
-        "landfall": {"x_km": lx, "y_km": round(ly, 3)},
+        "landfall": landfall,
         "peak_surge_m": PEAK_SURGE_M[index],
     }
 
 
-def build_storm_delta() -> dict[str, Any]:
-    lx, ly = DELTA_LANDFALL_X_KM, coast_y_km(DELTA_LANDFALL_X_KM)
-    heading = math.radians(DELTA_HEADING_DEG_FROM_EAST)
+def straight_track(
+    landfall_x_km: float,
+    heading_deg_from_east: float,
+    vmax_mph: float,
+    rmax_km: float,
+    hours_before_landfall: int,
+) -> tuple[list[dict[str, Any]], dict[str, float]]:
+    """A straight track at constant forward speed (an advisory's forecast or a past storm's best
+    track), 6-hourly from `hours_before_landfall` before landfall to 24 h after, and its
+    landfall point on the coast."""
+    lx, ly = landfall_x_km, coast_y_km(landfall_x_km)
+    heading = math.radians(heading_deg_from_east)
     track = []
-    for t in range(0, DELTA_HOURS_BEFORE_LANDFALL + 25, 6):
-        travelled = FORWARD_SPEED_KMH * (t - DELTA_HOURS_BEFORE_LANDFALL)
+    for t in range(0, hours_before_landfall + 25, 6):
+        travelled = FORWARD_SPEED_KMH * (t - hours_before_landfall)
         track.append(
             {
                 "t_hours": float(t),
                 "x_km": round(lx + travelled * math.cos(heading), 3),
                 "y_km": round(ly + travelled * math.sin(heading), 3),
-                "vmax_mph": DELTA_VMAX_MPH,
-                "rmax_km": RMAX_KM,
+                "vmax_mph": vmax_mph,
+                "rmax_km": rmax_km,
             }
         )
+    return track, {"x_km": lx, "y_km": round(ly, 3)}
+
+
+def build_storm_delta() -> dict[str, Any]:
+    track, landfall = straight_track(
+        DELTA_LANDFALL_X_KM,
+        DELTA_HEADING_DEG_FROM_EAST,
+        DELTA_VMAX_MPH,
+        RMAX_KM,
+        DELTA_HOURS_BEFORE_LANDFALL,
+    )
     return {
         "name": DELTA_NAME,
         "landfall_at": DELTA_LANDFALL_AT.isoformat(),
         "landfall_t_hours": float(DELTA_HOURS_BEFORE_LANDFALL),
         "track": track,
-        "landfall": {"x_km": lx, "y_km": round(ly, 3)},
+        "landfall": landfall,
         "peak_surge_m": DELTA_PEAK_SURGE_M,
     }
 
@@ -484,55 +493,16 @@ def build_storm_delta_outcomes(
     storm: dict[str, Any], assets: list[dict[str, Any]], coastline: dict[str, Any]
 ) -> list[dict[str, Any]]:
     """Which assets failed in Storm Delta: drawn (seeded) from the hidden true curves, applied to
-    the exposure the back-test computes from the best track."""
-    config = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
-    elevations = impute_elevations(
-        [(a["id"], a["x_km"], a["y_km"], a["elevation_m"]) for a in assets],
-        config.hazard.surge.imputation_neighbours,
+    the exposure the back-test computes from the best track. Without the synthetic history's age
+    x condition effect: the calibration and the demo seeds rest on these failures."""
+    return simulate_failures(
+        storm,
+        assets,
+        coastline,
+        HiddenTruth(TRUE_CURVES, effect=None, year=SCENARIO_START.year),
+        load_scoring_config(REPO_ROOT / "config" / "scoring.yaml"),
+        np.random.default_rng(SEED),
     )
-    sites = [
-        Site(
-            a["id"], "asset", a["x_km"], a["y_km"], *elevations[a["id"]], a["distance_to_coast_km"]
-        )
-        for a in assets
-    ]
-    line, land = (f["geometry"]["coordinates"] for f in coastline["features"])
-    exposures = best_track_exposure(
-        BestTrack(
-            storm["track"],
-            storm["landfall_t_hours"],
-            (storm["landfall"]["x_km"], storm["landfall"]["y_km"]),
-            storm["peak_surge_m"],
-        ),
-        sites,
-        [tuple(p) for p in line],
-        [tuple(p) for p in land[0]],
-        config.hazard,
-    )
-    by_id = {a["id"]: a for a in assets}
-    observations = [
-        Observation(
-            e.site_id,
-            by_id[e.site_id]["type"],
-            by_id[e.site_id]["condition_score"],
-            float(e.wind_members_mph[0]),
-            float(e.flood_members_m[0]),
-            False,
-        )
-        for e in exposures
-    ]
-    p_true = predict(
-        observations,
-        [FragilityCurve(**c) for c in TRUE_FRAGILITY_CURVES],
-        config.risk.condition_theta_reduction_per_step,
-    )
-    draws = np.random.default_rng(SEED).random(len(observations))
-    return [
-        {"asset_id": o.asset_id, "failed": bool(u < p)}
-        for o, u, p in sorted(
-            zip(observations, draws, p_true, strict=True), key=lambda t: t[0].asset_id
-        )
-    ]
 
 
 REJECTED_EXAMPLE = [
@@ -609,6 +579,7 @@ def export_schemas(out_dir: Path) -> None:
         "coastline": CoastlineFile,
         "historical_storm": HistoricalStormFile,
         "storm_outcome": StormOutcomeRecord,
+        "synthetic_storm": SyntheticStormFile,
     }
     for name, model in contracts.items():
         write_json(out_dir / f"{name}.schema.json", model.model_json_schema())
@@ -619,7 +590,6 @@ if __name__ == "__main__":
 
     from app.config import get_settings
     from app.datagen.seed_check import check_seeds
-    from app.scoring_config import load_scoring_config
 
     generate(REPO_ROOT / "data" / "gold")
     export_schemas(REPO_ROOT / "contracts")

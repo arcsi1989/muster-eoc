@@ -1,0 +1,420 @@
+{
+  "model_version": "challenger-hgb-20storms-seed42",
+  "trained_on": [
+    "Storm S01",
+    "Storm S02",
+    "Storm S03",
+    "Storm S04",
+    "Storm S05",
+    "Storm S06",
+    "Storm S07",
+    "Storm S08",
+    "Storm S09",
+    "Storm S10",
+    "Storm S11",
+    "Storm S12",
+    "Storm S13",
+    "Storm S14",
+    "Storm S15",
+    "Storm S16",
+    "Storm S17",
+    "Storm S18",
+    "Storm S19",
+    "Storm S20"
+  ],
+  "held_out": "Storm Delta",
+  "features": [
+    "wind_p50_mph",
+    "wind_p90_mph",
+    "flood_p50_m",
+    "flood_p90_m",
+    "condition_score",
+    "age_years",
+    "asset_type",
+    "elevation_imputed",
+    "distance_to_coast_km",
+    "critical_dependency"
+  ],
+  "cross_validation": {
+    "challenger": {
+      "assets": 3920,
+      "failures": 890,
+      "brier": 0.11639,
+      "top_fraction": 0.1,
+      "top_capture": 0.334831,
+      "reliability": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 1717,
+          "mean_predicted": 0.028341,
+          "observed_rate": 0.034945
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 605,
+          "mean_predicted": 0.146999,
+          "observed_rate": 0.119008
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 402,
+          "mean_predicted": 0.246094,
+          "observed_rate": 0.238806
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 343,
+          "mean_predicted": 0.347263,
+          "observed_rate": 0.373178
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 229,
+          "mean_predicted": 0.447118,
+          "observed_rate": 0.480349
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 191,
+          "mean_predicted": 0.540847,
+          "observed_rate": 0.52356
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 145,
+          "mean_predicted": 0.645284,
+          "observed_rate": 0.634483
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 91,
+          "mean_predicted": 0.749128,
+          "observed_rate": 0.736264
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 114,
+          "mean_predicted": 0.852297,
+          "observed_rate": 0.789474
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 83,
+          "mean_predicted": 0.957383,
+          "observed_rate": 0.903614
+        }
+      ],
+      "roc_auc": 0.867033
+    },
+    "champion": {
+      "assets": 3920,
+      "failures": 890,
+      "brier": 0.158905,
+      "top_fraction": 0.1,
+      "top_capture": 0.326966,
+      "reliability": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 2787,
+          "mean_predicted": 0.028912,
+          "observed_rate": 0.099749
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 600,
+          "mean_predicted": 0.143918,
+          "observed_rate": 0.391667
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 302,
+          "mean_predicted": 0.24423,
+          "observed_rate": 0.576159
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 172,
+          "mean_predicted": 0.344821,
+          "observed_rate": 0.848837
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 47,
+          "mean_predicted": 0.439834,
+          "observed_rate": 0.957447
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 8,
+          "mean_predicted": 0.529242,
+          "observed_rate": 1.0
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 2,
+          "mean_predicted": 0.655258,
+          "observed_rate": 1.0
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 2,
+          "mean_predicted": 0.734708,
+          "observed_rate": 1.0
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        }
+      ],
+      "roc_auc": 0.847942
+    }
+  },
+  "held_out_metrics": {
+    "challenger": {
+      "assets": 196,
+      "failures": 51,
+      "brier": 0.149802,
+      "top_fraction": 0.1,
+      "top_capture": 0.294118,
+      "reliability": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 28,
+          "mean_predicted": 0.056771,
+          "observed_rate": 0.0
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 49,
+          "mean_predicted": 0.145246,
+          "observed_rate": 0.061224
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 20,
+          "mean_predicted": 0.259412,
+          "observed_rate": 0.2
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 19,
+          "mean_predicted": 0.338714,
+          "observed_rate": 0.157895
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 10,
+          "mean_predicted": 0.458717,
+          "observed_rate": 0.1
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 16,
+          "mean_predicted": 0.536205,
+          "observed_rate": 0.4375
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 22,
+          "mean_predicted": 0.64617,
+          "observed_rate": 0.5
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 15,
+          "mean_predicted": 0.756799,
+          "observed_rate": 0.533333
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 8,
+          "mean_predicted": 0.858011,
+          "observed_rate": 0.875
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 9,
+          "mean_predicted": 0.971598,
+          "observed_rate": 0.777778
+        }
+      ],
+      "roc_auc": 0.850372
+    },
+    "champion": {
+      "assets": 196,
+      "failures": 51,
+      "brier": 0.171785,
+      "top_fraction": 0.1,
+      "top_capture": 0.27451,
+      "reliability": [
+        {
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 95,
+          "mean_predicted": 0.055233,
+          "observed_rate": 0.073684
+        },
+        {
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 49,
+          "mean_predicted": 0.148641,
+          "observed_rate": 0.306122
+        },
+        {
+          "lower": 0.2,
+          "upper": 0.3,
+          "count": 34,
+          "mean_predicted": 0.246296,
+          "observed_rate": 0.441176
+        },
+        {
+          "lower": 0.3,
+          "upper": 0.4,
+          "count": 12,
+          "mean_predicted": 0.337928,
+          "observed_rate": 0.75
+        },
+        {
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 5,
+          "mean_predicted": 0.422321,
+          "observed_rate": 0.8
+        },
+        {
+          "lower": 0.5,
+          "upper": 0.6,
+          "count": 1,
+          "mean_predicted": 0.559135,
+          "observed_rate": 1.0
+        },
+        {
+          "lower": 0.6,
+          "upper": 0.7,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        },
+        {
+          "lower": 0.7,
+          "upper": 0.8,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        },
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 0,
+          "mean_predicted": null,
+          "observed_rate": null
+        }
+      ],
+      "roc_auc": 0.807708
+    }
+  },
+  "importance": [
+    {
+      "feature": "wind_p50_mph",
+      "mean": 0.085635,
+      "sd": 0.023327
+    },
+    {
+      "feature": "condition_score",
+      "mean": 0.013628,
+      "sd": 0.003899
+    },
+    {
+      "feature": "age_years",
+      "mean": 0.005901,
+      "sd": 0.003507
+    },
+    {
+      "feature": "flood_p50_m",
+      "mean": 0.000729,
+      "sd": 0.000603
+    },
+    {
+      "feature": "flood_p90_m",
+      "mean": 4.2e-05,
+      "sd": 0.000603
+    },
+    {
+      "feature": "asset_type",
+      "mean": 5e-06,
+      "sd": 0.000537
+    },
+    {
+      "feature": "elevation_imputed",
+      "mean": -3.1e-05,
+      "sd": 0.000115
+    },
+    {
+      "feature": "critical_dependency",
+      "mean": -0.000452,
+      "sd": 0.000564
+    },
+    {
+      "feature": "distance_to_coast_km",
+      "mean": -0.000522,
+      "sd": 0.002678
+    },
+    {
+      "feature": "wind_p90_mph",
+      "mean": -0.000615,
+      "sd": 0.003609
+    }
+  ],
+  "top_features": [
+    "wind_p50_mph",
+    "condition_score",
+    "age_years",
+    "flood_p50_m"
+  ]
+}

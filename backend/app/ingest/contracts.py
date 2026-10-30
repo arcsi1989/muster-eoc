@@ -115,6 +115,13 @@ class StormOutcomeRecord(Contract):
     failed: bool
 
 
+class SyntheticStormFile(HistoricalStormFile):
+    """A past fictional storm of the synthetic history (history/synthetic_storms.json) with
+    every asset's outcome, for training the challenger model (CR-03 C2)."""
+
+    outcomes: list[StormOutcomeRecord] = Field(min_length=1)
+
+
 class LineStringGeometry(Contract):
     type: Literal["LineString"]
     coordinates: list[tuple[float, float]]

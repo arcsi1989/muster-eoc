@@ -1,0 +1,39 @@
+# Tunable numbers for the synthetic storm history and the challenger model (CR-03 C2).
+# Choices the change request leaves open are explained in docs/decisions.md.
+
+history:
+  seed: 42
+  storms: 20                      # past fictional storms the challenger trains on (Storm Delta is extra)
+  year_range: [2008, 2025]        # landfall years (labels only: every storm meets today's assets)
+  landfall_x_km: [30.0, 230.0]    # along the territory's coast
+  heading_deg_from_east: [60.0, 120.0]
+  vmax_mph: [80.0, 150.0]         # Cat 1 to Cat 4 at landfall
+  peak_surge_m: [1.0, 4.0]
+  rmax_km: [25.0, 50.0]
+  hours_before_landfall: 36       # best track from this long before landfall to 24 h after
+  # The effect the rule-based score does not model: old assets in poor condition fail more
+  # often under strong wind, and more still when flood reaches them too. Part of the
+  # hidden truth, never a feature. Few assets flood in this territory, so the effect does not
+  # wait for flood (docs/decisions.md).
+  age_condition_effect:
+    min_age_years: 40             # older than this on the scenario date
+    min_condition_score: 4
+    min_wind_mph: 50.0            # strong tropical-storm wind ...
+    extra_failure_probability: 0.3        # ... p -> 1 - (1 - p)(1 - extra)
+    min_flood_m: 0.1              # combined with at least this flood depth ...
+    extra_failure_probability_flooded: 0.6  # ... the larger extra applies instead
+
+challenger:
+  forecast_cone_radius_km: 96     # features: ensemble spread as a forecast 36 h before landfall
+  ensemble_seed_offset: 100       # past storm i uses ensemble seed + offset + i (not the scenario's)
+  cv_folds: 5                     # leave-storms-out: each fold holds out a quarter of the storms
+  calibration_folds: 3            # isotonic calibration fitted on held-out storms inside a fold
+  permutation_repeats: 5
+  top_features: 4                 # the importance ranking the report highlights
+  hgb:                            # scikit-learn HistGradientBoostingClassifier
+    max_iter: 200
+    learning_rate: 0.05
+    max_leaf_nodes: 15
+    min_samples_leaf: 20
+    l2_regularization: 1.0
+    random_state: 42
