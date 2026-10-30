@@ -37,3 +37,12 @@ challenger:
     min_samples_leaf: 20
     l2_regularization: 1.0
     random_state: 42
+
+# Promotion (CR-03 C2): the challenger may be proposed only when, on the held-out storm (Storm
+# Delta, never used in training or tuning), it beats the champion by these margins and passes
+# the calibration check. A person then approves it, or it stays in shadow. Never automatic.
+promotion:
+  min_brier_improvement: 0.01     # champion's Brier score minus the challenger's
+  min_top_capture_gain: 0.01      # challenger's top-decile capture minus the champion's
+  max_calibration_error: 0.15     # challenger's mean |predicted - observed| over the reliability
+                                  # bins, weighted by assets per bin

@@ -92,7 +92,7 @@ def run(session: Session, config: ScoringConfig) -> CalibrationRun:
         p = predict_failures(observed, curves, step)
         return evaluate(p, failed, calibration.reliability_bins, calibration.top_fraction)
 
-    current = versions.in_use(session)
+    current = versions.latest_curves(session)
     published = session.get(ModelVersion, PUBLISHED_VERSION)
     if published is None:
         raise DataNotLoaded("the published model version is missing")

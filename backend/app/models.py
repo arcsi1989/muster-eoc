@@ -19,7 +19,8 @@ ItemKind = Literal["gap", "conflict", "proposal"]
 FieldStatus = Literal["done", "blocked"]
 ItemStatus = Literal["pending", "approved", "overridden", "deferred", "alternative", "not_decided"]
 PackageStatus = Literal["open", "closed"]
-ModelVersionStatus = Literal["proposed", "approved"]
+ModelVersionStatus = Literal["shadow", "proposed", "approved"]
+ModelVersionKind = Literal["curves", "challenger"]
 
 
 class Payload[M: BaseModel](TypeDecorator[M]):
@@ -86,13 +87,16 @@ class FragilityCurve(SQLModel, table=True):
 
 
 class ModelVersion(SQLModel, table=True):
-    """A set of fragility curves risk scoring can use. Version 1 is the published curves; a
-    calibration run proposes a new one. Only an approved version is ever used to score."""
+    """A model risk scoring can use: a set of fragility curves or the challenger. Version 1 is
+    the published curves; a calibration run proposes a new set. The challenger starts in shadow
+    and is proposed only when it passes the promotion rule. Only an approved version is ever
+    used to rank."""
 
     id: int | None = Field(default=None, primary_key=True)
     label: str
+    kind: ModelVersionKind = Field(default="curves", sa_type=String)
     status: ModelVersionStatus = Field(sa_type=String)
-    curves: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))
+    curves: list[dict[str, Any]] = Field(sa_column=Column(JSON, nullable=False))  # [] if challenger
     created_at: datetime
     approved_by: str | None = None  # a role, or "published" for version 1
     approved_at: datetime | None = None
@@ -192,7 +196,7 @@ class Score(SQLModel, table=True):
 
     asset_id: str = Field(primary_key=True, foreign_key="asset.id")
     advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
-    model_version: int = Field(foreign_key="modelversion.id")  # the curves that scored it
+    model_version: int = Field(foreign_key="modelversion.id")  # the champion that scored it
     p_wind: float
     p_flood: float
     p_fail: float
@@ -201,6 +205,19 @@ class Score(SQLModel, table=True):
     rank: int
     confidence: Confidence = Field(sa_type=String)
     confidence_reasons: list[str] = Field(sa_column=Column(JSON, nullable=False))
+    factors: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
+
+
+class ShadowScore(SQLModel, table=True):
+    """A challenger's score of an asset at an advisory, stored beside the champion's with the
+    challenger's model version. It never drives the ranking, the playbook check or the package."""
+
+    asset_id: str = Field(primary_key=True, foreign_key="asset.id")
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    model_version: int = Field(primary_key=True, foreign_key="modelversion.id")
+    p_fail: float
+    risk: float  # p_fail x the champion's consequence
+    rank: int  # by this model's risk
     factors: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
 
 

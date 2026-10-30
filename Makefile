@@ -15,7 +15,7 @@ data: ## Regenerate the gold data and the synthetic storm history (deterministic
 history: ## Regenerate the synthetic storm history the challenger trains on (seed 42)
 	cd backend && uv run python -m app.datagen.history
 
-train: ## Train the challenger and compare it with the rule-based champion on Storm Delta
+train: ## Train the challenger, compare it with the rule-based champion on Storm Delta, save it for shadow scoring
 	cd backend && uv run python -m app.challenger.train
 
 dev: ## Backend and frontend together; Ctrl-C stops both

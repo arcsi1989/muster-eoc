@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     scoring_config_path: Path = REPO_ROOT / "config" / "scoring.yaml"
     llm_config_path: Path = REPO_ROOT / "config" / "llm.yaml"
     models_config_path: Path = REPO_ROOT / "config" / "models.yaml"
+    challenger_model_path: Path = REPO_ROOT / "data" / "models" / "challenger.pkl"  # make train
 
     # LLM (decisions.md): template by default and in tests; make dev reads backend/.env.
     llm_provider: Literal["anthropic", "template", "azure_openai"] = "template"

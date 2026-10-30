@@ -12,6 +12,7 @@ tuning. Permutation importance is measured on each fold's held-out storms.
 import json
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
+from dataclasses import fields as dataclass_fields
 from pathlib import Path
 from typing import Any
 
@@ -23,7 +24,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import GroupKFold
 from sqlmodel import Session
 
-from app.calibration.backtest import BacktestMetrics, BoolArray, evaluate
+from app.calibration.backtest import BoolArray, evaluate
 from app.challenger.dataset import (
     CATEGORICAL,
     FEATURES,
@@ -34,6 +35,7 @@ from app.challenger.dataset import (
     stack,
     storm_sample,
 )
+from app.challenger.model import Comparison, ModelMetrics, TrainedChallenger, baseline, save
 from app.geo import FloatArray
 from app.ingest.contracts import SyntheticStormFile
 from app.models_config import ChallengerConfig
@@ -41,17 +43,6 @@ from app.scoring_config import ScoringConfig
 
 MODEL_NAME = "challenger-hgb"
 RESULTS_FILE = Path("docs") / "eval" / "challenger_results.json"
-
-
-@dataclass(frozen=True)
-class ModelMetrics(BacktestMetrics):
-    roc_auc: float | None  # None when every row has the same outcome
-
-
-@dataclass(frozen=True)
-class Comparison:
-    challenger: ModelMetrics
-    champion: ModelMetrics
 
 
 @dataclass(frozen=True)
@@ -100,7 +91,8 @@ def metrics(p: FloatArray, failed: BoolArray, scoring: ScoringConfig) -> ModelMe
         p, failed, scoring.calibration.reliability_bins, scoring.calibration.top_fraction
     )
     auc = float(roc_auc_score(failed, p)) if 0 < failed.sum() < len(failed) else None
-    return ModelMetrics(**asdict(base), roc_auc=auc)
+    fields = {f.name: getattr(base, f.name) for f in dataclass_fields(base)}  # bins stay bins
+    return ModelMetrics(**fields, roc_auc=auc)
 
 
 def cross_validate(
@@ -145,7 +137,7 @@ def run(
     history: Sequence[SyntheticStormFile],
     scoring: ScoringConfig,
     config: ChallengerConfig,
-) -> tuple[ChallengerReport, CalibratedClassifierCV]:
+) -> tuple[ChallengerReport, TrainedChallenger]:
     """Cross-validates on the history, trains the final model on all of it and compares both
     models on the held-out storm. Returns the report and the final model."""
     held_out_name = scoring.calibration.storm
@@ -162,22 +154,24 @@ def run(
     cv, importance = cross_validate(samples, scoring, config)
     features, failed, _, groups = stack(samples)
     model = build_model(features, failed, groups, config)
+    held_out_metrics = Comparison(
+        challenger=metrics(failure_probability(model, held_out.features), held_out.failed, scoring),
+        champion=metrics(held_out.champion_p, held_out.failed, scoring),
+    )
+    name = f"{MODEL_NAME}-{len(storms)}storms-seed{config.hgb.random_state}"
     report = ChallengerReport(
-        model_version=f"{MODEL_NAME}-{len(storms)}storms-seed{config.hgb.random_state}",
+        model_version=name,
         trained_on=[s.name for s in storms],
         held_out=held_out_name,
         features=list(FEATURES),
         cross_validation=cv,
-        held_out_metrics=Comparison(
-            challenger=metrics(
-                failure_probability(model, held_out.features), held_out.failed, scoring
-            ),
-            champion=metrics(held_out.champion_p, held_out.failed, scoring),
-        ),
+        held_out_metrics=held_out_metrics,
         importance=importance,
         top_features=[f.feature for f in importance[: config.top_features]],
     )
-    return report, model
+    return report, TrainedChallenger(
+        name, model, baseline(features), held_out_name, held_out_metrics
+    )
 
 
 def write_report(report: ChallengerReport, path: Path) -> None:
@@ -234,9 +228,10 @@ if __name__ == "__main__":
     SQLModel.metadata.create_all(engine)
     with Session(engine) as db:
         load_gold(db, settings.data_dir)
-        result, _ = run(
+        result, trained = run(
             db, load_world(db, scoring_config), storms_file, scoring_config, challenger_config
         )
     write_report(result, REPO_ROOT / RESULTS_FILE)
+    save(trained, settings.challenger_model_path)
     print(summary(result))
-    print(f"Results written: {RESULTS_FILE}")
+    print(f"Results written: {RESULTS_FILE}; model saved: {settings.challenger_model_path}")
