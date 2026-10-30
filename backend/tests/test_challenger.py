@@ -7,9 +7,17 @@ from typing import Any
 
 import pytest
 
-from app.challenger.dataset import FEATURES, history_storms, load_world, storm_sample
-from app.challenger.train import cross_validate, run
+from app.challenger.dataset import (
+    FEATURES,
+    StormSample,
+    history_storms,
+    load_world,
+    stack,
+    storm_sample,
+)
+from app.challenger.train import build_model, cross_validate, failure_probability, run
 from app.config import REPO_ROOT
+from app.datagen.generate import SCENARIO_START
 from app.datagen.history import HISTORY_FILE, build_history
 from app.datagen.truth import extra_failure_probability
 from app.ingest.contracts import SyntheticStormFile
@@ -22,6 +30,8 @@ MODELS = load_models_config(REPO_ROOT / "config" / "models.yaml")
 SCORING = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml")
 EFFECT = MODELS.history.age_condition_effect
 SLICE = 8  # storms of the history the tests train on
+ASSETS = 196  # in the gold asset base: one row per asset and storm
+YEAR = SCENARIO_START.year  # asset ages count to it
 
 # Fewer folds, repeats and trees than `make train`: the same discipline, a few seconds.
 FAST = MODELS.challenger.model_copy(
@@ -47,24 +57,36 @@ def history_slice() -> list[SyntheticStormFile]:
     return [SyntheticStormFile.model_validate(s) for s in committed_history()[:SLICE]]
 
 
+def no_effect(storms: int) -> HistoryConfig:
+    """The history without the age x condition effect: the same storms and draws."""
+    return MODELS.history.model_copy(
+        update={
+            "storms": storms,
+            "age_condition_effect": EFFECT.model_copy(
+                update={"extra_failure_probability": 0.0, "extra_failure_probability_flooded": 0.0}
+            ),
+        }
+    )
+
+
 def asset(install_year: int, condition_score: int) -> dict[str, Any]:
     return {"install_year": install_year, "condition_score": condition_score}
 
 
 def test_the_effect_needs_an_old_asset_in_poor_condition_under_strong_wind() -> None:
-    old_poor = asset(2026 - EFFECT.min_age_years - 1, EFFECT.min_condition_score)
+    old_poor = asset(YEAR - EFFECT.min_age_years - 1, EFFECT.min_condition_score)
     wind = EFFECT.min_wind_mph
-    assert extra_failure_probability(old_poor, wind, 0.0, EFFECT, 2026) == (
+    assert extra_failure_probability(old_poor, wind, 0.0, EFFECT, YEAR) == (
         EFFECT.extra_failure_probability
     )
-    assert extra_failure_probability(old_poor, wind, EFFECT.min_flood_m, EFFECT, 2026) == (
+    assert extra_failure_probability(old_poor, wind, EFFECT.min_flood_m, EFFECT, YEAR) == (
         EFFECT.extra_failure_probability_flooded
     )
-    assert extra_failure_probability(old_poor, wind - 1, 1.0, EFFECT, 2026) == 0.0
-    young_poor = asset(2026 - EFFECT.min_age_years, EFFECT.min_condition_score)
-    assert extra_failure_probability(young_poor, wind, 1.0, EFFECT, 2026) == 0.0
+    assert extra_failure_probability(old_poor, wind - 1, 1.0, EFFECT, YEAR) == 0.0
+    young_poor = asset(YEAR - EFFECT.min_age_years, EFFECT.min_condition_score)
+    assert extra_failure_probability(young_poor, wind, 1.0, EFFECT, YEAR) == 0.0
     old_fair = asset(1950, EFFECT.min_condition_score - 1)
-    assert extra_failure_probability(old_fair, wind, 1.0, EFFECT, 2026) == 0.0
+    assert extra_failure_probability(old_fair, wind, 1.0, EFFECT, YEAR) == 0.0
 
 
 def small_history(config: HistoryConfig) -> list[dict[str, Any]]:
@@ -85,15 +107,7 @@ def test_the_age_condition_effect_changes_only_old_poor_assets_outcomes() -> Non
     """The effect lives in the simulated outcomes only: without it the same storms are drawn and
     every asset that is not old and in poor condition keeps its outcome."""
     with_effect = small_history(MODELS.history.model_copy(update={"storms": 4}))
-    no_effect = MODELS.history.model_copy(
-        update={
-            "storms": 4,
-            "age_condition_effect": EFFECT.model_copy(
-                update={"extra_failure_probability": 0.0, "extra_failure_probability_flooded": 0.0}
-            ),
-        }
-    )
-    without = small_history(no_effect)
+    without = small_history(no_effect(4))
     assets = {a["id"]: a for a in gold("assets.json")}
     changed = set()
     for a, b in zip(with_effect, without, strict=True):
@@ -105,7 +119,7 @@ def test_the_age_condition_effect_changes_only_old_poor_assets_outcomes() -> Non
     assert changed
     for asset_id in changed:
         a = assets[asset_id]
-        assert 2026 - a["install_year"] > EFFECT.min_age_years
+        assert YEAR - a["install_year"] > EFFECT.min_age_years
         assert a["condition_score"] >= EFFECT.min_condition_score
     assert not any("age" in f and "condition" in f for f in FEATURES)  # no interaction feature
 
@@ -124,9 +138,9 @@ def test_training_holds_storm_delta_out_and_reports_both_models(seeded: SeededSc
             assert 0 <= m.top_capture <= 1
             assert len(m.reliability) == SCORING.calibration.reliability_bins
     delta = report.held_out_metrics
-    assert delta.challenger.assets == delta.champion.assets == 196
+    assert delta.challenger.assets == delta.champion.assets == ASSETS
     assert delta.challenger.failures == delta.champion.failures
-    assert report.cross_validation.challenger.assets == 196 * SLICE
+    assert report.cross_validation.challenger.assets == ASSETS * SLICE
     assert {f.feature for f in report.importance} == set(FEATURES)
 
 
@@ -137,11 +151,12 @@ def test_storm_delta_cannot_be_trained_on(seeded: SeededScenario) -> None:
         run(seeded.session, load_world(seeded.session, SCORING), storms, SCORING, FAST)
 
 
-def importance_of(seeded: SeededScenario, storms: list[SyntheticStormFile]) -> dict[str, float]:
+def samples_of(seeded: SeededScenario, storms: list[SyntheticStormFile]) -> list[StormSample]:
     world = load_world(seeded.session, SCORING)
-    samples = [
-        storm_sample(s, i, world, SCORING, FAST) for i, s in enumerate(history_storms(storms))
-    ]
+    return [storm_sample(s, i, world, SCORING, FAST) for i, s in enumerate(history_storms(storms))]
+
+
+def importance_of(samples: list[StormSample]) -> dict[str, float]:
     _, importance = cross_validate(samples, SCORING, FAST)
     return {f.feature: f.mean for f in importance}
 
@@ -153,16 +168,33 @@ def top(importance: dict[str, float], config: ChallengerConfig) -> list[str]:
 def test_the_challenger_finds_the_age_condition_effect(seeded: SeededScenario) -> None:
     """Age and condition both rank among the challenger's top features (permutation importance
     on held-out storms). Age matters only through the effect: without it, age drops away."""
-    found = importance_of(seeded, history_slice())
+    found = importance_of(samples_of(seeded, history_slice()))
     assert {"age_years", "condition_score"} <= set(top(found, FAST))
 
-    no_effect = MODELS.history.model_copy(
-        update={
-            "storms": SLICE,
-            "age_condition_effect": EFFECT.model_copy(
-                update={"extra_failure_probability": 0.0, "extra_failure_probability_flooded": 0.0}
-            ),
-        }
-    )
-    control = [SyntheticStormFile.model_validate(s) for s in small_history(no_effect)]
-    assert importance_of(seeded, control)["age_years"] < found["age_years"] / 2
+    control = [SyntheticStormFile.model_validate(s) for s in small_history(no_effect(SLICE))]
+    assert importance_of(samples_of(seeded, control))["age_years"] < found["age_years"] / 2
+
+
+def test_the_challenger_learns_age_as_an_interaction_with_condition(
+    seeded: SeededScenario,
+) -> None:
+    """The interaction itself, not each feature alone: on rows under strong wind, making the
+    assets old rather than young raises the predicted failure probability far more in poor
+    condition than in good condition."""
+    features, failed, _, storms = stack(samples_of(seeded, history_slice()))
+    model = build_model(features, failed, storms, FAST)
+    column = {name: i for i, name in enumerate(FEATURES)}
+    strong_wind = features[features[:, column["wind_p50_mph"]] >= EFFECT.min_wind_mph]
+
+    def age_uplift(condition_score: int) -> float:
+        def mean_p(age: int) -> float:
+            rows = strong_wind.copy()
+            rows[:, column["condition_score"]] = condition_score
+            rows[:, column["age_years"]] = age
+            return float(failure_probability(model, rows).mean())
+
+        return mean_p(EFFECT.min_age_years + 20) - mean_p(EFFECT.min_age_years - 20)
+
+    poor, good = age_uplift(EFFECT.min_condition_score), age_uplift(1)
+    assert poor > 0.1
+    assert poor > 2 * good

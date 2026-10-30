@@ -7,18 +7,27 @@ import math
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
+from typing import get_args
 
 import numpy as np
 from sqlmodel import Session, func, select
 
 from app.calibration import versions
-from app.calibration.backtest import BoolArray
+from app.calibration.backtest import BestTrack, BoolArray
 from app.errors import DataNotLoaded
 from app.geo import FloatArray
 from app.hazard.ensemble import Site, StormInput, compute_exposure
 from app.hazard.service import sites
-from app.ingest.contracts import SyntheticStormFile
-from app.models import Advisory, Coastline, FragilityCurve, HistoricalStorm, StormOutcome
+from app.ingest.contracts import AssetType, SyntheticStormFile
+from app.ingest.loader import PUBLISHED_VERSION
+from app.models import (
+    Advisory,
+    Coastline,
+    FragilityCurve,
+    HistoricalStorm,
+    ModelVersion,
+    StormOutcome,
+)
 from app.models_config import ChallengerConfig
 from app.network import Network, load_network
 from app.risk.score import score_assets
@@ -36,7 +45,7 @@ FEATURES = (
     "distance_to_coast_km",
     "critical_dependency",
 )
-ASSET_TYPES = ("substation", "pump_station", "treatment_plant")  # asset_type's category codes
+ASSET_TYPES: tuple[str, ...] = get_args(AssetType)  # asset_type's category codes, in order
 CATEGORICAL = (FEATURES.index("asset_type"),)
 
 
@@ -46,10 +55,7 @@ class PastStorm:
 
     name: str
     landfall_at: date
-    landfall_t_hours: float
-    track: list[dict[str, object]]
-    landfall: tuple[float, float]
-    peak_surge_m: float
+    best_track: BestTrack
     failed: dict[str, bool]  # asset id -> failed
 
 
@@ -73,6 +79,8 @@ class World:
     sites: list[Site]
     coastline: list[tuple[float, float]]
     land: list[tuple[float, float]]
+    # The published curves, whatever version is in use: curves calibrated on the held-out storm
+    # would score it in-sample.
     champion_curves: list[FragilityCurve]
     age_year: int  # the scenario's year: asset ages are counted to it
 
@@ -80,14 +88,15 @@ class World:
 def load_world(session: Session, scoring: ScoringConfig) -> World:
     coastline = session.get(Coastline, 1)
     first_issued = session.exec(select(func.min(Advisory.issued_at))).one()
-    if coastline is None or first_issued is None:
-        raise DataNotLoaded("coastline or advisories missing; the gold data was not loaded")
+    published = session.get(ModelVersion, PUBLISHED_VERSION)
+    if coastline is None or first_issued is None or published is None:
+        raise DataNotLoaded("coastline, advisories or curves missing; the gold data was not loaded")
     return World(
         network=load_network(session),
         sites=[s for s in sites(session, scoring.hazard) if s.kind == "asset"],
         coastline=[(x, y) for x, y in coastline.coastline],
         land=[(x, y) for x, y in coastline.land],
-        champion_curves=versions.in_use(session).curves,
+        champion_curves=versions.curves(published),
         age_year=first_issued.year,
     )
 
@@ -101,10 +110,12 @@ def held_out_storm(session: Session, name: str) -> PastStorm:
     return PastStorm(
         name=storm.name,
         landfall_at=storm.landfall_at.date(),
-        landfall_t_hours=storm.landfall_t_hours,
-        track=storm.track,
-        landfall=(storm.landfall_x_km, storm.landfall_y_km),
-        peak_surge_m=storm.peak_surge_m,
+        best_track=BestTrack(
+            storm.track,
+            storm.landfall_t_hours,
+            (storm.landfall_x_km, storm.landfall_y_km),
+            storm.peak_surge_m,
+        ),
         failed={o.asset_id: o.failed for o in outcomes},
     )
 
@@ -114,10 +125,12 @@ def history_storms(history: Sequence[SyntheticStormFile]) -> list[PastStorm]:
         PastStorm(
             name=s.name,
             landfall_at=s.landfall_at.date(),
-            landfall_t_hours=s.landfall_t_hours,
-            track=[p.model_dump() for p in s.track],
-            landfall=(s.landfall.x_km, s.landfall.y_km),
-            peak_surge_m=s.peak_surge_m,
+            best_track=BestTrack(
+                [p.model_dump() for p in s.track],
+                s.landfall_t_hours,
+                (s.landfall.x_km, s.landfall.y_km),
+                s.peak_surge_m,
+            ),
             failed={o.asset_id: o.failed for o in s.outcomes},
         )
         for s in history
@@ -133,13 +146,15 @@ def storm_sample(
 ) -> StormSample:
     """The storm's rows. Exposure is the ensemble around the best track, spread as a forecast
     `forecast_cone_radius_km` wide (the ensemble seed is the scenario's plus `seed_index`)."""
+    best = storm.best_track
+    lead_hours = math.ceil(best.landfall_t_hours)
     forecast = StormInput(
         advisory_no=seed_index,
-        hours_to_landfall=math.ceil(storm.landfall_t_hours),
-        track=storm.track,
-        cone_radius_km={str(math.ceil(storm.landfall_t_hours)): config.forecast_cone_radius_km},
-        landfall=storm.landfall,
-        peak_surge_m=storm.peak_surge_m,
+        hours_to_landfall=lead_hours,
+        track=best.track,
+        cone_radius_km={str(lead_hours): config.forecast_cone_radius_km},
+        landfall=best.landfall,
+        peak_surge_m=best.peak_surge_m,
     )
     exposures = [
         e
