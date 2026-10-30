@@ -453,6 +453,8 @@ export interface FieldTask {
   status: FieldTaskStatus
   note: string | null
   reported_at: string | null
+}
+
 /** One work assignment of the ICS-215: an approved field task and the resource it needs */
 export interface Ics215Row {
   /** the approved package item */
