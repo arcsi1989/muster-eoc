@@ -1114,7 +1114,8 @@ button.link {
   color: var(--accent);
 }
 
-.badge.overdue {
+.badge.overdue,
+.badge.stop-work {
   background: var(--danger);
   color: #fff;
 }
@@ -1127,12 +1128,14 @@ button.link {
 
 /* Decision package */
 
-.role-selector {
+.role-selector,
+.district-selector {
   font-size: 0.85rem;
   color: var(--muted);
 }
 
-.role-selector select {
+.role-selector select,
+.district-selector select {
   font: inherit;
   padding: 0.2rem 0.3rem;
   border-radius: 6px;
@@ -1178,19 +1181,22 @@ button.link {
   color: var(--text);
 }
 
-.status-pending {
+.status-pending,
+.status-open {
   background: var(--panel);
   color: var(--muted);
 }
 
 .status-approved,
 .status-alternative,
-.status-deferred {
+.status-deferred,
+.status-done {
   background: color-mix(in srgb, var(--down) 22%, transparent);
 }
 
 .status-overridden,
-.status-not_decided {
+.status-not_decided,
+.status-blocked {
   background: var(--prepare-bg);
   color: var(--prepare-text);
 }
@@ -1460,4 +1466,79 @@ button.link {
 
 .legend-swatch.reliability-diagonal {
   background: var(--muted);
+}
+
+/* Field tasks */
+
+.field-tasks {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  max-width: 720px;
+}
+
+/* ICS-215 and IAP objectives */
+
+.planning-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.planning-section {
+  margin-top: 1.2rem;
+}
+
+.release-steps li,
+.objectives li {
+  margin-bottom: 0.4rem;
+}
+
+.ics215 .chip,
+.objectives .chip {
+  white-space: nowrap;
+}
+
+.ics215 .stop-work {
+  display: inline-block;
+  margin-left: 0.4rem;
+}
+
+/* Printing the planning products: the page alone, without navigation or controls */
+@media print {
+  /* black on white whatever the screen's colour scheme */
+  :root {
+    --text: #000;
+    --muted: #444;
+    --bg: #fff;
+    --panel: #fff;
+    --card: #fff;
+    --border: #999;
+    /* the light scheme's colours for badges, chips and highlighted rows */
+    --accent: #0969da;
+    --danger: #cf222e;
+    --up: #cf222e;
+    --down: #1a7f37;
+    --track: #8250df;
+    --prepare-bg: #fff1c2;
+    --prepare-text: #5c4400;
+    --full-bg: #ffd8d3;
+    --full-text: #7a1b10;
+  }
+
+  .app-nav,
+  .no-print,
+  .planning button {
+    display: none !important;
+  }
+
+  .page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .ics215 tr {
+    break-inside: avoid;
+  }
 }

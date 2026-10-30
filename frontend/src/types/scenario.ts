@@ -423,3 +423,87 @@ export interface Calibration {
   after: Backtest
   model_version: ModelVersion
 }
+
+export type FieldTaskStatus = 'open' | 'done' | 'blocked'
+/** what a field supervisor reports */
+export type FieldOutcome = Exclude<FieldTaskStatus, 'open'>
+
+/** The request body of a report (backend FieldReportIn). */
+export interface FieldReport {
+  /** the supervisor's own district */
+  district: string
+  note?: string
+}
+
+/** An approved item that needs field work, as a field supervisor sees it. */
+export interface FieldTask {
+  item_id: number
+  /** the advisory whose package approved it */
+  approved_in: number
+  rule_id: string
+  /** the clause's title, one line */
+  why: string
+  action: string
+  entity_id: string
+  entity_name: string | null
+  approved_by: string | null
+  approved_at: string | null
+  /** prohibitions in force at the site now (P-4.7); Done is refused */
+  stop_work: string[]
+  status: FieldTaskStatus
+  note: string | null
+  reported_at: string | null
+}
+
+/** One work assignment of the ICS-215: an approved field task and the resource it needs */
+export interface Ics215Row {
+  /** the approved package item */
+  item_id: number
+  clause_id: string
+  location_id: string
+  location: string
+  work_assignment: string
+  resource_kind: string
+  required: number
+  have: number
+  /** required minus have */
+  need: number
+  /** the nearest usable staging area; null if none is usable */
+  reporting_location_id: string | null
+  reporting_location: string | null
+  /** scenario time, hours to landfall: the next period's start */
+  requested_arrival_hours: number
+  /** prohibitions in force at the site now (P-4.7) */
+  stop_work: string[]
+}
+
+/** One incident objective of the IAP draft; the citations come from the findings, never a model */
+export interface IapObjective {
+  text: string
+  clause_ids: string[]
+  entity_ids: string[]
+}
+
+/** The ICS-215 and IAP objectives drafted for the period after an advisory, DRAFT until the
+ * Planning Section Chief approves and the commanding role releases them */
+export interface Planning {
+  /** the next operational period, in hours to landfall */
+  period_start_hours: number
+  period_end_hours: number
+  ics215: Ics215Row[]
+  objectives: IapObjective[]
+  /** the provider that worded the objectives, or "template (fallback)" */
+  provider: string
+  fallback: boolean
+  model: string | null
+  /** null for the template wording */
+  prompt_version: string | null
+  fallback_reason: string | null
+  advisory_no: number
+  status: 'DRAFT' | 'released'
+  drafted_at: string
+  planning_approved_at: string | null
+  /** the commanding role */
+  released_by: string | null
+  released_at: string | null
+}
