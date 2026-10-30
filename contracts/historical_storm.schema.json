@@ -4,10 +4,12 @@
       "additionalProperties": false,
       "properties": {
         "x_km": {
+          "data_class": "restricted",
           "title": "X Km",
           "type": "number"
         },
         "y_km": {
+          "data_class": "restricted",
           "title": "Y Km",
           "type": "number"
         }
@@ -23,25 +25,30 @@
       "additionalProperties": false,
       "properties": {
         "rmax_km": {
+          "data_class": "public",
           "exclusiveMinimum": 0,
           "title": "Rmax Km",
           "type": "number"
         },
         "t_hours": {
+          "data_class": "public",
           "minimum": 0,
           "title": "T Hours",
           "type": "number"
         },
         "vmax_mph": {
+          "data_class": "public",
           "exclusiveMinimum": 0,
           "title": "Vmax Mph",
           "type": "number"
         },
         "x_km": {
+          "data_class": "restricted",
           "title": "X Km",
           "type": "number"
         },
         "y_km": {
+          "data_class": "restricted",
           "title": "Y Km",
           "type": "number"
         }
@@ -61,29 +68,35 @@
   "description": "A past storm's best track (history/), for the calibration back-test. `landfall_t_hours` is\nthe track time of landfall.",
   "properties": {
     "landfall": {
-      "$ref": "#/$defs/PointRecord"
+      "$ref": "#/$defs/PointRecord",
+      "data_class": "public"
     },
     "landfall_at": {
+      "data_class": "public",
       "format": "date-time",
       "title": "Landfall At",
       "type": "string"
     },
     "landfall_t_hours": {
+      "data_class": "public",
       "minimum": 0,
       "title": "Landfall T Hours",
       "type": "number"
     },
     "name": {
+      "data_class": "public",
       "minLength": 1,
       "title": "Name",
       "type": "string"
     },
     "peak_surge_m": {
+      "data_class": "public",
       "minimum": 0,
       "title": "Peak Surge M",
       "type": "number"
     },
     "track": {
+      "data_class": "public",
       "items": {
         "$ref": "#/$defs/TrackPointRecord"
       },

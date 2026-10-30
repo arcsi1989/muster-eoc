@@ -1,15 +1,19 @@
 {
   "additionalProperties": false,
+  "description": "One edge of the dependency graph: restricted, field by field.",
   "properties": {
     "from_id": {
+      "data_class": "restricted",
       "title": "From Id",
       "type": "string"
     },
     "to_id": {
+      "data_class": "restricted",
       "title": "To Id",
       "type": "string"
     },
     "to_kind": {
+      "data_class": "restricted",
       "enum": [
         "asset",
         "facility"

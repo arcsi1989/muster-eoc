@@ -2,34 +2,41 @@
   "additionalProperties": false,
   "properties": {
     "distance_to_coast_km": {
+      "data_class": "internal",
       "minimum": 0,
       "title": "Distance To Coast Km",
       "type": "number"
     },
     "district": {
+      "data_class": "internal",
       "minLength": 1,
       "title": "District",
       "type": "string"
     },
     "elevation_m": {
+      "data_class": "restricted",
       "title": "Elevation M",
       "type": "number"
     },
     "id": {
+      "data_class": "internal",
       "pattern": "^STG-\\d{2}$",
       "title": "Id",
       "type": "string"
     },
     "name": {
+      "data_class": "internal",
       "minLength": 1,
       "title": "Name",
       "type": "string"
     },
     "x_km": {
+      "data_class": "restricted",
       "title": "X Km",
       "type": "number"
     },
     "y_km": {
+      "data_class": "restricted",
       "title": "Y Km",
       "type": "number"
     }

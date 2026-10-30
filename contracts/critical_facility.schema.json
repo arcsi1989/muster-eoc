@@ -2,16 +2,19 @@
   "additionalProperties": false,
   "properties": {
     "id": {
+      "data_class": "internal",
       "pattern": "^(HOSP|SHEL)-\\d{2}$",
       "title": "Id",
       "type": "string"
     },
     "name": {
+      "data_class": "internal",
       "minLength": 1,
       "title": "Name",
       "type": "string"
     },
     "type": {
+      "data_class": "internal",
       "enum": [
         "hospital",
         "shelter"
@@ -20,10 +23,12 @@
       "type": "string"
     },
     "x_km": {
+      "data_class": "restricted",
       "title": "X Km",
       "type": "number"
     },
     "y_km": {
+      "data_class": "restricted",
       "title": "Y Km",
       "type": "number"
     }

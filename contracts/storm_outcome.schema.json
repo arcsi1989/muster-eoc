@@ -3,10 +3,12 @@
   "description": "Whether an asset failed in the past storm.",
   "properties": {
     "asset_id": {
+      "data_class": "internal",
       "title": "Asset Id",
       "type": "string"
     },
     "failed": {
+      "data_class": "internal",
       "title": "Failed",
       "type": "boolean"
     }

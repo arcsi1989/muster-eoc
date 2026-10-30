@@ -2,22 +2,26 @@
   "additionalProperties": false,
   "properties": {
     "condition_score": {
+      "data_class": "internal",
       "maximum": 5,
       "minimum": 1,
       "title": "Condition Score",
       "type": "integer"
     },
     "customers_served": {
+      "data_class": "internal",
       "minimum": 0,
       "title": "Customers Served",
       "type": "integer"
     },
     "distance_to_coast_km": {
+      "data_class": "internal",
       "minimum": 0,
       "title": "Distance To Coast Km",
       "type": "number"
     },
     "district": {
+      "data_class": "internal",
       "minLength": 1,
       "title": "District",
       "type": "string"
@@ -31,30 +35,36 @@
           "type": "null"
         }
       ],
+      "data_class": "restricted",
       "title": "Elevation M"
     },
     "id": {
+      "data_class": "internal",
       "pattern": "^(SUB|PS|WTP)-\\d{2,3}$",
       "title": "Id",
       "type": "string"
     },
     "install_year": {
+      "data_class": "internal",
       "maximum": 2026,
       "minimum": 1900,
       "title": "Install Year",
       "type": "integer"
     },
     "last_inspection_date": {
+      "data_class": "internal",
       "format": "date",
       "title": "Last Inspection Date",
       "type": "string"
     },
     "name": {
+      "data_class": "internal",
       "minLength": 1,
       "title": "Name",
       "type": "string"
     },
     "type": {
+      "data_class": "internal",
       "enum": [
         "substation",
         "pump_station",
@@ -64,10 +74,12 @@
       "type": "string"
     },
     "x_km": {
+      "data_class": "restricted",
       "title": "X Km",
       "type": "number"
     },
     "y_km": {
+      "data_class": "restricted",
       "title": "Y Km",
       "type": "number"
     }
