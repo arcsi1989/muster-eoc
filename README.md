@@ -44,7 +44,11 @@ Other commands:
 | `make data` | Regenerate the synthetic data (seed 42, byte-identical every run) and replay all five advisories to check every demo fact still holds. |
 | `make history` | Regenerate the synthetic storm history the challenger trains on (20 fictional storms, seed 42; `make data` runs it too). |
 | `make train` | Train the challenger model and compare it with the rule-based champion, by storm and on held-out Storm Delta; writes `docs/eval/challenger_results.json`. |
-| `make test` | Every check: ruff, mypy (strict), pytest, oxlint, tsc, vitest (`./scripts/check.sh`). |
+| `make eval` | Run the LLM evaluation's golden set (30 cases: grounding, refusal, data classification, prompt injection, drafting) with the template provider and gate it on `config/evals.yaml`; writes `docs/eval/report.md` and `results.json`. `./scripts/check.sh` runs the same gate. |
+| `make eval-llm` | The same golden set against the configured provider (`LLM_PROVIDER`, needs its key), each case 3 times, pass rate per category. Exits non-zero below a threshold. |
+| `make test` | Every check: ruff, mypy (strict), pytest, the eval gate, oxlint, tsc, vitest (`./scripts/check.sh`). |
+
+Latest evaluation report: [docs/eval/report.md](docs/eval/report.md). The backend records it in the audit log at startup.
 
 The 8-minute demo walkthrough is in [docs/demo_script.md](docs/demo_script.md).
 
