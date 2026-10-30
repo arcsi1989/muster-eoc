@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import type { Scenario } from '../../types/scenario'
 import { RunTracePage } from './RunTracePage'
-import { makeSpan, makeTotals, makeTrace } from './traceFixtures'
+import { makeSpan, makeTotals, makeTrace } from '../../test/fixtures'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -172,10 +172,17 @@ test('a failed load says so and retries', async () => {
 })
 
 test('a loading state while the trace loads', async () => {
-  backend({ '/api/advisories': () => json(scenario(3)), '/api/advisories/3/trace': () => json(llmTrace) })
+  let answer: (response: Response) => void = () => {}
+  const held = new Promise<Response>((resolve) => (answer = resolve))
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) =>
+    String(input) === '/api/advisories' ? json(scenario(3)) : held,
+  )
+
   render(<RunTracePage />)
+
   expect(await screen.findByText(/loading the run trace/i)).toBeInTheDocument()
-  await screen.findByText('sitrep_draft')
+  answer(json(llmTrace))
+  expect(await screen.findByText('sitrep_draft')).toBeInTheDocument()
 })
 
 test('refresh loads the spans recorded since, such as a copilot turn', async () => {

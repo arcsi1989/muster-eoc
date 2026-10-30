@@ -1615,7 +1615,7 @@ button.link {
   background: var(--muted);
 }
 
-.trace-bar-highlight,
+.trace-highlight .trace-bar,
 .trace-bar-error {
   background: var(--danger);
 }

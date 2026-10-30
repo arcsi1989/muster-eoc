@@ -21,12 +21,9 @@ export interface WaterfallBreak {
 }
 
 /** Lays an advisory's spans out as a waterfall: each span after its parent, in start order, on
- * one time axis whose idle stretches are shortened to `maxIdleMs` (by default a share of the time
- * the top-level spans were busy). */
-export function layoutWaterfall(
-  spans: TraceSpan[],
-  maxIdleMs?: number,
-): { rows: WaterfallRow[]; breaks: WaterfallBreak[] } {
+ * one time axis whose idle stretches are shortened to a share of the time the top-level spans were
+ * busy. */
+export function layoutWaterfall(spans: TraceSpan[]): { rows: WaterfallRow[]; breaks: WaterfallBreak[] } {
   if (spans.length === 0) return { rows: [], breaks: [] }
   const ids = new Set(spans.map((s) => s.span_id))
   const start = (s: TraceSpan) => Date.parse(s.started_at)
@@ -43,7 +40,7 @@ export function layoutWaterfall(
     reached = Math.max(reached, end(s))
   }
   const busy = reached - origin - idles.reduce((sum, i) => sum + i.to - i.from, 0)
-  const maxIdle = maxIdleMs ?? busy * IDLE_GAP_SHARE
+  const maxIdle = busy * IDLE_GAP_SHARE
   // Each idle stretch longer than maxIdle is cut back to it.
   const long = idles.filter((i) => i.to - i.from > maxIdle)
   const cuts = long.map((i) => ({ from: i.to, removed: i.to - i.from - maxIdle }))

@@ -27,3 +27,6 @@ export const formatCost = (usd: number) => (usd === 0 ? '$0' : `$${usd.toFixed(4
 /** Tokens sent and received: "2,400 in / 610 out". */
 export const formatTokens = (tokensIn: number, tokensOut: number) =>
   `${tokensIn.toLocaleString('en-US')} in / ${tokensOut.toLocaleString('en-US')} out`
+
+/** A count with its noun: "1 retry", "2 retries". */
+export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`

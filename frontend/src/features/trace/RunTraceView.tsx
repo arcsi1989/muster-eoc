@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { formatCost, formatDuration, formatTokens } from '../../lib/format'
+import { formatCost, formatDuration, formatTokens, plural } from '../../lib/format'
 import type { RunTrace, TraceSpan, TraceTotals } from '../../types/scenario'
 import { layoutWaterfall } from './waterfall'
 
@@ -53,7 +53,7 @@ export function RunTraceView({ trace }: { trace: RunTrace }) {
                     <span
                       role="img"
                       aria-label={`${span.node}: ${formatDuration(span.duration_ms)}`}
-                      className={`trace-bar trace-bar-${span.kind} trace-bar-${span.status}${highlighted(span) ? ' trace-bar-highlight' : ''}`}
+                      className={`trace-bar trace-bar-${span.kind} trace-bar-${span.status}`}
                       style={{ left: `${left}%`, width: `${width}%` }}
                     />
                   </td>
@@ -80,9 +80,7 @@ function SpanNotes({ span }: { span: TraceSpan }) {
       {span.status === 'paused' && <span className="badge">Paused for decisions</span>}
       {span.status === 'error' && <span className="badge trace-badge-alert">Error</span>}
       {span.retries > 0 && (
-        <span className="badge trace-badge-alert">
-          {span.retries} {span.retries === 1 ? 'retry' : 'retries'}
-        </span>
+<span className="badge trace-badge-alert">{plural(span.retries, 'retry', 'retries')}</span>
       )}
       {span.fallback && <span className="badge trace-badge-alert">Template fallback</span>}
       {span.fallback_reason && <span className="trace-reason">{span.fallback_reason}</span>}
@@ -120,7 +118,7 @@ function TotalsTable({ advisoryNo, advisory, run }: { advisoryNo: number; adviso
           {t.unpriced_spans > 0 && (
             <span className="hint">
               {' '}
-              ({t.unpriced_spans} {t.unpriced_spans === 1 ? 'span' : 'spans'} with tokens but no price)
+              ({plural(t.unpriced_spans, 'span', 'spans')} with tokens but no price)
             </span>
           )}
         </>
