@@ -50,7 +50,7 @@ def generate[R: ProviderResult](
     validate: Callable[[R], list[str]],
     attempts: int,
     rejected: str,
-    task: str,
+    task: instrument.Task,
 ) -> GroundedOutcome[R]:
     """Calls `provider` with the task's `prompt` up to `attempts` times, sending each retry the
     problems the validator found in the last result. If no result passes, or the provider

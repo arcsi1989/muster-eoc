@@ -30,7 +30,7 @@ from sqlmodel import Session, col, delete, select
 from app import advisory_context
 from app.llm.config import LLMConfig
 from app.models import SpanStatus, TraceSpan
-from app.tracing import instrument as attr
+from app.tracing import instrument as keys
 
 log = logging.getLogger(__name__)
 
@@ -51,7 +51,8 @@ class _TableExporter(SpanExporter):
             self.run_id = uuid4().hex
 
     def new_run(self) -> None:
-        self.run_id = uuid4().hex
+        with self._lock:
+            self.run_id = uuid4().hex
 
     def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
         with self._lock:
@@ -59,7 +60,7 @@ class _TableExporter(SpanExporter):
                 return SpanExportResult.SUCCESS  # no app running: the spans are dropped
             with Session(self._engine) as session:
                 current = advisory_context.current_advisory_no(session) or None
-                ours = [s for s in spans if s.attributes and attr.KIND in s.attributes]
+                ours = [s for s in spans if s.attributes and keys.KIND in s.attributes]
                 session.add_all(_row(s, self.run_id, current, self._config) for s in ours)
                 session.commit()
         return SpanExportResult.SUCCESS
@@ -73,7 +74,9 @@ _installed = threading.Lock()
 _provider: TracerProvider | None = None
 
 
-def start(engine: Engine, config: LLMConfig, otlp_endpoint: str | None) -> None:
+def start(
+    engine: Engine, config: LLMConfig, otlp_endpoint: str | None, otlp_timeout_s: float
+) -> None:
     """Sends spans to this app's trace_span table, from now on, in a new run."""
     global _provider
     with _installed:
@@ -81,7 +84,8 @@ def start(engine: Engine, config: LLMConfig, otlp_endpoint: str | None) -> None:
             _provider = TracerProvider()
             _provider.add_span_processor(SimpleSpanProcessor(_table))
             if otlp_endpoint:
-                _provider.add_span_processor(BatchSpanProcessor(_otlp(otlp_endpoint)))
+                otlp = _otlp(otlp_endpoint, otlp_timeout_s)
+                _provider.add_span_processor(BatchSpanProcessor(otlp))
             trace.set_tracer_provider(_provider)
     _table.attach(engine, config)
 
@@ -93,7 +97,7 @@ def stop() -> None:
         _provider.force_flush()  # the OTLP batch, if any
 
 
-def _otlp(endpoint: str) -> SpanExporter:
+def _otlp(endpoint: str, timeout_s: float) -> SpanExporter:
     try:
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     except ImportError as error:
@@ -101,7 +105,8 @@ def _otlp(endpoint: str) -> SpanExporter:
             "OTEL_EXPORTER_OTLP_ENDPOINT is set but the OTLP exporter is not installed: "
             "run uv sync --extra otlp, or unset the variable."
         ) from error
-    exporter: SpanExporter = OTLPSpanExporter(endpoint=endpoint.rstrip("/") + "/v1/traces")
+    url = endpoint.rstrip("/") + "/v1/traces"
+    exporter: SpanExporter = OTLPSpanExporter(endpoint=url, timeout=timeout_s)
     return exporter
 
 
@@ -116,8 +121,8 @@ def _time(nanoseconds: int | None) -> datetime:
 
 
 def _row(span: ReadableSpan, run_id: str, current: int | None, config: LLMConfig) -> TraceSpan:
-    a: Any = span.attributes or {}
-    attempts: list[dict[str, Any]] = json.loads(a.get(attr.ATTEMPTS, "[]"))
+    values: Any = span.attributes or {}  # the attribute values instrument.py set
+    attempts: list[dict[str, Any]] = json.loads(values.get(keys.ATTEMPTS, "[]"))
     costs = [
         config.cost_usd(
             t.get("model"),
@@ -130,29 +135,29 @@ def _row(span: ReadableSpan, run_id: str, current: int | None, config: LLMConfig
     if span.status.status_code is StatusCode.ERROR:
         status = "error"
     else:
-        status = "paused" if a.get(attr.PAUSED) else "ok"
+        status = "paused" if values.get(keys.PAUSED) else "ok"
     context = span.get_span_context()
     return TraceSpan(
         run_id=run_id,
         trace_id=format(context.trace_id if context else 0, "032x"),
         span_id=format(context.span_id if context else 0, "016x"),
         parent_span_id=format(span.parent.span_id, "016x") if span.parent else None,
-        advisory_no=a.get(attr.ADVISORY, current),
-        kind=a.get(attr.KIND, "cycle_node"),
-        node=a.get(attr.NODE, span.name),
+        advisory_no=values.get(keys.ADVISORY, current),
+        kind=values[keys.KIND],  # export stores only spans with a kind
+        node=values.get(keys.NODE, span.name),
         started_at=_time(span.start_time),
         ended_at=_time(span.end_time),
         duration_ms=((span.end_time or 0) - (span.start_time or 0)) / 1e6,
         status=status,
-        provider=a.get(attr.PROVIDER),
-        model=a.get(attr.MODEL),
-        tokens_in=a.get(attr.TOKENS_IN, 0),
-        tokens_out=a.get(attr.TOKENS_OUT, 0),
+        provider=values.get(keys.PROVIDER),
+        model=values.get(keys.MODEL),
+        tokens_in=values.get(keys.TOKENS_IN, 0),
+        tokens_out=values.get(keys.TOKENS_OUT, 0),
         cost_usd=None if None in costs else sum(c for c in costs if c is not None),
-        retries=a.get(attr.RETRIES, 0),
-        fallback=a.get(attr.FALLBACK, False),
-        fallback_reason=a.get(attr.FALLBACK_REASON),
-        validation=a.get(attr.VALIDATION),
+        retries=values.get(keys.RETRIES, 0),
+        fallback=values.get(keys.FALLBACK, False),
+        fallback_reason=values.get(keys.FALLBACK_REASON),
+        validation=values.get(keys.VALIDATION),
         attempts=attempts,
     )
 

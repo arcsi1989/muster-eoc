@@ -3,11 +3,8 @@
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, ConfigDict
 
-
-class Strict(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+from app.scoring_config import Strict
 
 
 class Price(Strict):

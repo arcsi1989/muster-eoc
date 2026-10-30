@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Tracing (decisions.md): spans go to the trace_span table; also to this OTLP/HTTP endpoint
     # (Langfuse, Jaeger) when set, which needs the optional extra: uv sync --extra otlp.
     otel_exporter_otlp_endpoint: str | None = None
+    otel_exporter_otlp_timeout_s: float = 10.0  # B7: each export to the endpoint
 
 
 @lru_cache

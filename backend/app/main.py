@@ -48,7 +48,12 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
             load_gold(session, settings.data_dir)
         app.state.engine = engine
         llm_config = load_llm_config(settings.llm_config_path)
-        tracing.start(engine, llm_config, settings.otel_exporter_otlp_endpoint)
+        tracing.start(
+            engine,
+            llm_config,
+            settings.otel_exporter_otlp_endpoint,
+            settings.otel_exporter_otlp_timeout_s,
+        )
         app.state.playbook = load_playbook(settings.playbook_rules_path, settings.playbook_path)
         app.state.cycle = AdvisoryCycle(
             engine, app.state.playbook, settings.checkpoint_path, provider, scoring

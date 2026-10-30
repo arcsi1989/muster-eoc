@@ -36,15 +36,18 @@ def _spans(trace: dict[str, Any], node: str) -> list[dict[str, Any]]:
     return [s for s in trace["spans"] if s["node"] == node]
 
 
-def test_every_advisory_cycle_produces_a_complete_trace(client: TestClient) -> None:
-    client.post("/advisories/next")
-    client.post("/advisories/next")  # expires advisory 1: its cycle runs to finalise
+@pytest.mark.parametrize("advisory_no", [1, 2])
+def test_every_advisory_cycle_produces_a_complete_trace(
+    client: TestClient, advisory_no: int
+) -> None:
+    for _ in range(advisory_no + 1):  # the next advisory expires it: its cycle runs to finalise
+        assert client.post("/advisories/next").is_success
 
-    trace = _trace(client, 1)
+    trace = _trace(client, advisory_no)
 
     nodes = {s["node"] for s in trace["spans"] if s["kind"] == "cycle_node"}
     assert nodes == CYCLE_NODES
-    assert all(s["advisory_no"] == 1 for s in trace["spans"])
+    assert all(s["advisory_no"] == advisory_no for s in trace["spans"])
     assert "paused" in {s["status"] for s in _spans(trace, "await_approval")}
     assert {s["status"] for s in trace["spans"] if s["node"] != "await_approval"} == {"ok"}
     [draft_node] = _spans(trace, "draft")

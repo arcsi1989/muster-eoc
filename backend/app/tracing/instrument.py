@@ -5,11 +5,13 @@ follow the OpenTelemetry GenAI conventions where one exists, so an OTLP backend 
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Any
+from typing import Any, Literal
 
-from langgraph.errors import GraphBubbleUp
+from langgraph.errors import GraphInterrupt
 from opentelemetry import trace
 from opentelemetry.trace import Span, Status, StatusCode
+
+from app.models import SpanKind, ValidationResult
 
 ADVISORY = "sgw.advisory_no"
 KIND = "sgw.kind"
@@ -25,6 +27,9 @@ FALLBACK_REASON = "sgw.fallback_reason"
 VALIDATION = "sgw.validation"
 ATTEMPTS = "sgw.attempts"  # JSON: the attempt log of grounded generation
 
+# The tasks that run through grounded generation; a span is named after its task.
+Task = Literal["sitrep_draft", "copilot", "iap_objectives"]
+
 _tracer = trace.get_tracer("app")
 
 
@@ -37,7 +42,7 @@ def _span(name: str, attributes: dict[str, Any]) -> Iterator[Span]:
     ) as span:
         try:
             yield span
-        except GraphBubbleUp:
+        except GraphInterrupt:
             span.set_attribute(PAUSED, True)
             raise
         except Exception as error:
@@ -49,15 +54,17 @@ def _span(name: str, attributes: dict[str, Any]) -> Iterator[Span]:
 @contextmanager
 def cycle_node(advisory_no: int, node: str) -> Iterator[None]:
     """The span of one advisory-cycle node."""
-    with _span(f"cycle.{node}", {KIND: "cycle_node", NODE: node, ADVISORY: advisory_no}):
+    kind: SpanKind = "cycle_node"
+    with _span(f"cycle.{node}", {KIND: kind, NODE: node, ADVISORY: advisory_no}):
         yield
 
 
 @contextmanager
-def generation(task: str) -> Iterator[Span]:
+def generation(task: Task) -> Iterator[Span]:
     """The span of one grounded generation (every attempt, retry and the fallback); a copilot
     turn is one. Its advisory is the current one, filled in when it is stored."""
-    with _span(f"generation.{task}", {KIND: "generation", NODE: task}) as span:
+    kind: SpanKind = "generation"
+    with _span(f"generation.{task}", {KIND: kind, NODE: task}) as span:
         yield span
 
 
@@ -72,6 +79,7 @@ def record_generation(
     """What a generation did: tokens summed over every attempt (a rejected attempt is paid for
     too), retries, whether the template replaced the result, and the validation result."""
     usage = [a.get("usage", {}) for a in attempts]
+    validation: ValidationResult
     if not fallback:
         validation = "passed"
     else:
