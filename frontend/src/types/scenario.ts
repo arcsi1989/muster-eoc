@@ -406,9 +406,13 @@ export interface Backtest {
 export interface ModelVersion {
   id: number
   label: string
-  status: 'proposed' | 'approved'
-  /** the latest approved: scores the next advisory */
+  /** fragility curves, or the challenger model (CR-03 C2) */
+  kind: 'curves' | 'challenger'
+  /** a challenger starts in shadow: it scores every advisory but ranks nothing */
+  status: 'shadow' | 'proposed' | 'approved'
+  /** the champion (the latest approved): ranks the next advisory */
   in_use: boolean
+  /** empty for the challenger */
   curves: Curve[]
   created_at: string
   approved_by: string | null

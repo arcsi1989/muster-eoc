@@ -30,7 +30,8 @@ from app.models import (
 )
 from app.models_config import ChallengerConfig
 from app.network import Network, load_network
-from app.risk.score import score_assets
+from app.risk.model import AssetFeatures, asset_features
+from app.risk.score import RuleBasedModel
 from app.scoring_config import ScoringConfig
 
 FEATURES = (
@@ -163,34 +164,39 @@ def storm_sample(
         )
         if e.site_id in storm.failed
     ]
-    champion = score_assets(
-        exposures, world.network, world.champion_curves, scoring, storm.landfall_at
+    assets = asset_features(exposures, world.network, world.age_year)
+    rules = RuleBasedModel(
+        PUBLISHED_VERSION, world.champion_curves, scoring.risk.condition_theta_reduction_per_step
     )
-    coast_km = {s.id: s.distance_to_coast_km for s in world.sites}
-    rows = []
-    for e in exposures:
-        asset = world.network.assets[e.site_id]
-        rows.append(
-            [
-                e.wind_p50_mph,
-                e.wind_p90_mph,
-                e.flood_depth_p50_m,
-                e.flood_depth_p90_m,
-                asset.condition_score,
-                world.age_year - asset.install_year,
-                ASSET_TYPES.index(asset.type),
-                float(e.elevation_imputed),
-                coast_km[e.site_id],
-                float(bool(world.network.feeds_facility_types(asset.id))),
-            ]
-        )
     return StormSample(
         storm=storm.name,
-        asset_ids=[e.site_id for e in exposures],
-        features=np.array(rows, dtype=float),
-        failed=np.array([storm.failed[e.site_id] for e in exposures]),
-        champion_p=np.array([s.p_fail for s in champion]),
+        asset_ids=[a.asset.id for a in assets],
+        features=feature_matrix(assets),
+        failed=np.array([storm.failed[a.asset.id] for a in assets]),
+        champion_p=np.array([p.p_fail for p in rules.predict(assets)]),
     )
+
+
+def feature_matrix(assets: Sequence[AssetFeatures]) -> FloatArray:
+    """One row per asset, the columns in the order of FEATURES."""
+    return np.array(
+        [
+            [
+                a.exposure.wind_p50_mph,
+                a.exposure.wind_p90_mph,
+                a.exposure.flood_depth_p50_m,
+                a.exposure.flood_depth_p90_m,
+                a.asset.condition_score,
+                a.age_years,
+                ASSET_TYPES.index(a.asset.type),
+                float(a.exposure.elevation_imputed),
+                a.asset.distance_to_coast_km,
+                float(a.critical_dependency),
+            ]
+            for a in assets
+        ],
+        dtype=float,
+    ).reshape(len(assets), len(FEATURES))
 
 
 def stack(samples: Sequence[StormSample]) -> tuple[FloatArray, BoolArray, FloatArray, list[str]]:

@@ -16,7 +16,14 @@ from app.api.schemas import (
     TimelineSlotOut,
     TrackPointOut,
 )
-from app.deps import CycleDep, SessionDep, SettingsDep, get_activation_levels, get_scoring_config
+from app.deps import (
+    ChallengerDep,
+    CycleDep,
+    SessionDep,
+    SettingsDep,
+    get_activation_levels,
+    get_scoring_config,
+)
 from app.hazard.track import cone_polygon, intensity_category
 from app.models import Advisory
 from app.playbook.activation import ActivationLevel
@@ -94,9 +101,13 @@ def get_scenario(session: SessionDep, levels: LevelsDep, config: ConfigDep) -> S
 
 @router.post("/next", response_model=ScenarioOut)
 def next_advisory(
-    session: SessionDep, levels: LevelsDep, config: ConfigDep, cycle: CycleDep
+    session: SessionDep,
+    levels: LevelsDep,
+    config: ConfigDep,
+    cycle: CycleDep,
+    challenger: ChallengerDep,
 ) -> ScenarioOut:
-    lifecycle.issue_next_advisory(session, config, cycle)
+    lifecycle.issue_next_advisory(session, config, cycle, challenger)
     return _scenario(session, levels, config)
 
 

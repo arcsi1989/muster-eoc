@@ -11,6 +11,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const version = (overrides: Partial<ModelVersion>): ModelVersion => ({
   id: 1,
   label: 'Published curves',
+  kind: 'curves',
   status: 'approved',
   in_use: true,
   curves: [],

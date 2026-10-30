@@ -5,8 +5,10 @@ from fastapi import Depends, Request
 from sqlmodel import Session
 
 from app.agent.cycle import AdvisoryCycle
+from app.challenger.model import ChallengerModel
 from app.config import Settings
 from app.llm.provider import LLMProvider
+from app.models_config import ModelsConfig
 from app.playbook.activation import ActivationLevel
 from app.playbook.service import Playbook
 from app.scoring_config import ScoringConfig
@@ -58,3 +60,18 @@ def get_llm(request: Request) -> LLMProvider:
 
 LLMDep = Annotated[LLMProvider, Depends(get_llm)]
 ScoringConfigDep = Annotated[ScoringConfig, Depends(get_scoring_config)]
+
+
+def get_challenger(request: Request) -> ChallengerModel | None:
+    """The challenger loaded at startup, in shadow unless approved; None without `make train`."""
+    challenger: ChallengerModel | None = request.app.state.challenger
+    return challenger
+
+
+def get_models_config(request: Request) -> ModelsConfig:
+    config: ModelsConfig = request.app.state.models_config
+    return config
+
+
+ChallengerDep = Annotated[ChallengerModel | None, Depends(get_challenger)]
+ModelsConfigDep = Annotated[ModelsConfig, Depends(get_models_config)]

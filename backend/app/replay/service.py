@@ -6,6 +6,7 @@ from sqlmodel import Session, col, delete, select
 
 from app import advisory_context
 from app.calibration import versions
+from app.challenger.model import ChallengerModel
 from app.errors import ConflictError, DataNotLoaded, NotFound
 from app.hazard.service import store_exposure
 from app.ingest.loader import restore_initial_state
@@ -15,12 +16,14 @@ from app.models import (
     Exposure,
     ScenarioState,
     Score,
+    ShadowScore,
 )
 from app.network import load_network
 from app.playbook.activation import ActivationLevel
 from app.replay.diff import AdvisoryChanges, AdvisorySnapshot, diff
 from app.risk.alerts import RankedRisk, raise_alerts
-from app.risk.score import score_assets
+from app.risk.model import AssetFeatures, RiskModel, asset_features
+from app.risk.score import RuleBasedModel, score_assets
 from app.scoring_config import ScoringConfig
 
 
@@ -55,31 +58,35 @@ def max_wind_mph(advisory: Advisory) -> float:
     return max(float(point["vmax_mph"]) for point in advisory.track)
 
 
-def advance(session: Session, config: ScoringConfig) -> Advisory:
+def advance(
+    session: Session, config: ScoringConfig, challenger: ChallengerModel | None = None
+) -> Advisory:
     """Issues the next advisory: computes hazard exposure, scores and ranks every asset with the
-    model version in use (the latest approved), and raises alerts against the previous advisory.
-    The caller commits, so that what else starts the new advisory lands in the same transaction.
-    The advisory cycle (agent) evaluates the playbook next."""
+    champion (the latest approved model version), and raises alerts against the previous
+    advisory. A challenger that is not the champion scores every asset too, in shadow: its
+    scores are stored with its model version and drive nothing. The caller commits, so that what
+    else starts the new advisory lands in the same transaction. The advisory cycle (agent)
+    evaluates the playbook next."""
     state = _state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
         raise ScenarioComplete(f"all {state.current_advisory} advisories have been issued")
 
     exposures = store_exposure(session, advisory, config.hazard)
-    model_version = versions.in_use(session)
-    scores = score_assets(
-        [e for e in exposures if e.kind == "asset"],
-        load_network(session),
-        model_version.curves,
-        config,
-        advisory.issued_at.date(),
+    network = load_network(session)
+    assets = asset_features(
+        [e for e in exposures if e.kind == "asset"], network, advisory.issued_at.year
     )
+    curves = versions.in_use(session)
+    rules = RuleBasedModel(curves.id, curves.curves, config.risk.condition_theta_reduction_per_step)
+    champion = _champion(session, rules, challenger)
+    scores = score_assets(assets, network, rules, champion, config, advisory.issued_at.date())
     ranked = list(enumerate(sorted(scores, key=lambda s: (-s.risk, s.asset_id)), start=1))
     session.add_all(
         Score(
             asset_id=s.asset_id,
             advisory_no=advisory.advisory_no,
-            model_version=model_version.id,
+            model_version=s.model_version,
             p_wind=s.p_wind,
             p_flood=s.p_flood,
             p_fail=s.p_fail,
@@ -92,6 +99,9 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
         )
         for rank, s in ranked
     )
+    if challenger is not None and champion is not challenger:
+        consequences = {s.asset_id: s.consequence.total for s in scores}
+        session.add_all(_shadow_scores(advisory.advisory_no, challenger, assets, consequences))
 
     previous = {
         s.asset_id: RankedRisk(s.asset_id, s.risk, s.rank)
@@ -108,10 +118,46 @@ def advance(session: Session, config: ScoringConfig) -> Advisory:
     return advisory
 
 
+def _champion(
+    session: Session, rules: RuleBasedModel, challenger: ChallengerModel | None
+) -> RiskModel:
+    """The rules, unless the approved champion is the challenger."""
+    champion = versions.champion(session)
+    if champion.kind == "curves":
+        return rules
+    if challenger is None or challenger.version != champion.id:
+        raise DataNotLoaded(f"the approved challenger (model version {champion.id}) is not loaded")
+    return challenger
+
+
+def _shadow_scores(
+    advisory_no: int,
+    challenger: ChallengerModel,
+    assets: list[AssetFeatures],
+    consequences: dict[str, float],
+) -> list[ShadowScore]:
+    predictions = challenger.predict(assets)
+    risk = {p.asset_id: p.p_fail * consequences[p.asset_id] for p in predictions}
+    ranked = sorted(predictions, key=lambda p: (-risk[p.asset_id], p.asset_id))
+    return [
+        ShadowScore(
+            asset_id=p.asset_id,
+            advisory_no=advisory_no,
+            model_version=p.version,
+            p_fail=p.p_fail,
+            risk=risk[p.asset_id],
+            rank=rank,
+            factors=p.factors,
+        )
+        for rank, p in enumerate(ranked, start=1)
+    ]
+
+
 def reset(session: Session, data_dir: Path) -> None:
     """Returns the replay to before advisory 1: no advisory, no scores, the initial operational
     state. The modules that own decisions, findings and the audit log clear their own tables."""
     session.exec(delete(Alert))
+    session.exec(delete(ShadowScore))
     session.exec(delete(Score))
     session.exec(delete(Exposure))
     restore_initial_state(session, data_dir)

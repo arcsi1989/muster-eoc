@@ -147,9 +147,15 @@ def test_calibration_back_tests_storm_delta_before_and_after_and_proposes_a_vers
     assert after["brier"] < before["brier"]
     assert before["model_version"] == 1
     version = result["model_version"]
-    assert (version["id"], version["status"], version["approved_by"]) == (2, "proposed", None)
+    assert (version["kind"], version["status"], version["approved_by"]) == (
+        "curves",
+        "proposed",
+        None,
+    )
     assert len(version["curves"]) == 6
-    assert client.get("/model-versions").json()[0]["status"] == "approved"
+    listed = {v["id"]: v for v in client.get("/model-versions").json()}
+    assert version["id"] > 1 and listed[version["id"]]["status"] == "proposed"
+    assert listed[1]["status"] == "approved"
 
 
 def test_the_fit_moves_the_published_medians_down_towards_the_true_capacities(
@@ -192,7 +198,8 @@ def test_approval_is_by_role_and_the_audit_log_shows_who_approved(client: TestCl
     refused = approve(client, proposed, "operations")
     assert refused.status_code == 403
     assert refused.json()["error"]["code"] == "decision_refused"
-    assert client.get("/model-versions").json()[1]["status"] == "proposed"
+    listed = {v["id"]: v for v in client.get("/model-versions").json()}
+    assert listed[proposed]["status"] == "proposed"
 
     response = approve(client, proposed, "planning")
     assert response.status_code == 200
