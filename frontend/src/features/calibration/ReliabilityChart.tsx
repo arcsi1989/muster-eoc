@@ -1,8 +1,15 @@
-import type { Backtest } from '../../types/scenario'
+import type { ReliabilityBin } from '../../types/scenario'
+
+/** One model's reliability bins, with the label its curve and legend show. */
+export interface ReliabilitySeries {
+  label: string
+  reliability: ReliabilityBin[]
+}
 
 interface Props {
-  before: Backtest
-  after: Backtest
+  /** drawn in the two series colours, first then second */
+  first: ReliabilitySeries
+  second: ReliabilitySeries
 }
 
 const SIZE = 320
@@ -14,16 +21,16 @@ const x = (p: number) => PAD + p * PLOT
 const y = (rate: number) => SIZE - PAD - rate * PLOT
 
 /** Mean predicted against observed failure rate per bin; empty bins have no point. */
-function points(backtest: Backtest): [number, number][] {
-  return backtest.reliability.flatMap((b) =>
+function points(reliability: ReliabilityBin[]): [number, number][] {
+  return reliability.flatMap((b) =>
     b.mean_predicted === null || b.observed_rate === null ? [] : [[x(b.mean_predicted), y(b.observed_rate)]],
   )
 }
 
-function Curve({ backtest, label, className }: { backtest: Backtest; label: string; className: string }) {
-  const pts = points(backtest)
+function Curve({ series, className }: { series: ReliabilitySeries; className: string }) {
+  const pts = points(series.reliability)
   return (
-    <g aria-label={label} className={className}>
+    <g aria-label={series.label} className={className}>
       <polyline points={pts.map((p) => p.join(',')).join(' ')} fill="none" />
       {pts.map(([cx, cy]) => (
         <circle key={`${cx},${cy}`} cx={cx} cy={cy} r={3.5} />
@@ -32,15 +39,14 @@ function Curve({ backtest, label, className }: { backtest: Backtest; label: stri
   )
 }
 
-/** The two reliability curves of a calibration run on one chart, with the diagonal. */
-export function ReliabilityChart({ before, after }: Props) {
-  const beforeLabel = `Before: version ${before.model_version}`
-  const afterLabel = `After: version ${after.model_version}`
+/** Two reliability curves on one chart, with the diagonal: a calibration run's before and after,
+ * or the champion and the challenger. */
+export function ReliabilityChart({ first, second }: Props) {
   return (
     <figure className="reliability">
       <svg
         role="img"
-        aria-label={`Reliability chart, ${before.reliability.length} bins: ${beforeLabel}, ${afterLabel}`}
+        aria-label={`Reliability chart, ${first.reliability.length} bins: ${first.label}, ${second.label}`}
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         width={SIZE}
         height={SIZE}
@@ -58,8 +64,8 @@ export function ReliabilityChart({ before, after }: Props) {
           </g>
         ))}
         <line aria-label="Perfect calibration" className="reliability-diagonal" x1={x(0)} y1={y(0)} x2={x(1)} y2={y(1)} />
-        <Curve backtest={before} label={beforeLabel} className="reliability-before" />
-        <Curve backtest={after} label={afterLabel} className="reliability-after" />
+        <Curve series={first} className="reliability-first" />
+        <Curve series={second} className="reliability-second" />
         <text className="reliability-axis" x={x(0.5)} y={SIZE - 6} textAnchor="middle">
           Predicted failure probability
         </text>
@@ -68,8 +74,8 @@ export function ReliabilityChart({ before, after }: Props) {
         </text>
       </svg>
       <figcaption className="hint small">
-        <span className="legend-swatch reliability-before" /> {beforeLabel}{' '}
-        <span className="legend-swatch reliability-after" /> {afterLabel}{' '}
+        <span className="legend-swatch reliability-first" /> {first.label}{' '}
+        <span className="legend-swatch reliability-second" /> {second.label}{' '}
         <span className="legend-swatch reliability-diagonal" /> Perfect calibration
       </figcaption>
     </figure>

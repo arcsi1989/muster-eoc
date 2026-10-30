@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatPercent } from '../../lib/format'
+import { captureLabel, formatPercent } from '../../lib/format'
 import { roleLabel } from '../../lib/roles'
 import type { Calibration, ModelVersion, Role } from '../../types/scenario'
 import { RoleSelector } from '../package/RoleSelector'
@@ -8,8 +8,6 @@ import { useCalibration } from './useCalibration'
 
 const versionName = (v: ModelVersion) => `version ${v.id} (${v.label})`
 const approvedBy = (v: ModelVersion) => (v.approved_by ? `, approved by ${roleLabel(v.approved_by)}` : '')
-/** "Top-decile capture" when the configured fraction is 10%; built from it so it follows the config. */
-const captureLabel = (topFraction: number) => `Top-${formatPercent(topFraction)} capture`
 
 export function CalibrationPage() {
   const { versions, result, run, approve, approving, approveError } = useCalibration()
@@ -83,7 +81,10 @@ function CalibrationResult({ calibration, approving, approveError, onApprove }: 
         Back-test on {calibration.storm}: {before.assets} assets, {before.failures} failed
       </h3>
       <div className="calibration-grid">
-        <ReliabilityChart before={before} after={after} />
+        <ReliabilityChart
+          first={{ label: `Before: version ${before.model_version}`, reliability: before.reliability }}
+          second={{ label: `After: version ${after.model_version}`, reliability: after.reliability }}
+        />
         <div>
           <table className="lineage" aria-label="Scores before and after">
             <thead>

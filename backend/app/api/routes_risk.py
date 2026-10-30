@@ -5,13 +5,15 @@ from fastapi import APIRouter, Query
 from app.api.schemas import (
     AlertOut,
     AssetOut,
+    ChallengerViewOut,
     DependencyLinkOut,
     ExplainOut,
     ExposureOut,
     RiskItemOut,
     RiskListOut,
 )
-from app.deps import ScoringConfigDep, SessionDep
+from app.challenger import shadow
+from app.deps import ChallengerDep, ModelsConfigDep, ScoringConfigDep, SessionDep
 from app.replay import service
 from app.risk.bands import risk_band, top_factor
 from app.risk.explain import explain_asset
@@ -46,9 +48,23 @@ def get_risk(session: SessionDep, config: ScoringConfigDep, advisory: AdvisoryQu
 
 
 @router.get("/assets/{asset_id}/explain", response_model=ExplainOut)
-def explain(asset_id: str, session: SessionDep, advisory: AdvisoryQuery) -> ExplainOut:
-    """Why an asset ranks where it does: exposure, fragility, condition, consequence."""
+def explain(
+    asset_id: str,
+    session: SessionDep,
+    challenger: ChallengerDep,
+    models: ModelsConfigDep,
+    advisory: AdvisoryQuery,
+) -> ExplainOut:
+    """Why an asset ranks where it does: exposure, fragility, condition, consequence, and the
+    challenger's top features beside them when it scored the asset in shadow."""
     e = explain_asset(session, asset_id, advisory)
+    in_shadow = (
+        None
+        if challenger is None
+        else shadow.view(
+            session, asset_id, advisory, challenger.version, models.challenger.explain_features
+        )
+    )
     return ExplainOut(
         asset=AssetOut.model_validate(e.asset, from_attributes=True),
         advisory_no=advisory,
@@ -65,6 +81,9 @@ def explain(asset_id: str, session: SessionDep, advisory: AdvisoryQuery) -> Expl
         confidence_reasons=e.score.confidence_reasons,
         feeds=[DependencyLinkOut.model_validate(link, from_attributes=True) for link in e.feeds],
         fed_by=[DependencyLinkOut.model_validate(link, from_attributes=True) for link in e.fed_by],
+        challenger=None
+        if in_shadow is None
+        else ChallengerViewOut.model_validate(in_shadow, from_attributes=True),
     )
 
 

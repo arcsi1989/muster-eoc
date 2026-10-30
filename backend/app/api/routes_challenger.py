@@ -1,13 +1,21 @@
 from dataclasses import asdict
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from app.api.model_version_out import version_out
-from app.api.schemas import ChallengerOut, ModelMetricsOut, ModelVersionOut, PromotionCheckOut
+from app.api.schemas import (
+    ChallengerOut,
+    DisagreementOut,
+    DisagreementsOut,
+    ModelMetricsOut,
+    ModelVersionOut,
+    PromotionCheckOut,
+)
 from app.calibration import versions
-from app.challenger import promotion
+from app.challenger import promotion, shadow
 from app.challenger.model import ChallengerModel
-from app.deps import ChallengerDep, ModelsConfigDep, SessionDep
+from app.deps import ChallengerDep, ModelsConfigDep, ScoringConfigDep, SessionDep
 from app.errors import NotFound
 
 router = APIRouter(prefix="/challenger")
@@ -44,3 +52,26 @@ def propose_challenger(
     It ranks nothing until a person approves it at POST /model-versions/{id}/approve."""
     version = promotion.propose(session, _loaded(challenger), config.promotion)
     return version_out(session, version)
+
+
+@router.get("/disagreements", response_model=DisagreementsOut)
+def get_disagreements(
+    session: SessionDep,
+    challenger: ChallengerDep,
+    models: ModelsConfigDep,
+    scoring: ScoringConfigDep,
+    advisory: Annotated[int, Query(ge=1)],
+) -> DisagreementsOut:
+    """The assets the challenger ranks in its top N at an advisory that the champion does not,
+    with the challenger's top features: why it ranks them higher."""
+    version = _loaded(challenger).version
+    top_n = scoring.risk.top_n
+    found = shadow.disagreements(
+        session, advisory, version, top_n, models.challenger.explain_features
+    )
+    return DisagreementsOut(
+        advisory_no=advisory,
+        model_version=version,
+        top_n=top_n,
+        items=[DisagreementOut.model_validate(d, from_attributes=True) for d in found],
+    )

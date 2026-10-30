@@ -1,3 +1,4 @@
+import os
 from collections.abc import Callable, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
@@ -22,6 +23,13 @@ from app.playbook.service import Playbook, load_playbook
 from app.scoring_config import ScoringConfig, load_scoring_config
 
 ClientFactory = Callable[..., AbstractContextManager[TestClient]]
+
+
+# scikit-learn's OpenMP pool starts one thread per CPU in every process and thread; under
+# pytest-xdist that oversubscribes the machine and makes the challenger tests several times
+# slower. xdist already runs a process per worker, so each uses one thread. The OpenMP runtime
+# reads this on first use, after these imports; setdefault keeps an explicit OMP_NUM_THREADS.
+os.environ.setdefault("OMP_NUM_THREADS", "1")
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

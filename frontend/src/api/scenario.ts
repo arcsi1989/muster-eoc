@@ -4,6 +4,7 @@ import type {
   AuditActor,
   AuditEvent,
   Calibration,
+  Challenger,
   ChatReply,
   ChatTurn,
   Clause,
@@ -12,6 +13,7 @@ import type {
   DecisionAction,
   DecisionPackage,
   Declaration,
+  Disagreements,
   Explanation,
   Exposure,
   Facility,
@@ -91,6 +93,15 @@ export const runCalibration = () => api<Calibration>('/calibration/run', { metho
 export const getModelVersions = () => api<ModelVersion[]>('/model-versions')
 export const approveModelVersion = (versionId: number, role: Role) =>
   api<ModelVersion>(`/model-versions/${versionId}/approve`, { method: 'POST', body: JSON.stringify({ role }) })
+/** The challenger and both models on the held-out storm; null when no challenger is loaded. */
+export const getChallenger = () =>
+  api<Challenger>('/challenger').catch((e: unknown) => {
+    if (e instanceof ApiError && e.status === 404) return null
+    throw e
+  })
+export const proposeChallenger = () => api<ModelVersion>('/challenger/propose', { method: 'POST' })
+export const getDisagreements = (advisoryNo: number) =>
+  api<Disagreements>(`/challenger/disagreements?advisory=${advisoryNo}`)
 export const getDistricts = () => api<string[]>('/field/districts')
 export const getFieldTasks = (district: string) =>
   api<FieldTask[]>(`/field/tasks?district=${encodeURIComponent(district)}`)
