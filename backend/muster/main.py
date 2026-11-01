@@ -24,11 +24,11 @@ from muster.api import (
     routes_territory,
     routes_trace,
 )
+from muster.api.error_handlers import register_error_handlers
 from muster.challenger import model as challenger_model
 from muster.challenger import promotion
 from muster.config import Settings, get_settings
 from muster.db import create_fresh_engine
-from muster.errors import register_error_handlers
 from muster.evals import audit as evals
 from muster.ingest.loader import load_gold
 from muster.llm.config import load_llm_config
