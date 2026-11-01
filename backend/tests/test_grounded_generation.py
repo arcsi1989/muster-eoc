@@ -248,7 +248,7 @@ def test_the_attempt_log_has_the_same_format_for_both_tasks(seeded: SeededScenar
     grounded, ungrounded = chat_attempts("SUB-07 is fine."), chat_attempts("SUB-99 is fine.")
 
     assert set(grounded[0]) == set(ungrounded[0]) == set(sitrep.attempts[0])
-    assert grounded[0]["prompt_version"] == "copilot-v1"
+    assert grounded[0]["prompt_version"] == "copilot-v2"
     assert ungrounded[0]["problems"] == ["it names IDs no tool returned: SUB-99"]
 
 

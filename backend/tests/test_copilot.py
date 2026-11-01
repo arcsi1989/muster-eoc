@@ -212,7 +212,7 @@ def test_each_answer_is_audited_with_model_latency_and_tokens(make_client: Clien
         {
             "provider": "fake",
             "model": "fake-model",
-            "prompt_version": "copilot-v1",
+            "prompt_version": "copilot-v2",
             "latency_ms": 900,
             "usage": {"input_tokens": 500, "output_tokens": 80},
             "problems": [],
@@ -220,7 +220,7 @@ def test_each_answer_is_audited_with_model_latency_and_tokens(make_client: Clien
     ]
     assert event["payload"]["tools_used"] == ["get_asset"]
     assert event["payload"]["citations"] == ["SUB-07"]
-    assert event["versions"]["prompt_version"] == "copilot-v1", "the prompt the copilot loads"
+    assert event["versions"]["prompt_version"] == "copilot-v2", "the prompt the copilot loads"
     assert (fake.prompts[0].max_tool_rounds, fake.prompts[0].deadline_s) == (5, 60)
 
 

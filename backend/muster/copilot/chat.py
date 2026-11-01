@@ -27,7 +27,7 @@ _REJECTED = "\n\nYour previous answer was rejected:\n- "
 
 def copilot_prompt(config: CopilotConfig) -> Prompt:
     return load_prompt(
-        "copilot_v1",
+        "copilot_v2",
         max_tokens=config.max_tokens,
         max_tool_rounds=config.max_tool_rounds,
         deadline_s=config.deadline_s,

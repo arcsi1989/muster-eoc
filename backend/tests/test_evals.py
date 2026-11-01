@@ -55,7 +55,7 @@ def transcript(answer: str, *results: dict[str, Any], **rest: Any) -> Transcript
         "provider": "fake",
         "fallback": False,
         "model": "fake-model",
-        "prompt_version": "copilot-v1",
+        "prompt_version": "copilot-v2",
     }
     return Transcript(**(fields | rest))
 
@@ -352,7 +352,7 @@ def test_the_latest_evaluation_is_an_audit_event_that_a_reset_keeps(tmp_path: Pa
             "mode": "live",
             "provider": "anthropic",
             "model": "claude-sonnet-5-5",
-            "prompt_versions": {"copilot": "copilot-v1", "sitrep": "sitrep-v2"},
+            "prompt_versions": {"copilot": "copilot-v2", "sitrep": "sitrep-v2"},
             "git_commit": "abc1234",
             "repeats": 3,
         },
@@ -371,7 +371,7 @@ def test_the_latest_evaluation_is_an_audit_event_that_a_reset_keeps(tmp_path: Pa
     assert len(events) == 1
     assert events[0]["versions"] == {
         "model": "claude-sonnet-5-5",
-        "prompt_versions": {"copilot": "copilot-v1", "sitrep": "sitrep-v2"},
+        "prompt_versions": {"copilot": "copilot-v2", "sitrep": "sitrep-v2"},
         "git_commit": "abc1234",
     }
     assert "gate passed; grounding 36/36" in events[0]["summary"]
