@@ -60,7 +60,7 @@ The 8-minute demo walkthrough is in [docs/demo_script.md](docs/demo_script.md).
 - **Map**: assets coloured by failure probability, hospitals, shelters, staging areas, the forecast track, the previous track and the cone. Click an asset to see why it ranks where it does.
 - **Risk list**: ranked by risk = failure probability × consequence, with rank changes and alerts.
 - **Decision package**: pick your role under *Deciding as*, then approve, override (with a reason) or, as Incident Commander, decide conflicts. Edit and approve the situation report.
-- **Copilot**: ask "Why is PS-14 ranked where it is?", "What are the top risks?", "What depends on SUB-07?", "What does P-4.7 say?".
+- **Copilot** (the button at the right of the page bar, on every page): it streams each step while it works and shows an answer only once it has passed validation; **How I got this** under each answer lists the tools, their results, the validation, retries, model, tokens and cost. Ask "Why is PS-14 ranked where it is?", "What are the top risks?", "What depends on SUB-07?", "What does P-4.7 say?".
 - **Audit** and **Data quality** pages: every step with its actor and versions; every loaded file with its hash and rejected rows.
 
 ![Decision package with a conflict at advisory 5](docs/screenshots/decision-package.jpg)
