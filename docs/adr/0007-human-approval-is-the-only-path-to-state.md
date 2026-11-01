@@ -1,5 +1,7 @@
 # Human approval and the audit log are the only path to operational state
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-28 (the brief's hard rule); one path for every kind of decision since
 tickets 13–15 (2026-10-29), extended to field reports and planning release by CR-02.
 

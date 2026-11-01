@@ -82,7 +82,7 @@ flowchart LR
     replay --> risk
     replay --> forecast
     replay --> challenger
-    risk --> calibration
+    replay --> calibration
     agentmods -->|DraftRequest| grounded
     planning -->|ObjectivesRequest| grounded
     copilot --> grounded
@@ -117,7 +117,7 @@ The seams:
 ```mermaid
 flowchart TD
   next["POST /advisories/next"] --> expire["expire the open decision package:<br/>undecided items close as not decided"]
-  expire --> hazard["hazard: 50-member ensemble, wind and surge per site,<br/>P50 / P90 exposure, tropical-storm-force arrival"]
+  expire --> hazard["hazard: track ensemble, wind and surge per site,<br/>P50 / P90 exposure, tropical-storm-force arrival"]
   hazard --> risk["risk: champion p_fail x consequence, rank, confidence, alerts"]
   risk --> forecast["outage forecast per district:<br/>customers out, crews and generators needed"]
   risk --> shadow["challenger in shadow: shadow scores, drive nothing"]
@@ -144,7 +144,7 @@ flowchart TD
 In words, `POST /advisories/next` (`lifecycle.issue_next_advisory`):
 
 1. **Expire** the current advisory's thread: undecided items close as *not decided*, the package closes.
-2. **Hazard** (`hazard/`): 50 tracks shifted sideways by N(0, cone radius); per member, a Rankine wind field with inland decay and Gaussian-alongshore surge; per site, P50/P90 wind and flood depth and the median arrival of tropical-storm-force wind.
+2. **Hazard** (`hazard/`): an ensemble of tracks (`ensemble.members` in `config/scoring.yaml`) shifted sideways by N(0, cone radius); per member, a Rankine wind field with inland decay and Gaussian-alongshore surge; per site, P50/P90 wind and flood depth and the median arrival of tropical-storm-force wind.
 3. **Risk** (`risk/`, `replay/service.advance`): the champion's failure probability per asset (lognormal fragility curves of the latest approved version, or an approved challenger), one-hop consequence shared among feeders, risk, rank, confidence, stored factors and alerts. A challenger that is not champion scores every asset in shadow.
 4. **Outage forecast** (`forecast/`): per district, failures drawn from each member's probabilities and followed through the dependency graph to customers out, crews and generators needed against those available. Context only: never a finding, an ICS-215 row or state.
 5. **Advisory cycle** (`agent/graph.py`, one checkpointed LangGraph thread per advisory, [ADR 0001](adr/0001-langgraph-for-the-advisory-cycle.md)): `load_context → diff → evaluate_rules → draft → await_approval ⇄ apply_decision → finalise`.

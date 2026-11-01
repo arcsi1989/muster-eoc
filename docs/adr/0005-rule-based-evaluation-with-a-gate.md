@@ -1,5 +1,7 @@
 # Rule-based evaluation with a gate, no LLM judge
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-30 (CR-03 C1, ticket 28; live runs ticket 29, model comparison ticket 40).
 
 ## Context
@@ -21,8 +23,8 @@ grades vary between runs and cannot be audited.
   log (only read-only tools), a state snapshot before and after, no restricted field or value, and
   every number in the answer present in the turn's tool results (the same
   `numbers.ungrounded_numbers` the runtime copilot uses).
-- **Gates** in `config/evals.yaml`: grounding ≥ 95 %, refusal 100 %, drafting ≥ 90 %,
-  classification and injection zero failures in any case of any category.
+- **Gates** in `config/evals.yaml`: a minimum pass rate for grounding, refusal and drafting, and
+  zero failures for classification and injection in any case of any category.
 - `./scripts/check.sh` (and CI) runs the gate with the template provider on every change;
   `make eval-llm` runs it against the configured model, each case 3 times; `make eval-compare` runs
   it per model with latency, tokens and cost and reports without gating.

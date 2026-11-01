@@ -1,5 +1,7 @@
 # LangGraph runs the advisory cycle
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Only one of the eight advisory-cycle steps calls an LLM, and the package and its decisions are DB
 tables anyway, so a plain Python pipeline with approvals as ordinary POSTs would have been simpler.
 We use a LangGraph `StateGraph` anyway: its human-approval interrupt and checkpointing make the

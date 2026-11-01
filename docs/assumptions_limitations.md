@@ -49,7 +49,7 @@ The reasoning behind each item is in `docs/decisions.md`, by date and topic; the
 
 ## Operations and delivery
 
-- **One process, one SQLite file, one EOC session.** Every backend start rebuilds the database from the gold files, so a restart is a fresh scenario and loses approved model versions too; a scenario reset (`make demo-reset`) keeps the model versions and the recorded evaluation. There is no multi-user state.
+- **One process, one SQLite file, one EOC at a time.** Every backend start rebuilds the database from the gold files, so a restart is a fresh scenario and loses approved model versions too; a scenario reset (`make demo-reset`) keeps the model versions and the recorded evaluation. There is no multi-user state.
 - **Tracing is local by default**: spans go to a table and the run trace page; an OTLP endpoint (Langfuse, Jaeger) is optional and needs the `otlp` extra.
 - **CI exists but has not run**: `.github/workflows/check.yml` is ready, and the repo has no remote yet.
 

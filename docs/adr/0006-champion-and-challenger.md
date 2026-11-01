@@ -1,5 +1,7 @@
 # Champion and challenger: shadow models, human-approved promotion
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-30 (CR-01 C6 calibration, tickets 09–10; CR-03 C2 challenger, tickets
 32–34).
 
@@ -28,8 +30,8 @@ fact.
 - **Promotion rule** (`challenger/promotion.py`, `config/models.yaml`): on Storm Delta, held out of
   training and tuning, the challenger must beat the published curves' Brier score and top-decile
   capture by set margins with calibration error under a limit. Passing only lets it be **proposed**;
-  Planning, the Director or the Incident Commander approves it through the same model-version path
-  as calibrated curves. Never automatic; proposal and approval are audited.
+  the Planning Section Chief, the Director or the Incident Commander approves it through the same
+  model-version path as calibrated curves. Never automatic; proposal and approval are audited.
 
 ## Consequences
 

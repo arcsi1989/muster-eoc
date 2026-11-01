@@ -1,5 +1,7 @@
 # Data classification: restricted fields never reach a model
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-30 (CR-03 C1, ticket 27; option A chosen by the owner on 2026-10-29).
 
 ## Context

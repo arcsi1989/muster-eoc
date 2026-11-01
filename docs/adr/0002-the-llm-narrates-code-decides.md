@@ -1,5 +1,7 @@
 # The LLM narrates; code decides
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-28 (the brief's hard rule; held through CR-01 to CR-03).
 
 ## Context

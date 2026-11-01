@@ -1,5 +1,7 @@
 # Grounded generation: one module runs every LLM task
 
+> Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are fictional.
+
 Status: accepted, 2026-10-29 (ticket 16; the copilot moved onto it in ticket 17, numbers checked
 at runtime since ticket 39).
 
@@ -9,7 +11,7 @@ Three features call a model: the situation report draft, the copilot and the rew
 objectives. Each can fail in the same ways: the call errors or times out, the model cites a clause
 or asset it was not shown, or states a number nothing supports. Before ticket 16 the draft and the
 copilot each had their own retry and fallback loop, a type check for "is this the template", and a
-different attempt log, so the audit trail and the eval read them differently.
+different attempt log, so the audit log and the eval read them differently.
 
 ## Decision
 
