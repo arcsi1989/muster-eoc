@@ -4,11 +4,15 @@
 
 **Blocked by:** 22 (CR-02 C1: storm map screen), 24 (CR-02 C2: field view)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] The gold data pack holds the district boundaries, written by the generator from one definition; `make data` reproduces it and every other gold file is unchanged
-- [ ] The API serves the boundaries, and every asset's district matches the boundary its x lies in (test)
-- [ ] The storm map and the operations map draw the boundaries (dashed) and labels beneath the cone, track and assets; test that four labels render from the served data
-- [ ] The field view's districts come from the same source
-- [ ] `docs/img/storm_map_adv3.png` retaken with the districts visible
-- [ ] `./scripts/check.sh` passes
+- [x] The gold data pack holds the district boundaries, written by the generator from one definition; `make data` reproduces it and every other gold file is unchanged
+- [x] The API serves the boundaries, and every asset's district matches the boundary its x lies in (test)
+- [x] The storm map and the operations map draw the boundaries (dashed) and labels beneath the cone, track and assets; test that four labels render from the served data
+- [x] The field view's districts come from the same source
+- [x] `docs/img/storm_map_adv3.png` retaken with the districts visible
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as b468c9a after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
