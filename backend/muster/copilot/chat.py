@@ -140,12 +140,12 @@ def _cite(text: str, recorder: _Recorder) -> tuple[list[Citation], list[str]]:
 
 def _problems(answered: _Answered) -> list[str]:
     """The copilot's validator: an answer names only IDs and states only numbers its tools
-    returned, and is not empty. The number rule is the evaluation's (`muster.numbers`)."""
+    returned, and is not empty. The number rule is `muster.numbers`, which the evaluation shares."""
     text = answered.chat.text
     _, ungrounded = _cite(text, answered.recorder)
     problems = ["it names IDs no tool returned: " + ", ".join(ungrounded)] if ungrounded else []
     results = [call.result for call in answered.recorder.calls]
-    invented = list(dict.fromkeys(ungrounded_numbers(text, results)))
+    invented = ungrounded_numbers(text, results)
     problems += ["it states numbers no tool returned: " + ", ".join(invented)] if invented else []
     return problems + ([] if text else ["it has no text"])
 

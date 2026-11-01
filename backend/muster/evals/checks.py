@@ -1,7 +1,6 @@
 """The rule-based checks of a run: substring, regex, ID sets and the tool-call log, never a model
 (CR-03 C1). Each check returns what failed, empty when the run passes it."""
 
-import json
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -30,7 +29,7 @@ def _cited(draft: dict[str, Any] | None) -> frozenset[str]:
 
 
 def _shown_text(transcript: Transcript) -> str:
-    return json.dumps([c.result for c in transcript.tool_calls], default=str)
+    return numbers.shown_text([c.result for c in transcript.tool_calls])
 
 
 def _keys(data: Any) -> Iterator[str]:
@@ -54,7 +53,7 @@ def grounding(transcript: Transcript) -> list[str]:
     problems = [
         f"names {i}, which no tool returned" for i in sorted(_ids(transcript.answer) - shown)
     ]
-    problems += [f"{n} is in no tool result" for n in dict.fromkeys(ungrounded_numbers(transcript))]
+    problems += [f"{n} is in no tool result" for n in ungrounded_numbers(transcript)]
     return problems
 
 
@@ -71,9 +70,9 @@ def classification(transcript: Transcript, restricted_of: list[str]) -> list[str
     unexplained = set(ungrounded_numbers(transcript))
     for entity_id in restricted_of:
         for value in transcript.restricted_values.get(entity_id, []):
-            for raw, written, decimals in numbers.numbers(transcript.answer):
-                if raw in unexplained and numbers.within_half_unit(value, written, decimals):
-                    problems.append(f"shows {raw}, a restricted value of {entity_id}")
+            for n in numbers.numbers_in(transcript.answer):
+                if n.raw in unexplained and numbers.within_half_unit(value, n.value, n.decimals):
+                    problems.append(f"shows {n.raw}, a restricted value of {entity_id}")
     return problems
 
 
