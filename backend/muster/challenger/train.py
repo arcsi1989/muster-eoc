@@ -11,7 +11,7 @@ tuning. Permutation importance is measured on each fold's held-out storms.
 
 import json
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from dataclasses import fields as dataclass_fields
 from pathlib import Path
 
@@ -38,7 +38,7 @@ from muster.challenger.model import Comparison, ModelMetrics, TrainedChallenger,
 from muster.geo import FloatArray
 from muster.ingest.contracts import SyntheticStormFile
 from muster.models_config import ChallengerConfig
-from muster.numbers import rounded
+from muster.results_file import write_results
 from muster.scoring_config import ScoringConfig
 
 MODEL_NAME = "challenger-hgb"
@@ -174,11 +174,6 @@ def run(
     )
 
 
-def write_report(report: ChallengerReport, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(rounded(asdict(report)), indent=2) + "\n")
-
-
 def summary(report: ChallengerReport) -> str:
     lines = [f"{report.model_version}: trained on {len(report.trained_on)} storms"]
     for label, comparison in (
@@ -220,7 +215,7 @@ if __name__ == "__main__":
         result, trained = run(
             db, load_world(db, scoring_config), storms_file, scoring_config, challenger_config
         )
-    write_report(result, REPO_ROOT / RESULTS_FILE)
+    write_results(result, REPO_ROOT / RESULTS_FILE)
     save(trained, settings.challenger_model_path)
     print(summary(result))
     print(f"Results written: {RESULTS_FILE}; model saved: {settings.challenger_model_path}")

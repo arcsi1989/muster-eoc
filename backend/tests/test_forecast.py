@@ -2,7 +2,7 @@
 networks, then the forecast the advisory cycle stores and serves."""
 
 import json
-from dataclasses import asdict, replace
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -25,8 +25,8 @@ from muster.geo import FloatArray
 from muster.ingest.contracts import SyntheticStormFile
 from muster.models import Advisory, OutageForecast
 from muster.models_config import load_models_config
-from muster.numbers import rounded
 from muster.planning.ics215 import usable_staging_areas
+from muster.results_file import as_results
 from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededScenario
 from tests.test_demo_scenario import advance_to, scripted_decisions_at_advisory_3
@@ -284,7 +284,7 @@ def test_the_committed_backtest_results_are_reproduced(seeded: SeededScenario) -
     report = backtest(seeded, history())
 
     committed = json.loads((REPO_ROOT / RESULTS_FILE).read_text())
-    assert rounded(asdict(report)) == committed
+    assert as_results(report) == committed
 
 
 def test_the_demo_scene_at_advisory_3_shows_the_figures_the_script_names(

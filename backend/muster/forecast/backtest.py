@@ -14,7 +14,7 @@ outcomes come from a hidden truth this repo also wrote (docs/assumptions_limitat
 
 import json
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from statistics import fmean
 
@@ -32,7 +32,7 @@ from muster.forecast.model import ForecastAsset, forecast, outcome
 from muster.forecast.service import district_names
 from muster.ingest.contracts import SyntheticStormFile
 from muster.models_config import ChallengerConfig
-from muster.numbers import rounded
+from muster.results_file import write_results
 from muster.scoring_config import ScoringConfig
 
 RESULTS_FILE = Path("docs") / "eval" / "forecast_results.json"
@@ -169,11 +169,6 @@ def run(
     )
 
 
-def write_report(report: ForecastBacktest, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(rounded(asdict(report)), indent=2) + "\n")
-
-
 def summary(report: ForecastBacktest) -> str:
     lines = [f"Outage forecast back-test: {len(report.history)} storms, {report.samples} samples"]
     for label, metrics in (
@@ -213,6 +208,6 @@ if __name__ == "__main__":
         result = run(
             db, load_world(db, scoring_config), storms_file, scoring_config, challenger_config
         )
-    write_report(result, REPO_ROOT / RESULTS_FILE)
+    write_results(result, REPO_ROOT / RESULTS_FILE)
     print(summary(result))
     print(f"Results written: {RESULTS_FILE}")

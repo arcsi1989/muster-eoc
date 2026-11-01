@@ -66,15 +66,3 @@ def ungrounded_numbers(answer: str, results: Sequence[Any]) -> list[str]:
         if not any(_rounds_to(v, n.value, n.decimals) for v in shown)
     )
     return list(dict.fromkeys(ungrounded))
-
-
-def rounded(value: Any) -> Any:
-    """Every float at any depth to six decimals: a committed results file stays readable and
-    stable in diffs."""
-    if isinstance(value, float):
-        return round(value, 6)
-    if isinstance(value, dict):
-        return {k: rounded(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [rounded(v) for v in value]
-    return value
