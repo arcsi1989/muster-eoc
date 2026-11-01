@@ -4,12 +4,16 @@
 
 **Blocked by:** 17 (Copilot through grounded generation), 18 (Typed package payloads)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] ICS-215 rows from approved items only, with have and need computed from operational state and staging data
-- [ ] Three to six IAP objectives from open findings, each with clause IDs; rephrasing runs through the grounded generation module with template fallback
-- [ ] Release: Planning Section Chief then Incident Commander, through the lifecycle, both audited; any other order or a single approval refused
-- [ ] Endpoint for the draft (DRAFT until released) and for each approval
-- [ ] Tests: after advisory 3 decisions, the ICS-215 lists the PS-09 generator and the flood barrier tasks with correct have and need; nothing unapproved appears; release without both approvals refused
-- [ ] `GLOSSARY.md`: ICS-215, IAP, Release
-- [ ] `./scripts/check.sh` passes
+- [x] ICS-215 rows from approved items only, with have and need computed from operational state and staging data
+- [x] Three to six IAP objectives from open findings, each with clause IDs; rephrasing runs through the grounded generation module with template fallback
+- [x] Release: Planning Section Chief then Incident Commander, through the lifecycle, both audited; any other order or a single approval refused
+- [x] Endpoint for the draft (DRAFT until released) and for each approval
+- [x] Tests: after advisory 3 decisions, the ICS-215 lists the PS-09 generator and the flood barrier tasks with correct have and need; nothing unapproved appears; release without both approvals refused
+- [x] `GLOSSARY.md`: ICS-215, IAP, Release
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as f357551 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 7/7 ticked.

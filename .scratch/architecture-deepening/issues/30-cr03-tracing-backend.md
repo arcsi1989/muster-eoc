@@ -4,11 +4,15 @@
 
 **Blocked by:** 15 (Graph nodes delegate to the lifecycle), 17 (Copilot through grounded generation)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Span per cycle node and per copilot turn with the fields above, in `trace_span`; OTLP export only when the variable is set
-- [ ] Instrumentation in the graph nodes and the grounded generation module only
-- [ ] Prices in `config/llm.yaml`; endpoint for an advisory's trace with per-advisory and per-run totals
-- [ ] Tests: every advisory cycle produces a complete trace; a forced LLM failure shows the retry and the template fallback; template mode shows zero tokens and zero cost
-- [ ] `make demo-reset` clears traces with the rest of the scenario
-- [ ] `./scripts/check.sh` passes
+- [x] Span per cycle node and per copilot turn with the fields above, in `trace_span`; OTLP export only when the variable is set
+- [x] Instrumentation in the graph nodes and the grounded generation module only
+- [x] Prices in `config/llm.yaml`; endpoint for an advisory's trace with per-advisory and per-run totals
+- [x] Tests: every advisory cycle produces a complete trace; a forced LLM failure shows the retry and the template fallback; template mode shows zero tokens and zero cost
+- [x] `make demo-reset` clears traces with the rest of the scenario
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as bf141be after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

@@ -4,11 +4,15 @@
 
 **Blocked by:** 32 (CR-03 C2: synthetic history and challenger training)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `RiskModel` protocol; rule-based score and challenger both implement it
-- [ ] Shadow scores stored per advisory with the challenger's model version; ranking, playbook check and package use only the approved champion
-- [ ] Promotion rule in `config/models.yaml`; a challenger is proposed only when it passes; approval through the existing model-version path, audited
-- [ ] Tests: unapproved model scores never reach the package; the rules stay champion until a person approves; a challenger failing the margin is never proposed
-- [ ] Advance stays under 2 seconds with shadow scoring
-- [ ] `./scripts/check.sh` passes
+- [x] `RiskModel` protocol; rule-based score and challenger both implement it
+- [x] Shadow scores stored per advisory with the challenger's model version; ranking, playbook check and package use only the approved champion
+- [x] Promotion rule in `config/models.yaml`; a challenger is proposed only when it passes; approval through the existing model-version path, audited
+- [x] Tests: unapproved model scores never reach the package; the rules stay champion until a person approves; a challenger failing the margin is never proposed
+- [x] Advance stays under 2 seconds with shadow scoring
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as d250850 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

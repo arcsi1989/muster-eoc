@@ -7,12 +7,16 @@
 
 **Blocked by:** 17 (Copilot through grounded generation)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Every contract field has a data class; classes defined once
-- [ ] One filter applied to every LLM input: grounded generation task input and every copilot tool result
-- [ ] `get_asset` without coordinates and elevation; `get_dependencies` narrowed as above; the template provider's dependency question still answers, from the narrowed result
-- [ ] Situation report P-4.5 and P-6.2 narration unchanged (the finding's own dependency is internal)
-- [ ] Unit test: no tool result and no generation input can contain a restricted field, for every tool and every task
-- [ ] Decision (option A) recorded in `docs/decisions.md`
-- [ ] `./scripts/check.sh` passes
+- [x] Every contract field has a data class; classes defined once
+- [x] One filter applied to every LLM input: grounded generation task input and every copilot tool result
+- [x] `get_asset` without coordinates and elevation; `get_dependencies` narrowed as above; the template provider's dependency question still answers, from the narrowed result
+- [x] Situation report P-4.5 and P-6.2 narration unchanged (the finding's own dependency is internal)
+- [x] Unit test: no tool result and no generation input can contain a restricted field, for every tool and every task
+- [x] Decision (option A) recorded in `docs/decisions.md`
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 91aed4f after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 7/7 ticked.

@@ -4,11 +4,15 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Advisory response (or a new endpoint) carries forecast points with time, wind and category, past positions from earlier advisories, and the NHC-style cone polygon
-- [ ] Saffir-Simpson thresholds in `config/scoring.yaml`, none in code; tests at each boundary
-- [ ] Cone built with `shapely` from circles per forecast point, hulls of consecutive pairs, unioned; the old hand-built outline removed
-- [ ] Unit test: the cone and the ensemble read the cone radius per lead time from the same source, and the cone widens with lead time at every advisory
-- [ ] Issuing an advisory (exposure, scores, playbook check) stays under 2 seconds; a test or a recorded measurement says so
-- [ ] `./scripts/check.sh` passes
+- [x] Advisory response (or a new endpoint) carries forecast points with time, wind and category, past positions from earlier advisories, and the NHC-style cone polygon
+- [x] Saffir-Simpson thresholds in `config/scoring.yaml`, none in code; tests at each boundary
+- [x] Cone built with `shapely` from circles per forecast point, hulls of consecutive pairs, unioned; the old hand-built outline removed
+- [x] Unit test: the cone and the ensemble read the cone radius per lead time from the same source, and the cone widens with lead time at every advisory
+- [x] Issuing an advisory (exposure, scores, playbook check) stays under 2 seconds; a test or a recorded measurement says so
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 5701b67 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

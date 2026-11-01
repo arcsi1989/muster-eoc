@@ -4,13 +4,17 @@
 
 **Blocked by:** 15 (Graph nodes delegate to the lifecycle), 19 (The playbook answers "what satisfies this finding")
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] District on every asset (generator, contract, loader); seed check covers "Bayport East" holding PS-14
-- [ ] Endpoints: list a district's field tasks (what, where, why, clause, approved by and when, stop-work flag); mark done; mark blocked with a note
-- [ ] Done and Blocked are lifecycle operations through the single state-writing path, with audit events by `field_supervisor`; the field-work mapping and stop-work come from the playbook module, not re-derived
-- [ ] Done refused under P-4.7 stop-work; a Blocked note appears as a gap in the next package
-- [ ] Tests: marking the PS-14 inspection done at advisory 3 removes the P-4.2 finding and prevents the advisory-5 conflict; Blocked shows in the next package; Done refused under stop-work; unapproved items never listed
-- [ ] A Blocked note is human free text: it reaches any LLM input only as delimited, quoted data, never as instructions (CR-03 tests it as a prompt-injection case)
-- [ ] `GLOSSARY.md`: Field task, Field supervisor
-- [ ] `./scripts/check.sh` passes
+- [x] District on every asset (generator, contract, loader); seed check covers "Bayport East" holding PS-14
+- [x] Endpoints: list a district's field tasks (what, where, why, clause, approved by and when, stop-work flag); mark done; mark blocked with a note
+- [x] Done and Blocked are lifecycle operations through the single state-writing path, with audit events by `field_supervisor`; the field-work mapping and stop-work come from the playbook module, not re-derived
+- [x] Done refused under P-4.7 stop-work; a Blocked note appears as a gap in the next package
+- [x] Tests: marking the PS-14 inspection done at advisory 3 removes the P-4.2 finding and prevents the advisory-5 conflict; Blocked shows in the next package; Done refused under stop-work; unapproved items never listed
+- [x] A Blocked note is human free text: it reaches any LLM input only as delimited, quoted data, never as instructions (CR-03 tests it as a prompt-injection case)
+- [x] `GLOSSARY.md`: Field task, Field supervisor
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as d07f8b4 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 8/8 ticked.

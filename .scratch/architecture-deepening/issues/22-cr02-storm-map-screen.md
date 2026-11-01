@@ -4,13 +4,17 @@
 
 **Blocked by:** 21 (CR-02 C1: storm map data)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Storm map is the default route; existing routes still reachable
-- [ ] Track, intensity dots, 12-hour local-time labels with collision thinning, past positions, cone, legend and the fixed cone note
-- [ ] Assets by risk band, consequence and confidence; distinct facility and staging icons; hover details; click opens the explain panel
-- [ ] Header with advisory number, issue time, hours to landfall, declared activation level
-- [ ] Stepping 1 to 5 without a reload, 300 ms transition, ranked list reorders in place
-- [ ] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
-- [ ] Frontend tests: legend and labels render, category colours, stepping updates the header and the list
-- [ ] `./scripts/check.sh` passes
+- [x] Storm map is the default route; existing routes still reachable
+- [x] Track, intensity dots, 12-hour local-time labels with collision thinning, past positions, cone, legend and the fixed cone note
+- [x] Assets by risk band, consequence and confidence; distinct facility and staging icons; hover details; click opens the explain panel
+- [x] Header with advisory number, issue time, hours to landfall, declared activation level
+- [x] Stepping 1 to 5 without a reload, 300 ms transition, ranked list reorders in place
+- [x] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
+- [x] Frontend tests: legend and labels render, category colours, stepping updates the header and the list
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 5613c39 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 8/8 ticked.

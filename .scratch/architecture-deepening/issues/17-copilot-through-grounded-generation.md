@@ -4,11 +4,15 @@
 
 **Blocked by:** 16 (Grounded generation for the situation report)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Copilot chat uses the grounded generation module; its own fallback loop and provider type check removed
-- [ ] Attempt log has one format for both tasks
-- [ ] Providers take prompt version and settings the same way for both tasks; factory no longer reaches into agent prompts
-- [ ] Anthropic provider unit tests still test it as transport only
-- [ ] Copilot answers with the same cited tool results; template mode works offline
-- [ ] `./scripts/check.sh` passes
+- [x] Copilot chat uses the grounded generation module; its own fallback loop and provider type check removed
+- [x] Attempt log has one format for both tasks
+- [x] Providers take prompt version and settings the same way for both tasks; factory no longer reaches into agent prompts
+- [x] Anthropic provider unit tests still test it as transport only
+- [x] Copilot answers with the same cited tool results; template mode works offline
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-29: Merged into `main` as ea86af5 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

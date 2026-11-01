@@ -4,11 +4,17 @@
 
 **Blocked by:** 33 (CR-03 C2: challenger in shadow, promotion by approval)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] View in the navigation with both reliability curves, metric tables and the disagreements list
-- [ ] Explain panel shows the challenger's top three features beside the rule-based breakdown
-- [ ] Promotion proposal and approval shown when available; never offered otherwise
-- [ ] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
-- [ ] Frontend tests for the view states and the disagreements list
-- [ ] `./scripts/check.sh` passes
+- [x] View in the navigation with both reliability curves, metric tables and the disagreements list
+- [x] Explain panel shows the challenger's top three features beside the rule-based breakdown
+- [x] Promotion proposal and approval shown when available; never offered otherwise
+- [x] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
+- [x] Frontend tests for the view states and the disagreements list
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Reviewed; auto-merge held back for an owner decision (see .ht/reply.md in the worktree).
+
+- 2026-10-30: Merged into `main` as c874ae5 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

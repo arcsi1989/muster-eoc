@@ -4,11 +4,15 @@
 
 **Blocked by:** 25 (CR-02 C3: ICS-215 and IAP draft (backend))
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Route in the navigation; ICS-215 table and IAP objectives with clause IDs; DRAFT marking
-- [ ] Release approvals in order, by role, with who and when shown afterwards
-- [ ] Printable: a print stylesheet hides navigation and controls
-- [ ] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
-- [ ] Frontend tests for the draft, the approval order and the released state
-- [ ] `./scripts/check.sh` passes
+- [x] Route in the navigation; ICS-215 table and IAP objectives with clause IDs; DRAFT marking
+- [x] Release approvals in order, by role, with who and when shown afterwards
+- [x] Printable: a print stylesheet hides navigation and controls
+- [x] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
+- [x] Frontend tests for the draft, the approval order and the released state
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 0bcd571 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

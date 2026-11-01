@@ -4,12 +4,18 @@
 
 **Blocked by:** 23 (CR-02 C2: field tasks (data and backend))
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `/field` route in the navigation with a district selector
-- [ ] Field task cards with what, where, why, clause, approved by and when
-- [ ] Done and Blocked (with optional note) call the backend; the list refreshes
-- [ ] "Stop work: P-4.7" shown and Done disabled under stop-work
-- [ ] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
-- [ ] Frontend tests for the card states and both calls
-- [ ] `./scripts/check.sh` passes
+- [x] `/field` route in the navigation with a district selector
+- [x] Field task cards with what, where, why, clause, approved by and when
+- [x] Done and Blocked (with optional note) call the backend; the list refreshes
+- [x] "Stop work: P-4.7" shown and Done disabled under stop-work
+- [x] Loading, error (with retry) and empty states (F3); `fetch` only through the API client (F1)
+- [x] Frontend tests for the card states and both calls
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Reviewed; auto-merge held back for an owner decision (see .ht/reply.md in the worktree).
+
+- 2026-10-30: Merged into `main` as 1018cfd after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 7/7 ticked.

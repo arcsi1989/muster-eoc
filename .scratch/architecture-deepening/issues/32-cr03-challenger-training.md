@@ -4,11 +4,17 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `scripts/generate_history.py` reproducible (seed 42); the age × condition effect is in the simulated outcomes only
-- [ ] `make train` trains with in-fold isotonic calibration and leave-storms-out validation; Storm Delta held out
-- [ ] Storm Delta metrics for both models: Brier, ROC AUC, top-decile capture, reliability bins; written to a results file
-- [ ] Test: the age × condition interaction appears among the challenger's top features (permutation importance)
-- [ ] `docs/assumptions_limitations.md` note on what the challenger can and cannot show
-- [ ] `./scripts/check.sh` passes (training in tests uses a small fixed slice so the suite stays fast)
+- [x] `scripts/generate_history.py` reproducible (seed 42); the age × condition effect is in the simulated outcomes only
+- [x] `make train` trains with in-fold isotonic calibration and leave-storms-out validation; Storm Delta held out
+- [x] Storm Delta metrics for both models: Brier, ROC AUC, top-decile capture, reliability bins; written to a results file
+- [x] Test: the age × condition interaction appears among the challenger's top features (permutation importance)
+- [x] `docs/assumptions_limitations.md` note on what the challenger can and cannot show
+- [x] `./scripts/check.sh` passes (training in tests uses a small fixed slice so the suite stays fast)
+
+## Comments
+
+- 2026-10-30: Reviewed; auto-merge held back for an owner decision (see .ht/reply.md in the worktree).
+
+- 2026-10-30: Merged into `main` as f5a2609 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

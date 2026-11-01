@@ -4,11 +4,15 @@
 
 **Blocked by:** 15 (Graph nodes delegate to the lifecycle)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Proposed action and approval state come from the playbook interface; action code no longer inverts predicates or reads detail keys
-- [ ] Package items for an advisory come from the playbook, which leaves out P-7.1 and presents P-2.5 as a proposal
-- [ ] Field work: the playbook says which approved items need field work, which state key completes each, and whether a site is under P-4.7 stop-work
-- [ ] One entity name lookup used by the package view, playbook views and the cycle
-- [ ] Seeded-session tests: satisfying state for a finding, including P-6.2's two keys and a proposal's none; P-7.1 left out of items; P-2.5 presented as a proposal; the field-work item and completing key for PS-14's P-4.2 inspection; PS-14 under P-4.7 stop-work at advisory 5
-- [ ] Package items and proposed actions in the demo unchanged; `./scripts/check.sh` passes
+- [x] Proposed action and approval state come from the playbook interface; action code no longer inverts predicates or reads detail keys
+- [x] Package items for an advisory come from the playbook, which leaves out P-7.1 and presents P-2.5 as a proposal
+- [x] Field work: the playbook says which approved items need field work, which state key completes each, and whether a site is under P-4.7 stop-work
+- [x] One entity name lookup used by the package view, playbook views and the cycle
+- [x] Seeded-session tests: satisfying state for a finding, including P-6.2's two keys and a proposal's none; P-7.1 left out of items; P-2.5 presented as a proposal; the field-work item and completing key for PS-14's P-4.2 inspection; PS-14 under P-4.7 stop-work at advisory 5
+- [x] Package items and proposed actions in the demo unchanged; `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 93048f7 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.

@@ -4,12 +4,16 @@
 
 **Blocked by:** 27 (CR-03 C1: data classification), 23 (CR-02 C2: field tasks (data and backend))
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `tests/evals/golden.yaml` with the five categories and their counts
-- [ ] Rule-based checkers, including the number-in-tool-results check; no LLM judge in the gate
-- [ ] `make eval` (template mode) passes and runs inside `make test` and `check.sh`
-- [ ] `make eval-llm` repeats each case 3 times and reports pass rate per category; exits non-zero below `config/evals.yaml` thresholds
-- [ ] `docs/eval/report.md` and `docs/eval/results.json` stamped with model, prompt version, git commit; summary stored as an audit event
-- [ ] Test: a deliberately broken prompt (citation instruction removed) fails the grounding gate when run against a fake provider that follows the prompt
-- [ ] `./scripts/check.sh` passes
+- [x] `tests/evals/golden.yaml` with the five categories and their counts
+- [x] Rule-based checkers, including the number-in-tool-results check; no LLM judge in the gate
+- [x] `make eval` (template mode) passes and runs inside `make test` and `check.sh`
+- [x] `make eval-llm` repeats each case 3 times and reports pass rate per category; exits non-zero below `config/evals.yaml` thresholds
+- [x] `docs/eval/report.md` and `docs/eval/results.json` stamped with model, prompt version, git commit; summary stored as an audit event
+- [x] Test: a deliberately broken prompt (citation instruction removed) fails the grounding gate when run against a fake provider that follows the prompt
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-10-30: Merged into `main` as 0289971 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 7/7 ticked.
