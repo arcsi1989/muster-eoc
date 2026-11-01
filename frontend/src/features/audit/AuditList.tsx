@@ -52,7 +52,7 @@ function KeyFacts({ e }: { e: AuditEvent }) {
 }
 
 export function AuditList({ events }: { events: AuditEvent[] }) {
-  if (events.length === 0) return <p className="hint">No events yet. Issue an advisory to start the trail.</p>
+  if (events.length === 0) return <p className="hint">No events yet. Issue an advisory to start the log.</p>
   return (
     <ol className="audit-list">
       {events.map((e) => (

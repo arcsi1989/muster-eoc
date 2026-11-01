@@ -78,7 +78,7 @@ test('shows a loading message, then who decided and which model ran', async () =
 
   render(<AuditPage />)
 
-  expect(screen.getByText(/loading the audit trail/i)).toBeInTheDocument()
+  expect(screen.getByText(/loading the audit log/i)).toBeInTheDocument()
   expect(await screen.findByText(/Role: Incident Commander · action: override · reason: “crew shortage”/)).toBeInTheDocument()
   expect(screen.getByText(/Model call 1: claude-sonnet-5-5 · 2100 ms · 3000 in \/ 600 out tokens/)).toBeInTheDocument()
 })
