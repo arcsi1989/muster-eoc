@@ -19,6 +19,11 @@ def _cell(text: str | None) -> str:
     return (text or "").replace("|", "\\|").replace("\n", " ")
 
 
+def usd(cost: float | None, digits: int = 4) -> str:
+    """A cost estimate in dollars; "unpriced" when a model has no price in config/llm.yaml."""
+    return "unpriced" if cost is None else f"${cost:.{digits}f}"
+
+
 def _failure(case: dict[str, Any], number: int, run: dict[str, Any]) -> list[str]:
     t = run["transcript"]
     lines = [
@@ -48,7 +53,7 @@ def _failure(case: dict[str, Any], number: int, run: dict[str, Any]) -> list[str
 
 
 def markdown(results: dict[str, Any]) -> str:
-    stamp, summary = results["stamp"], results["summary"]
+    stamp, summary, usage = results["stamp"], results["summary"], results["usage"]
     lines = [
         "# Evaluation report",
         "",
@@ -63,6 +68,10 @@ def markdown(results: dict[str, Any]) -> str:
         f"model {stamp['model'] or 'none'}, each case {stamp['repeats']} time(s)",
         "- Prompts: " + ", ".join(f"{k} {v}" for k, v in stamp["prompt_versions"].items()),
         f"- Git commit: {stamp['git_commit']}",
+        f"- Usage: {usage['answers']} answers, {usage['tokens_in']} tokens in, "
+        f"{usage['tokens_out']} out, cost {usd(usage['cost_usd'])}, latency per answer "
+        f"P50 {usage['latency_p50_ms']} ms, P90 {usage['latency_p90_ms']} ms",
+        "- Models compared: [comparison.md](comparison.md) (`make eval-compare`)",
         "",
         "| Category | Cases | Runs | Passed | Pass rate | Failed elsewhere | Threshold | Gate |",
         "| --- | --- | --- | --- | --- | --- | --- | --- |",

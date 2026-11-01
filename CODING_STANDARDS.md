@@ -11,7 +11,7 @@ Where they and this file disagree, they win.
 
 **Check everything:** `./scripts/check.sh` (the definition of done for people, agents and CI).
 
-**One-command entry points:** `make install`, `make data` (regenerate the gold data and check the demo seeds), `make history` and `make train` (the challenger model's synthetic history and training), `make eval` and `make eval-llm` (the LLM evaluation gate, template and configured provider), `make dev` (backend :8000, frontend :5173), `make test` (= `./scripts/check.sh`), `make demo-reset` (back to before advisory 1).
+**One-command entry points:** `make install`, `make data` (regenerate the gold data and check the demo seeds), `make history` and `make train` (the challenger model's synthetic history and training), `make eval` and `make eval-llm` (the LLM evaluation gate, template and configured provider), `make eval-compare` (the golden set per model in `config/evals.yaml`, ranked by gate and cost; costs API money), `make dev` (backend :8000, frontend :5173), `make test` (= `./scripts/check.sh`), `make demo-reset` (back to before advisory 1).
 
 | What | Backend (`backend/`) | Frontend (`frontend/`) |
 | --- | --- | --- |

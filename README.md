@@ -50,11 +50,12 @@ Other commands:
 | `make train` | Train the challenger model and compare it with the rule-based champion, by storm and on held-out Storm Delta; writes `docs/eval/challenger_results.json`. |
 | `make eval` | Run the LLM evaluation's golden set (30 cases: grounding, refusal, data classification, prompt injection, drafting) with the template provider and gate it on `config/evals.yaml`; writes `docs/eval/report.md` and `results.json`. `./scripts/check.sh` runs the same gate. |
 | `make eval-llm` | The same golden set against the configured provider (`LLM_PROVIDER`, needs its key), each case 3 times, pass rate per category. Exits non-zero below a threshold. |
+| `make eval-compare` | Which model is good enough, at what cost: the same golden set (each case 3 times) against every model of the configured provider listed under `compare` in `config/evals.yaml` (default Claude Haiku, Sonnet and Opus 5.5). Writes [docs/eval/comparison.md](docs/eval/comparison.md): per model, pass rate per category, the gate, latency P50/P90 per answer, tokens, and cost per answer and per run at the prices in `config/llm.yaml`, ranked cheapest passing model first. Needs `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`; refuses to run with the template. **It costs API money**: 90 answers per model, about $8 for the three defaults (roughly $0.13 Haiku, $2.60 Sonnet, $5.20 Opus), estimated at about 12k input and 500 output tokens per answer; retries add to it, and the comparison reports the measured cost. |
 | `make test` | Every check: ruff, mypy (strict), pytest, the eval gate, oxlint, tsc, vitest (`./scripts/check.sh`). |
 
 **Continuous integration**: [`.github/workflows/check.yml`](.github/workflows/check.yml) runs `./scripts/check.sh` on every push and pull request, in template mode with no secrets, on the pinned toolchain (Python from `backend/.python-version`, Node from `frontend/.nvmrc`, pnpm from `frontend/package.json`, dependencies from the lockfiles, cached). It uploads the template eval report (`eval-report`) and the backend coverage report (`coverage-backend`) as artifacts. The repo has no remote yet, so the workflow runs once it is pushed to GitHub; then replace `OWNER/REPO` in the badge above.
 
-Latest evaluation report: [docs/eval/report.md](docs/eval/report.md). The backend records it in the audit log at startup.
+Latest evaluation report: [docs/eval/report.md](docs/eval/report.md); model comparison: [docs/eval/comparison.md](docs/eval/comparison.md). The backend records it in the audit log at startup.
 
 The 8-minute demo walkthrough is in [docs/demo_script.md](docs/demo_script.md).
 

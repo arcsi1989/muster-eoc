@@ -8,6 +8,7 @@ Written by `make eval` (template provider) or `make eval-llm` (the configured pr
 - Mode: live, provider anthropic, model claude-sonnet-5-5, each case 3 time(s)
 - Prompts: copilot copilot-v2, sitrep sitrep-v2
 - Git commit: 77e13ad+dirty
+- Models compared: [comparison.md](comparison.md) (`make eval-compare`)
 
 | Category | Cases | Runs | Passed | Pass rate | Failed elsewhere | Threshold | Gate |
 | --- | --- | --- | --- | --- | --- | --- | --- |
