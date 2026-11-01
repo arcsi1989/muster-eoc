@@ -11,6 +11,7 @@ from langgraph.errors import GraphInterrupt
 from opentelemetry import trace
 from opentelemetry.trace import Span, Status, StatusCode
 
+from muster.llm.config import attempt_tokens
 from muster.models import SpanKind, ValidationResult
 
 ADVISORY = "sgw.advisory_no"
@@ -78,7 +79,7 @@ def record_generation(
 ) -> None:
     """What a generation did: tokens summed over every attempt (a rejected attempt is paid for
     too), retries, whether the template replaced the result, and the validation result."""
-    usage = [a.get("usage", {}) for a in attempts]
+    tokens = [attempt_tokens(a) for a in attempts]
     validation: ValidationResult
     if not fallback:
         validation = "passed"
@@ -86,8 +87,8 @@ def record_generation(
         validation = "error" if attempts and "error" in attempts[-1] else "failed"
     attributes: dict[str, Any] = {
         PROVIDER: provider,
-        TOKENS_IN: sum(u.get("input_tokens", 0) for u in usage),
-        TOKENS_OUT: sum(u.get("output_tokens", 0) for u in usage),
+        TOKENS_IN: sum(i for i, _ in tokens),
+        TOKENS_OUT: sum(o for _, o in tokens),
         RETRIES: max(len(attempts) - 1, 0),
         FALLBACK: fallback,
         VALIDATION: validation,

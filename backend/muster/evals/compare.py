@@ -91,8 +91,8 @@ def live_providers(settings: Settings, models: list[str]) -> Providers:
     provider without models stops the comparison before it spends anything."""
     if settings.llm_provider == "template":
         raise CompareError(
-            "LLM_PROVIDER=template has no models to compare: set LLM_PROVIDER=anthropic and "
-            "ANTHROPIC_API_KEY (a live comparison costs API money)."
+            "LLM_PROVIDER=template has no models to compare: set LLM_PROVIDER to a live provider "
+            "and its API key (a live comparison costs API money)."
         )
     scoring = load_scoring_config(settings.scoring_config_path)
     built: dict[str, LLMProvider] = {}
@@ -112,14 +112,16 @@ def _folder(model: str) -> str:
 
 
 def to_json(results: Sequence[ModelResult], golden: GoldenSet) -> dict[str, Any]:
+    """`results`: at least one model (config/evals.yaml requires one); the runs share their
+    provider, prompts, commit and repeats."""
     passing = [r for r in results if r.evaluation.gate_passed]
-    stamp = results[0].evaluation.stamp if results else None
+    stamp = results[0].evaluation.stamp
     return {
         "stamp": {
-            "provider": stamp.provider if stamp else None,
-            "prompt_versions": stamp.prompt_versions if stamp else {},
-            "git_commit": stamp.git_commit if stamp else None,
-            "repeats": stamp.repeats if stamp else 0,
+            "provider": stamp.provider,
+            "prompt_versions": stamp.prompt_versions,
+            "git_commit": stamp.git_commit,
+            "repeats": stamp.repeats,
             "cases": len(golden.cases),
         },
         "recommended": passing[0].model if passing else None,
@@ -139,18 +141,14 @@ def to_json(results: Sequence[ModelResult], golden: GoldenSet) -> dict[str, Any]
     }
 
 
-def _usd(cost: float | None, digits: int) -> str:
-    return "no price" if cost is None else f"${cost:.{digits}f}"
-
-
 def markdown(comparison: dict[str, Any]) -> str:
     stamp, models = comparison["stamp"], comparison["models"]
     by_model = {m["model"]: m for m in models}
     best = by_model.get(comparison["recommended"] or "")
     recommendation = (
         f"- Cheapest model that passes the gate: **{best['model']}** "
-        f"({_usd(best['usage']['cost_per_answer_usd'], 5)} per answer, "
-        f"{_usd(best['usage']['cost_usd'], 4)} per run)"
+        f"({report.usd(best['usage']['cost_per_answer_usd'], 5)} per answer, "
+        f"{report.usd(best['usage']['cost_usd'], 4)} per run)"
         if best
         else "- No model passes the gate."
     )
@@ -203,8 +201,8 @@ def markdown(comparison: dict[str, Any]) -> str:
         u = m["usage"]
         lines.append(
             f"| {m['rank']} | {m['model']} | {u['latency_p50_ms']} | {u['latency_p90_ms']} | "
-            f"{u['tokens_in']} | {u['tokens_out']} | {_usd(u['cost_per_answer_usd'], 5)} | "
-            f"{_usd(u['cost_usd'], 4)} |"
+            f"{u['tokens_in']} | {u['tokens_out']} | {report.usd(u['cost_per_answer_usd'], 5)} | "
+            f"{report.usd(u['cost_usd'], 4)} |"
         )
     lines += ["", "## Each model's results", ""]
     lines += [f"- {m['model']}: [report]({m['report']}), [results]({m['results']})" for m in models]
@@ -246,7 +244,8 @@ def main(
         print(
             f"{n}. {r.model:<20} gate {verdict(r.evaluation.gate_passed)}, "
             f"{r.pass_rate:.0%} passed, P50 {u.latency_p50_ms} ms, P90 {u.latency_p90_ms} ms, "
-            f"{_usd(u.cost_per_answer_usd, 5)} per answer, {_usd(u.cost_usd, 4)} per run"
+            f"{report.usd(u.cost_per_answer_usd, 5)} per answer, "
+            f"{report.usd(u.cost_usd, 4)} per run"
         )
     print(f"eval-compare: comparison in {args.out / 'comparison.md'}")
     return 0

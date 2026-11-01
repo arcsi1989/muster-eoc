@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from muster.llm.config import LLMConfig
+from muster.llm.config import LLMConfig, attempt_tokens, total_cost
 
 
 @dataclass(frozen=True)
@@ -21,16 +21,12 @@ class AnswerUsage:
 def answer_usage(attempts: list[dict[str, Any]], llm: LLMConfig) -> AnswerUsage:
     """An answer's attempts at the configured provider, each priced at the model that answered
     it. An answer the template wrote outright has no attempts and costs nothing."""
-    tokens = [
-        (t.get("usage", {}).get("input_tokens", 0), t.get("usage", {}).get("output_tokens", 0))
-        for t in attempts
-    ]
-    costs = [llm.cost_usd(t.get("model"), i, o) for t, (i, o) in zip(attempts, tokens, strict=True)]
+    tokens = [attempt_tokens(a) for a in attempts]
     return AnswerUsage(
-        latency_ms=sum(t.get("latency_ms", 0) for t in attempts),
+        latency_ms=sum(a.get("latency_ms", 0) for a in attempts),
         tokens_in=sum(i for i, _ in tokens),
         tokens_out=sum(o for _, o in tokens),
-        cost_usd=None if None in costs else sum(c for c in costs if c is not None),
+        cost_usd=llm.attempts_cost(attempts),
     )
 
 
@@ -54,8 +50,7 @@ class RunUsage:
 
 
 def run_usage(answers: Sequence[AnswerUsage]) -> RunUsage:
-    costs = [a.cost_usd for a in answers]
-    cost = None if None in costs else sum(c for c in costs if c is not None)
+    cost = total_cost(a.cost_usd for a in answers)
     latencies = [a.latency_ms for a in answers]
     return RunUsage(
         answers=len(answers),
