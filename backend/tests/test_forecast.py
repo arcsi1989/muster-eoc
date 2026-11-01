@@ -29,7 +29,7 @@ from muster.numbers import rounded
 from muster.planning.ics215 import usable_staging_areas
 from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededScenario
-from tests.test_demo_scenario import advance_to
+from tests.test_demo_scenario import advance_to, scripted_decisions_at_advisory_3
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").forecast
 MODELS = load_models_config(REPO_ROOT / "config" / "models.yaml")
@@ -285,3 +285,20 @@ def test_the_committed_backtest_results_are_reproduced(seeded: SeededScenario) -
 
     committed = json.loads((REPO_ROOT / RESULTS_FILE).read_text())
     assert rounded(asdict(report)) == committed
+
+
+def test_the_demo_scene_at_advisory_3_shows_the_figures_the_script_names(
+    client: TestClient,
+) -> None:
+    """docs/demo_script.md, scene 4 step 6: Bayport West after the scripted decisions."""
+    scripted_decisions_at_advisory_3(client, inspect_ps14=False)
+
+    west = next(d for d in get_forecast(client, 3)["districts"] if d["district"] == "Bayport West")
+
+    def thousands(figure: dict[str, float]) -> tuple[int, int]:
+        return round(figure["p50"] / 1000), round(figure["p90"] / 1000)
+
+    assert thousands(west["power_customers"]) == (27, 113)
+    assert thousands(west["water_customers"]) == (6, 115)
+    assert (west["crews_needed"]["p50"], west["crews_needed"]["p90"]) == (14, 47)
+    assert west["crews_available"] == 8

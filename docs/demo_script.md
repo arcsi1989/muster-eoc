@@ -45,6 +45,7 @@ A hurricane is 72 hours from the coast of Bayport County. Five forecasts (adviso
 3. **Decision package**, by role: as **Logistics**, approve *Assign a portable generator to PS-09 (feeds WTP-01)* (P-4.5). As **Regulatory Liaison**, approve the hospital backup check for SUB-07 (P-6.2) and the regulator notification (P-7.2).
 4. As **Incident Commander**, **override** the PS-14 inspection (P-4.2) with the reason `crew shortage, re-plan at next advisory`.
 5. Show the situation report draft: its clause and asset chips; click one; edit a line; **approve** it.
+6. Back on the **Storm map**, **How bad, where**: Bayport West could lose power to 27k–113k customers and water to 6k–115k (median to P90), and needs 14–47 crews against 8 at its staging areas; the same P90 sits under each district's name on the map.
 
 **Voice-over:** "The forecast moved east and got stronger. PS-09 jumped twenty places, and the tool shows why: flood depth and wind at that site, and the water plant it feeds. Each action belongs to a role. Logistics sends a generator to PS-09. The regulatory liaison confirms the hospital's own backup power and notifies the regulator. Now remember PS-14, the Seawall Pumping Station. Its inspection is due, but crews are short, so the Incident Commander overrides it, with a reason. Only the Incident Commander can deviate from the playbook. The situation report is drafted for us, and every sentence cites the clause and asset it comes from. If the draft invents one, it is replaced. A person edits and approves it."
 
