@@ -203,8 +203,8 @@ def test_the_challenger_learns_age_as_an_interaction_with_condition(
 
 def test_the_held_out_storm_is_never_in_the_training_history() -> None:
     storms = history_slice()
-    named = [storms[0].model_copy(update={"name": "Storm Delta"}), *storms[1:]]
+    with_held_out = [storms[0].model_copy(update={"name": "Storm Delta"}), *storms[1:]]
 
     assert [s.name for s in training_storms(storms, "Storm Delta")] == [s.name for s in storms]
     with pytest.raises(ValueError, match="Storm Delta is the held-out storm"):
-        training_storms(named, "Storm Delta")
+        training_storms(with_held_out, "Storm Delta")
