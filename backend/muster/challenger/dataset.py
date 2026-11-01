@@ -121,6 +121,14 @@ def held_out_storm(session: Session, name: str) -> PastStorm:
     )
 
 
+def training_storms(history: Sequence[SyntheticStormFile], held_out_name: str) -> list[PastStorm]:
+    """The history's storms, refusing a history that contains the held-out storm."""
+    storms = history_storms(history)
+    if any(s.name == held_out_name for s in storms):
+        raise ValueError(f"{held_out_name} is the held-out storm; it cannot be in the history")
+    return storms
+
+
 def history_storms(history: Sequence[SyntheticStormFile]) -> list[PastStorm]:
     return [
         PastStorm(
