@@ -33,6 +33,12 @@ def _ids(text: str) -> frozenset[str]:
     return mentioned(ENTITY_ID, text) | mentioned(CLAUSE_ID, text)
 
 
+def _cited(draft: dict[str, Any] | None) -> frozenset[str]:
+    """The clause and asset IDs a draft's paragraphs cite."""
+    paragraphs = [p for s in (draft or {}).get("sections", []) for p in s["paragraphs"]]
+    return frozenset(i for p in paragraphs for i in [*p["clause_ids"], *p["asset_ids"]])
+
+
 def _numbers(text: str) -> list[tuple[str, float, int]]:
     """Each number in `text`: as written, its value and its decimals."""
     found = []
@@ -142,8 +148,9 @@ def drafting(transcript: Transcript) -> list[str]:
 
 
 def expectations(transcript: Transcript, expect: Expect) -> list[str]:
-    """The case's own expectations over the answer text and the tools it called."""
-    text, named = transcript.answer, _ids(transcript.answer)
+    """The case's own expectations over the answer text and the tools it called. A draft also
+    names the IDs its paragraphs cite, which the reader sees as chips."""
+    text, named = transcript.answer, _ids(transcript.answer) | _cited(transcript.draft)
     problems = [f"does not name {i}" for i in expect.ids_include if i not in named]
     if expect.ids_equal is not None and named != set(expect.ids_equal):
         problems.append(f"names {sorted(named)}, expected exactly {sorted(expect.ids_equal)}")

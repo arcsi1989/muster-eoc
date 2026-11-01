@@ -234,6 +234,17 @@ def test_a_draft_is_marked_cites_every_finding_and_says_approved_only_of_approva
     assert checks.drafting(replace(run, approved=["P-4.2", "PS-14"]))[-1].startswith("P-4.1")
 
 
+def test_a_draft_names_the_ids_its_paragraphs_cite_as_chips() -> None:
+    text = "Three coastal pumping stations need pre-inspection."
+    paragraph = {"text": text, "clause_ids": ["P-4.2"], "asset_ids": ["PS-14"]}
+    run = replace(
+        transcript(text), draft={"status": "DRAFT", "sections": [{"paragraphs": [paragraph]}]}
+    )
+
+    assert checks.expectations(run, Expect(ids_include=["P-4.2", "PS-14"])) == []
+    assert checks.expectations(run, Expect(ids_include=["SUB-97"])) == ["does not name SUB-97"]
+
+
 def test_the_case_expectations() -> None:
     run = transcript("Top: SUB-97, SUB-11. Wind leads.", {})
     expect = Expect(
