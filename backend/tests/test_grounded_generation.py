@@ -284,3 +284,24 @@ def test_a_copilot_retry_is_sent_the_problems_when_configured(seeded: SeededScen
     assert (reply.provider, reply.fallback, reply.text) == ("fake", False, "SUB-07 is fine.")
     assert fake.questions[0] == "How is SUB-07?"
     assert "SUB-99" in fake.questions[1] and fake.questions[1].startswith("How is SUB-07?")
+
+
+def test_an_invented_number_is_retried_then_served_by_the_template(seeded: SeededScenario) -> None:
+    seeded.issue_until(1)
+    scoring = seeded.scoring.model_copy(
+        update={"copilot": seeded.scoring.copilot.model_copy(update={"retries": 1})}
+    )
+    fake = FakeChat("SUB-07 serves 9,999 customers.", "SUB-07 serves 8,000 customers.")
+
+    reply = answer(seeded.session, seeded.playbook, fake, "How is SUB-07?", [], scoring)
+    event = seeded.session.exec(
+        select(AuditEvent).where(AuditEvent.type == "copilot_answered")
+    ).all()[-1]
+
+    assert (reply.provider, reply.fallback) == (FALLBACK_LABEL, True)
+    assert "9,999" in fake.questions[1], "the retry is sent the problem"
+    assert [a["problems"] for a in event.payload["attempts"]] == [
+        ["it states numbers no tool returned: 9,999"],
+        ["it states numbers no tool returned: 8,000"],
+    ]
+    assert "8,000" in event.payload["fallback_reason"]

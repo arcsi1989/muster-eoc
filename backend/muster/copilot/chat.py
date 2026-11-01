@@ -1,6 +1,6 @@
 """Answers a copilot question through grounded generation: the provider calls read-only tools;
-the answer may cite only IDs the tools returned. A failure or an ungrounded ID serves the
-template answer (L9). This task owns the copilot prompt."""
+the answer may cite only IDs and state only numbers the tools returned. A failure, an ungrounded
+ID or an ungrounded number serves the template answer (L9). This task owns the copilot prompt."""
 
 import json
 from dataclasses import dataclass
@@ -18,6 +18,7 @@ from muster.llm.grounded import generate
 from muster.llm.provider import LLMProvider
 from muster.llm.schemas import ChatResult, ChatTurn, Prompt
 from muster.llm.template import TemplateProvider
+from muster.numbers import ungrounded_numbers
 from muster.playbook.service import Playbook
 from muster.scoring_config import CopilotConfig, ScoringConfig
 
@@ -138,10 +139,15 @@ def _cite(text: str, recorder: _Recorder) -> tuple[list[Citation], list[str]]:
 
 
 def _problems(answered: _Answered) -> list[str]:
-    """The copilot's validator: an answer names only IDs its tools returned, and is not empty."""
-    _, ungrounded = _cite(answered.chat.text, answered.recorder)
+    """The copilot's validator: an answer names only IDs and states only numbers its tools
+    returned, and is not empty. The number rule is the evaluation's (`muster.numbers`)."""
+    text = answered.chat.text
+    _, ungrounded = _cite(text, answered.recorder)
     problems = ["it names IDs no tool returned: " + ", ".join(ungrounded)] if ungrounded else []
-    return problems + ([] if answered.chat.text else ["it has no text"])
+    results = [call.result for call in answered.recorder.calls]
+    invented = list(dict.fromkeys(ungrounded_numbers(text, results)))
+    problems += ["it states numbers no tool returned: " + ", ".join(invented)] if invented else []
+    return problems + ([] if text else ["it has no text"])
 
 
 def answer(
