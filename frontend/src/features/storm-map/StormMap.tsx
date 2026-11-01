@@ -230,7 +230,7 @@ export function StormMap({
           const lines = [
             `${asset.id} ${asset.name}`,
             item ? `${ASSET_TYPE_LABEL[asset.type]} · rank ${item.rank}` : ASSET_TYPE_LABEL[asset.type],
-            ...(item ? [`p_fail ${formatPercent(item.p_fail)} · top factor: ${item.top_factor}`] : []),
+            ...(item ? [`failure probability ${formatPercent(item.p_fail)} · top factor: ${item.top_factor}`] : []),
           ]
           return (
             <g

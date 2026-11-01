@@ -170,12 +170,12 @@ test('forecast dots are coloured by intensity category', async () => {
   expect(dots[2].style.fill).toBe(hexToRgb(CATEGORY_COLOR.cat_4))
 })
 
-test('assets show name, type, rank, p_fail and top factor, and a click opens the explanation', async () => {
+test('assets show name, type, rank, failure probability and top factor, and a click opens the explanation', async () => {
   backend()
   render(<StormMapScreen />)
 
   const asset = await screen.findByRole('button', { name: /^PS-14 Seawall Pumping Station, Pump station · rank 1/ })
-  expect(asset).toHaveAccessibleName(/p_fail 30% · top factor: wind/)
+  expect(asset).toHaveAccessibleName(/failure probability 30% · top factor: wind/)
   await userEvent.click(asset)
   expect(screen.getByRole('complementary', { name: 'Why PS-14 ranks where it does' })).toBeInTheDocument()
 })
