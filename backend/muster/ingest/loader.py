@@ -22,6 +22,7 @@ from muster.ingest.contracts import (
     CoastlineFile,
     Contract,
     DependencyRecord,
+    DistrictRecord,
     FacilityRecord,
     FragilityCurveRecord,
     HistoricalStormFile,
@@ -36,6 +37,7 @@ from muster.models import (
     Asset,
     Coastline,
     Dependency,
+    District,
     Facility,
     FragilityCurve,
     HistoricalStorm,
@@ -139,15 +141,53 @@ def _unique_by_id[R: HasId](
     return kept
 
 
+class HasDistrict(HasId, Protocol):
+    district: str
+
+
+def _in_known_district[R: HasDistrict](
+    rows: list[tuple[int, R]], report: FileReport, districts: set[str]
+) -> list[tuple[int, R]]:
+    kept = []
+    for index, record in rows:
+        if record.district in districts:
+            kept.append((index, record))
+        else:
+            report.reject(index, record.id, f"district: unknown district {record.district}")
+    return kept
+
+
+def _districts(loader: GoldLoader) -> list[DistrictRecord]:
+    """The districts west to east. They must tile the territory: a gap or an overlap stops the
+    load, since every site's district and both maps rest on them."""
+    rows, report = loader.rows("districts.json", DistrictRecord)
+    if report.issues:
+        raise GoldDataMissing(f"districts.json breaks its contract: {report.issues[0].reason}")
+    districts = sorted((d for _, d in rows), key=lambda d: d.west_km)
+    if len({d.name for d in districts}) != len(districts):
+        raise GoldDataMissing("districts.json breaks its contract: duplicate district name")
+    for west, east in zip(districts, districts[1:], strict=False):
+        if east.west_km != west.east_km:
+            raise GoldDataMissing(
+                f"districts.json breaks its contract: {east.name} starts at {east.west_km} km, "
+                f"not where {west.name} ends ({west.east_km} km)"
+            )
+    return districts
+
+
 def load_gold(session: Session, data_dir: Path) -> None:
     """Validates the gold files against their contracts and loads them into the database."""
     loader = GoldLoader(data_dir)
     now = datetime.now(UTC)
 
+    districts = _districts(loader)
+    district_names = {d.name for d in districts}
+
     asset_ids: set[str] = set()
     assets: list[AssetRecord] = []
     for relative in ("assets.json", "assets_rejected_example.json"):
         records, report = loader.rows(relative, AssetRecord)
+        records = _in_known_district(records, report, district_names)
         assets += _unique_by_id(records, report, asset_ids)
 
     facility_records, facility_report = loader.rows("critical_facilities.json", FacilityRecord)
@@ -155,6 +195,7 @@ def load_gold(session: Session, data_dir: Path) -> None:
     facilities = _unique_by_id(facility_records, facility_report, facility_ids)
 
     staging_records, staging_report = loader.rows("staging_areas.json", StagingAreaRecord)
+    staging_records = _in_known_district(staging_records, staging_report, district_names)
     staging_ids: set[str] = set()
     staging = _unique_by_id(staging_records, staging_report, staging_ids)
 
@@ -192,6 +233,16 @@ def load_gold(session: Session, data_dir: Path) -> None:
                 index, outcome.asset_id, f"asset_id: unknown asset {outcome.asset_id}"
             )
 
+    session.add_all(
+        District(
+            name=d.name,
+            west_km=d.west_km,
+            east_km=d.east_km,
+            label_x_km=d.label_at.x_km,
+            label_y_km=d.label_at.y_km,
+        )
+        for d in districts
+    )
     session.add_all(Asset(**a.model_dump()) for a in assets)
     session.add_all(Facility(**f.model_dump()) for f in facilities)
     session.add_all(StagingArea(**s.model_dump()) for s in staging)

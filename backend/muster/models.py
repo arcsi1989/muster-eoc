@@ -55,6 +55,14 @@ class Asset(SQLModel, table=True):
     district: str
 
 
+class District(SQLModel, table=True):
+    name: str = Field(primary_key=True)
+    west_km: float
+    east_km: float
+    label_x_km: float
+    label_y_km: float
+
+
 class Dependency(SQLModel, table=True):
     from_id: str = Field(primary_key=True)
     to_id: str = Field(primary_key=True)

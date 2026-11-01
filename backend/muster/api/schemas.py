@@ -137,6 +137,14 @@ class CoastlineOut(BaseModel):
     land: list[PointOut]
 
 
+class DistrictOut(BaseModel):
+    name: str
+    west_km: float
+    east_km: float
+    label: PointOut  # where the maps write its name
+    boundary: list[PointOut]  # where it meets its western neighbour; [] for the westernmost
+
+
 class RiskItemOut(BaseModel):
     asset_id: str
     p_fail: float

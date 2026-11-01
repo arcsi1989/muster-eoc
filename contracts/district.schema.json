@@ -1,0 +1,57 @@
+{
+  "$defs": {
+    "PointRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "x_km": {
+          "data_class": "restricted",
+          "title": "X Km",
+          "type": "number"
+        },
+        "y_km": {
+          "data_class": "restricted",
+          "title": "Y Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x_km",
+        "y_km"
+      ],
+      "title": "PointRecord",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A fictional district a field supervisor works: the territory from `west_km` to `east_km`,\ncoast to inland edge. Together the districts tile the territory west to east.",
+  "properties": {
+    "east_km": {
+      "data_class": "restricted",
+      "title": "East Km",
+      "type": "number"
+    },
+    "label_at": {
+      "$ref": "#/$defs/PointRecord",
+      "data_class": "internal"
+    },
+    "name": {
+      "data_class": "internal",
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "west_km": {
+      "data_class": "restricted",
+      "title": "West Km",
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "west_km",
+    "east_km",
+    "label_at"
+  ],
+  "title": "DistrictRecord",
+  "type": "object"
+}

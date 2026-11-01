@@ -20,7 +20,15 @@ from sqlmodel import Session, col, select
 from muster import advisory_context
 from muster.agent.decisions import write_state
 from muster.errors import AppError, ConflictError, NotFound
-from muster.models import Advisory, Asset, FieldReport, FieldStatus, PackageItem, StagingArea
+from muster.models import (
+    Advisory,
+    Asset,
+    District,
+    FieldReport,
+    FieldStatus,
+    PackageItem,
+    StagingArea,
+)
 from muster.playbook.package import FieldWork, StateChange, field_work
 from muster.playbook.service import Playbook, entity_names, reevaluate
 from muster.replay import service
@@ -77,8 +85,8 @@ class FieldTask:
 
 
 def districts(session: Session) -> list[str]:
-    """The districts of the asset data (staging areas lie in them too), by name."""
-    return sorted(set(_district_of(session).values()))
+    """The districts of the gold data (the maps draw the same ones), by name."""
+    return sorted(session.exec(select(District.name)))
 
 
 def _district_of(session: Session) -> dict[str, str]:
@@ -91,13 +99,13 @@ def current_tasks(session: Session, playbook: Playbook, district: str) -> list[F
     first)."""
     advisory_no = advisory_context.current_advisory_no(session)
     if not advisory_no:
-        _require_district(_district_of(session), district)
+        _require_district(session, district)
         return []
     return tasks(session, playbook, service.require_issued(session, advisory_no), district)
 
 
-def _require_district(district_by_site: dict[str, str], district: str) -> None:
-    if district not in district_by_site.values():
+def _require_district(session: Session, district: str) -> None:
+    if session.get(District, district) is None:
         raise NotFound(f"no district {district!r}")
 
 
@@ -107,7 +115,7 @@ def tasks(
     """The field tasks at sites in `district` as they stand at `advisory`, oldest first; other
     districts' tasks are never included."""
     district_by_site = _district_of(session)
-    _require_district(district_by_site, district)
+    _require_district(session, district)
     names = entity_names(session)
     reports = {r.item_id: r for r in session.exec(select(FieldReport))}
     return [
