@@ -58,6 +58,7 @@ class CopilotAnswer:
     fallback: bool
     tools_used: list[str]
     tool_calls: list[ToolCall]  # what the answering turn called and was shown (the eval reads it)
+    attempts: list[dict[str, Any]]  # the grounded generation attempt log (tokens, latency)
 
 
 class _Recorder:
@@ -207,4 +208,5 @@ def answer(
         outcome.fallback,
         result.tools_used,
         recorder.calls,
+        outcome.attempts,
     )

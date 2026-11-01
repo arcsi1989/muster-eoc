@@ -24,8 +24,10 @@ from muster.config import Settings
 from muster.copilot.chat import ToolCall, answer
 from muster.db import create_fresh_engine
 from muster.evals.golden import Case, Step
+from muster.evals.usage import AnswerUsage, answer_usage
 from muster.ids import ENTITY_ID, mentioned
 from muster.ingest.loader import load_gold
+from muster.llm.config import LLMConfig, load_llm_config
 from muster.llm.provider import LLMProvider
 from muster.llm.schemas import PackageDraft, Prompt
 from muster.llm.template import TemplateProvider
@@ -75,6 +77,8 @@ class Transcript:
     draft: dict[str, Any] | None = None  # a sitrep case's draft as the package stores it
     draft_items: list[dict[str, Any]] = field(default_factory=list)  # its gaps and conflicts
     approved: list[str] = field(default_factory=list)  # rule and entity IDs of approved items
+    # tokens, latency and cost of the attempts at the provider under evaluation
+    usage: AnswerUsage = AnswerUsage(0, 0, 0, 0.0)
 
     def to_json(self) -> dict[str, Any]:
         return asdict(self)
@@ -133,6 +137,7 @@ class World:
 
     def __init__(self, folder: Path, settings: Settings) -> None:
         self.scoring: ScoringConfig = load_scoring_config(settings.scoring_config_path)
+        self.llm: LLMConfig = load_llm_config(settings.llm_config_path)
         self.playbook: Playbook = load_playbook(
             settings.playbook_rules_path, settings.playbook_path
         )
@@ -218,6 +223,7 @@ class World:
             # the answering model; the template answers with no model and no prompt
             model=None if result.fallback else provider.model,
             prompt_version=None if result.fallback or provider.model is None else prompt.version,
+            usage=answer_usage(result.attempts, self.llm),
         )
 
     def _draft(self, case: Case, provider: LLMProvider, prompt: Prompt) -> Transcript:
@@ -259,6 +265,7 @@ class World:
             draft=draft.model_dump(mode="json"),
             draft_items=[asdict(i) for i in request.items if i.kind in ("gap", "conflict")],
             approved=sorted({i.rule_id for i in approved} | {i.entity_id for i in approved}),
+            usage=answer_usage(outcome.attempts, self.llm),
         )
 
 

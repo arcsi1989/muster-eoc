@@ -2,7 +2,7 @@
 FRONTEND_PORT ?= 5173
 BACKEND_PORT ?= 8000
 
-.PHONY: install data history train eval eval-llm dev test demo-reset
+.PHONY: install data history train eval eval-llm eval-compare dev test demo-reset
 
 install: ## Install backend and frontend dependencies from the lockfiles
 	cd backend && uv sync --locked
@@ -23,6 +23,9 @@ eval: ## Run the golden set with the template provider (deterministic) and gate 
 
 eval-llm: ## The golden set against the configured provider, each case 3 times; writes docs/eval/
 	cd backend && uv run python -m muster.evals.run --live
+
+eval-compare: ## The golden set against each model in config/evals.yaml (costs API money); writes docs/eval/comparison.md
+	cd backend && uv run python -m muster.evals.compare
 
 dev: ## Backend and frontend together; Ctrl-C stops both
 	@trap 'kill 0' INT TERM EXIT; \
