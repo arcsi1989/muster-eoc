@@ -145,7 +145,7 @@ def _row(span: ReadableSpan, run_id: str, current: int | None, config: LLMConfig
         model=values.get(keys.MODEL),
         tokens_in=values.get(keys.TOKENS_IN, 0),
         tokens_out=values.get(keys.TOKENS_OUT, 0),
-        cost_usd=config.attempts_cost(attempts),
+        cost_usd=config.attempts_cost_usd(attempts),
         retries=values.get(keys.RETRIES, 0),
         fallback=values.get(keys.FALLBACK, False),
         fallback_reason=values.get(keys.FALLBACK_REASON),

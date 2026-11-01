@@ -62,9 +62,9 @@ A hurricane is 72 hours from the coast of Bayport County. Five forecasts (adviso
 
 ### 7. The consequence (5:15–6:15) · advisory 5, T-24
 
-**Do:** **Issue advisory 5.** In **Conflicts**: PS-14, citing P-4.2, P-4.7 and P-8.2. As **Operations**, try **Defer…**: refused. As **Incident Commander**, **Defer…** with `stop-work in force; inspect after landfall`. Then **Copilot**: `Why is PS-14 ranked where it is?` (click the PS-14 chip) and `Will PS-14 fail?`.
+**Do:** **Issue advisory 5.** In **Conflicts**: PS-14, citing P-4.2, P-4.7 and P-8.2. As **Operations**, try **Defer…**: refused. As **Incident Commander**, **Defer…** with `stop-work in force; inspect after landfall`. Then press **Copilot** at the right end of the page bar (it opens beside every page and stays open when you change pages; it always answers about the current advisory): `Why is PS-14 ranked where it is?`. While it works, point at the steps as they appear (the tool it called with its arguments, the validation; with Claude, any retry or fallback). Open **How I got this** under the answer: the tool and its result as the model saw it, the validator's verdict, retries, provider, model, prompt version, tokens and estimated cost. Click the PS-14 chip, then ask `Will PS-14 fail?`.
 
-**Voice-over:** "Here is the inspection we postponed. Tropical-storm wind reaches PS-14 within twelve hours, and the playbook says crews withdraw. Inspect, or keep people safe? The tool does not choose. It shows the clash, cites both rules, and routes it to the Incident Commander. Operations cannot decide it; the commander can, and personnel safety prevails. The copilot answers follow-up questions from read-only tools. Asked whether PS-14 will fail, it says nobody can know, gives the modelled probability, and cites where that comes from."
+**Voice-over:** "Here is the inspection we postponed. Tropical-storm wind reaches PS-14 within twelve hours, and the playbook says crews withdraw. Inspect, or keep people safe? The tool does not choose. It shows the clash, cites both rules, and routes it to the Incident Commander. Operations cannot decide it; the commander can, and personnel safety prevails. The copilot answers follow-up questions from read-only tools, and shows its work: each tool call as it happens, and an answer only after a validator has checked that every ID and number in it came from a tool. Under the answer, how it got there, down to the tokens it cost. Asked whether PS-14 will fail, it says nobody can know, gives the modelled probability, and cites where that comes from."
 
 ### 8. Why trust it (6:15–7:30)
 
@@ -84,4 +84,4 @@ At advisory 3, as **Operations**, *approve* the PS-14 inspection instead of over
 
 ## Screenshots
 
-`docs/screenshots/` and `docs/img/storm_map_adv3.png` (the storm map at advisory 3 in its **Territory** view, which shows the district names; press **Territory** above the map to see it live).
+`docs/screenshots/` (`operations.jpg` is advisory 3 with the copilot open and **How I got this** expanded) and `docs/img/storm_map_adv3.png` (the storm map at advisory 3 in its **Territory** view, which shows the district names; press **Territory** above the map to see it live).

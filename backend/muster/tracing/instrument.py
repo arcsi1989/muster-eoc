@@ -11,7 +11,7 @@ from langgraph.errors import GraphInterrupt
 from opentelemetry import trace
 from opentelemetry.trace import Span, Status, StatusCode
 
-from muster.llm.config import attempt_tokens
+from muster.llm.schemas import attempt_tokens
 from muster.models import SpanKind, ValidationResult
 
 ADVISORY = "sgw.advisory_no"

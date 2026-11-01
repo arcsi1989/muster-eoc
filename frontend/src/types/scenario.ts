@@ -403,6 +403,58 @@ export interface ChatReply {
   provider: string
   fallback: boolean
   tools_used: string[]
+  /** the advisory the answer is about: the current one; null before advisory 1 */
+  advisory: number | null
+  work: CopilotWork
+}
+
+export interface CopilotToolCall {
+  name: string
+  args: Record<string, unknown>
+  /** as the model was shown it: restricted fields already filtered */
+  result: Record<string, unknown>
+}
+
+export interface CopilotAttempt {
+  provider: string
+  model: string | null
+  prompt_version: string | null
+  latency_ms: number
+  input_tokens: number
+  output_tokens: number
+  /** what the validator found; empty when it passed */
+  problems: string[]
+  /** the provider failed; no result was validated */
+  error: string | null
+}
+
+/** How the copilot got its answer: the "How I got this" panel. */
+export interface CopilotWork {
+  tool_calls: CopilotToolCall[]
+  attempts: CopilotAttempt[]
+  retries: number
+  /** the answer passed the validator; false when the template replaced it */
+  validated: boolean
+  provider: string
+  model: string | null
+  prompt_version: string | null
+  input_tokens: number
+  output_tokens: number
+  /** null: tokens from a model with no price in config/llm.yaml */
+  cost_usd: number | null
+  fallback: boolean
+  fallback_reason: string | null
+}
+
+/** One step of a copilot turn as it happens; never answer text. */
+export interface CopilotStep {
+  kind: 'attempt' | 'validating' | 'validated' | 'rejected' | 'failed' | 'fallback' | 'tool_call'
+  attempt: number
+  provider: string
+  problems: string[]
+  reason: string | null
+  tool: string | null
+  args: Record<string, unknown>
 }
 
 export interface Curve {

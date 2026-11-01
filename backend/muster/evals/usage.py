@@ -7,7 +7,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from muster.llm.config import LLMConfig, attempt_tokens, total_cost
+from muster.llm.config import LLMConfig, total_cost
+from muster.llm.schemas import attempt_tokens
 
 
 @dataclass(frozen=True)
@@ -26,7 +27,7 @@ def answer_usage(attempts: list[dict[str, Any]], llm: LLMConfig) -> AnswerUsage:
         latency_ms=sum(a.get("latency_ms", 0) for a in attempts),
         tokens_in=sum(i for i, _ in tokens),
         tokens_out=sum(o for _, o in tokens),
-        cost_usd=llm.attempts_cost(attempts),
+        cost_usd=llm.attempts_cost_usd(attempts),
     )
 
 

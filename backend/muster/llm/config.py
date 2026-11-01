@@ -1,5 +1,4 @@
-"""Loads config/llm.yaml: the model prices the run trace and the evaluation estimate cost with
-(B9), and prices a grounded generation attempt log."""
+"""Loads config/llm.yaml: the model prices the run trace estimates cost with (B9)."""
 
 from collections.abc import Iterable
 from pathlib import Path
@@ -7,6 +6,7 @@ from typing import Any
 
 import yaml
 
+from muster.llm.schemas import attempt_tokens
 from muster.scoring_config import Strict
 
 
@@ -28,17 +28,10 @@ class LLMConfig(Strict):
             return None
         return (tokens_in * price.input + tokens_out * price.output) / 1_000_000
 
-    def attempts_cost(self, attempts: list[dict[str, Any]]) -> float | None:
-        """An attempt log's cost, each attempt priced at the model that answered it (a server-side
-        fallback can answer with another model than the one asked for); None if any is unpriced."""
+    def attempts_cost_usd(self, attempts: list[dict[str, Any]]) -> float | None:
+        """The estimated cost of a generation's attempt log (grounded generation's format):
+        None if any attempt has tokens from a model with no price."""
         return total_cost(self.cost_usd(a.get("model"), *attempt_tokens(a)) for a in attempts)
-
-
-def attempt_tokens(attempt: dict[str, Any]) -> tuple[int, int]:
-    """Input and output tokens of one attempt of the grounded generation attempt log; none for
-    an attempt that raised."""
-    usage = attempt.get("usage", {})
-    return usage.get("input_tokens", 0), usage.get("output_tokens", 0)
 
 
 def total_cost(costs: Iterable[float | None]) -> float | None:
