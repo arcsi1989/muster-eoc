@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
+import { makeDistrictForecast, makeForecast } from '../../test/fixtures'
 import { packageResponse } from '../../test/packageResponse'
 import type { DecisionPackage, Ics215Row, Planning, Scenario } from '../../types/scenario'
 import { PlanningPage } from './PlanningPage'
@@ -80,12 +81,17 @@ const draft = (overrides: Partial<Planning> = {}): Planning => ({
   ...overrides,
 })
 
-/** Answers by method and path, so the order of calls doesn't matter; records what was posted. */
+const FORECAST = makeForecast(4, [
+  makeDistrictForecast({ district: 'Bayport East', crews_needed: { p50: 16, p90: 36 }, crews_available: 0 }),
+])
+
+/** Answers by method and path, so the order of calls doesn't matter; records what was posted.
+ * The forecast beside the worksheet is answered unless a test routes it. */
 function backend(routes: Record<string, (body: unknown) => Response>) {
   const posted: { key: string; body: unknown }[] = []
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     const key = `${init?.method ?? 'GET'} ${String(input)}`
-    const route = routes[key]
+    const route = routes[key] ?? (key.startsWith('GET /api/forecast?') ? () => json(FORECAST) : undefined)
     if (!route) throw new Error(`unexpected request ${key}`)
     const body: unknown = init?.body ? JSON.parse(String(init.body)) : null
     if (init?.method === 'POST') posted.push({ key, body })
@@ -317,4 +323,44 @@ test('a template fallback says the AI wording was not used, with its reason when
   render(<PlanningPage />)
 
   expect(await screen.findByText('Template wording (the AI wording was not used)')).toBeInTheDocument()
+})
+
+test('the forecast demand is shown beside the worksheet as context, never as worksheet rows', async () => {
+  backend({
+    'GET /api/advisories': () => json(scenario(4)),
+    'GET /api/packages/4': () => json(pkg()),
+    [`GET ${PLANNING}`]: () => json(draft()),
+  })
+
+  render(<PlanningPage />)
+
+  const context = await screen.findByRole('complementary', { name: 'Forecast demand (context)' })
+  const forecast = await within(context).findByRole('table', { name: 'Outage forecast by district, advisory 4' })
+  expect(within(forecast).getByRole('row', { name: /^Bayport East/ })).toHaveTextContent('16–36 / 0 short at P90')
+  expect(context).toHaveTextContent('Not part of the ICS-215')
+  expect(context).toHaveClass('no-print')
+  // the worksheet keeps its two approved rows
+  const rows = within(screen.getByRole('table', { name: /ics-215/i })).getAllByRole('row')
+  expect(rows).toHaveLength(3)
+  expect(within(screen.getByRole('table', { name: /ics-215/i })).queryByText('Bayport East')).not.toBeInTheDocument()
+})
+
+test('a failed forecast offers a retry and leaves the worksheet alone', async () => {
+  let fail = true
+  backend({
+    'GET /api/advisories': () => json(scenario(4)),
+    'GET /api/packages/4': () => json(pkg()),
+    [`GET ${PLANNING}`]: () => json(draft()),
+    'GET /api/forecast?advisory=4': () =>
+      fail ? json({ error: { code: 'unavailable', message: 'Forecast unavailable' }}, 503) : json(FORECAST),
+  })
+
+  render(<PlanningPage />)
+
+  const context = await screen.findByRole('complementary', { name: 'Forecast demand (context)' })
+  expect(await within(context).findByRole('alert')).toHaveTextContent('Forecast unavailable')
+  expect(screen.getByRole('table', { name: /ics-215/i })).toBeInTheDocument()
+  fail = false
+  await userEvent.click(within(context).getByRole('button', { name: 'Retry' }))
+  expect(await within(context).findByRole('table')).toBeInTheDocument()
 })

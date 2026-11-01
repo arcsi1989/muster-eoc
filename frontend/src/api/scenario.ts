@@ -24,6 +24,7 @@ import type {
   FieldTask,
   Finding,
   LineageEntry,
+  OutageForecast,
   ModelVersion,
   Planning,
   RiskList,
@@ -60,6 +61,7 @@ export const getLineage = () => api<LineageEntry[]>('/lineage')
 export const getExposure = (advisoryNo: number) => api<Exposure[]>(`/exposure?advisory=${advisoryNo}`)
 export const getExplanation = (assetId: string, advisoryNo: number) =>
   api<Explanation>(`/assets/${encodeURIComponent(assetId)}/explain?advisory=${advisoryNo}`)
+export const getForecast = (advisoryNo: number) => api<OutageForecast>(`/forecast?advisory=${advisoryNo}`)
 export const getAlerts = (advisoryNo: number) => api<Alert[]>(`/alerts?advisory=${advisoryNo}`)
 export const getFindings = (advisoryNo: number) => api<Finding[]>(`/findings?advisory=${advisoryNo}`)
 export const getClauses = () => api<Clause[]>('/clauses')

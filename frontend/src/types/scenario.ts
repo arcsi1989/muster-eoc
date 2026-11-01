@@ -705,3 +705,34 @@ export interface RunTrace {
   advisory_totals: TraceTotals
   run_totals: TraceTotals
 }
+
+/** The median and the P90 of a forecast figure over the ensemble's drawn samples. */
+export interface Spread {
+  p50: number
+  p90: number
+}
+
+export interface DistrictForecast {
+  district: string
+  power_customers: Spread
+  water_customers: Spread
+  failed_assets: Spread
+  /** the expected failures plus the open playbook actions */
+  crews_needed: Spread
+  generators_needed: Spread
+  crews_for_actions: number
+  generators_for_actions: number
+  /** at the district's usable staging areas */
+  crews_available: number
+}
+
+/** Customers out and field demand per district at an advisory (ticket 38): context only, never an ICS-215 row. */
+export interface OutageForecast {
+  advisory_no: number
+  model_version: number
+  /** ensemble members x failure draws */
+  samples: number
+  /** the fuelled fleet, for the whole territory */
+  generators_available: number
+  districts: DistrictForecast[]
+}

@@ -1,7 +1,18 @@
 import { useState } from 'react'
 import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
-import { formatPercent } from '../../lib/format'
-import type { Advisory, Asset, AssetType, Coastline, District, Facility, Point, RiskItem, StagingArea } from '../../types/scenario'
+import { formatCustomers, formatPercent } from '../../lib/format'
+import type {
+  Advisory,
+  Asset,
+  AssetType,
+  Coastline,
+  District,
+  DistrictForecast,
+  Facility,
+  Point,
+  RiskItem,
+  StagingArea,
+} from '../../types/scenario'
 import { CATEGORY_COLOR, CATEGORY_LABEL, formatLocalTime, LABEL_EVERY_H, RISK_BAND_COLOR, timeLabels } from './stormTrack'
 
 // Plain SVG on the planar km grid: x = x_km, y = -y_km (north up). No tiles, no real geography.
@@ -19,6 +30,8 @@ const ASSET_R_MIN = 2.5
 const ASSET_R_SPAN = 5
 /** District names, relative to the font size. */
 const DISTRICT_FONT = 0.85
+/** The customers-out line under a district's name, relative to the district font. */
+const OUTAGE_FONT = 0.8
 /** A character's average width, in font sizes, for fitting text in a box. */
 const CHAR_WIDTH = 0.56
 /** A time label's box, in font sizes, for the collision check. */
@@ -47,10 +60,23 @@ interface Props {
   advisory: Advisory | undefined
   previous: Advisory | undefined
   risk: Map<string, RiskItem>
+  /** the outage forecast per district name; empty before advisory 1 */
+  outage?: Map<string, DistrictForecast>
   onSelect: (assetId: string) => void
 }
 
-export function StormMap({ coastline, districts, assets, facilities, stagingAreas, advisory, previous, risk, onSelect }: Props) {
+export function StormMap({
+  coastline,
+  districts,
+  assets,
+  facilities,
+  stagingAreas,
+  advisory,
+  previous,
+  risk,
+  outage,
+  onSelect,
+}: Props) {
   const [view, setView] = useState<View>('storm')
   const [hover, setHover] = useState<Hover | null>(null)
   const box = VIEWS[view]
@@ -94,7 +120,7 @@ export function StormMap({ coastline, districts, assets, facilities, stagingArea
                   style={{ strokeWidth: scale, strokeDasharray: DISTRICT_DASH_PX.map((px) => px * scale).join(' ') }}
                 />
               )}
-              <DistrictLabel district={d} font={font * DISTRICT_FONT} />
+              <DistrictLabel district={d} font={font * DISTRICT_FONT} outage={outage?.get(d.name)} />
             </g>
           ))}
         </g>
@@ -245,20 +271,38 @@ export function StormMap({ coastline, districts, assets, facilities, stagingArea
   )
 }
 
-/** A district's name centred on its label point; one word per line when it is wider than its district. */
-function DistrictLabel({ district, font }: { district: District; font: number }) {
+/** A district's name centred on its label point; one word per line when it is wider than its district.
+ * Under it, once forecast, the customers out at P90: power and water. */
+function DistrictLabel({ district, font, outage }: { district: District; font: number; outage?: DistrictForecast }) {
   const { name, label: at } = district
   const fits = name.length * font * CHAR_WIDTH < district.east_km - district.west_km
   const lines = fits ? [name] : name.split(' ')
+  // the name's last line sits this far below the label point, in em
+  const lastLine = 0.35 + (lines.length - 1) * 0.55
   return (
-    <text className="district-label" x={at.x_km} y={-at.y_km} style={{ fontSize: font }}>
-      {lines.map((line, i) => (
-        <tspan key={i} x={at.x_km} dy={i === 0 ? `${0.35 - (lines.length - 1) * 0.55}em` : '1.1em'}>
-          {/* the space keeps the name whole in the text's content */}
-          {i < lines.length - 1 ? `${line} ` : line}
-        </tspan>
-      ))}
-    </text>
+    <>
+      <text className="district-label" x={at.x_km} y={-at.y_km} style={{ fontSize: font }}>
+        {lines.map((line, i) => (
+          <tspan key={i} x={at.x_km} dy={i === 0 ? `${0.35 - (lines.length - 1) * 0.55}em` : '1.1em'}>
+            {/* the space keeps the name whole in the text's content */}
+            {i < lines.length - 1 ? `${line} ` : line}
+          </tspan>
+        ))}
+      </text>
+      {outage && (
+        <text
+          className="district-outage"
+          x={at.x_km}
+          y={-at.y_km + font * (lastLine + 1.2)}
+          style={{ fontSize: font * OUTAGE_FONT }}
+        >
+          <tspan x={at.x_km}>{formatCustomers(outage.power_customers.p90)} power</tspan>{' '}
+          <tspan x={at.x_km} dy="1.15em">
+            {formatCustomers(outage.water_customers.p90)} water out (P90)
+          </tspan>
+        </text>
+      )}
+    </>
   )
 }
 

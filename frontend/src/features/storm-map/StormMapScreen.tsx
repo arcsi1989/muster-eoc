@@ -4,6 +4,8 @@ import { levelName } from '../../lib/labels'
 import { useLatestData, useLoad } from '../../lib/useLoad'
 import type { Advisory, Scenario } from '../../types/scenario'
 import { ExplainDrawer } from '../explain/ExplainDrawer'
+import { ForecastPanel } from '../forecast/DistrictForecast'
+import { useForecast } from '../forecast/useForecast'
 import { RiskList } from '../risk/RiskList'
 import { RiskPanel } from '../risk/RiskPanel'
 import { currentAdvisories } from '../scenario/currentAdvisory'
@@ -23,11 +25,17 @@ export function StormMapScreen() {
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   // The last ranked list stays on screen while the next advisory's loads, then reorders in place.
   const shownRisk = useLatestData(risk.state)
+  const forecast = useForecast(currentNo)
+  const shownForecast = useLatestData(forecast.state)
   const [selected, setSelected] = useState<string | null>(null)
 
   const assets = useMemo(() => (territory.state.status === 'ok' ? territory.state.data.assets : []), [territory.state])
   const assetsById = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets])
   const riskById = useMemo(() => new Map(shownRisk?.items.map((i) => [i.asset_id, i]) ?? []), [shownRisk])
+  const outageByDistrict = useMemo(
+    () => new Map(shownForecast?.districts.map((d) => [d.district, d]) ?? []),
+    [shownForecast],
+  )
 
   return (
     <div className="operations storm-screen">
@@ -72,6 +80,7 @@ export function StormMapScreen() {
                 advisory={current}
                 previous={previous}
                 risk={riskById}
+                outage={outageByDistrict}
                 onSelect={setSelected}
               />
               <p className="cone-note">Cone shows forecast track uncertainty, not the area that will be impacted.</p>
@@ -89,6 +98,10 @@ export function StormMapScreen() {
           )}
         </section>
         <aside className="side-pane">
+          <section className="card" aria-label="How bad, where">
+            <h2>How bad, where</h2>
+            <ForecastPanel state={forecast.state} shown={shownForecast} onRetry={forecast.retry} />
+          </section>
           <section className="card" aria-label="Risk list">
             <h2>Risk list</h2>
             {shownRisk && risk.state.status !== 'error' ? (

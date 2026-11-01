@@ -3,6 +3,7 @@ import { ApiError } from './client'
 import {
   approveModelVersion,
   getAlerts,
+  getForecast,
   getAudit,
   getExplanation,
   getExposure,
@@ -52,6 +53,16 @@ test('getRisk asks for the given advisory', async () => {
   await getRisk(2)
 
   expect(fetchMock).toHaveBeenCalledWith('/api/risk?advisory=2', expect.anything())
+})
+
+test('getForecast asks for the given advisory', async () => {
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    json({ advisory_no: 3, model_version: 1, samples: 1000, generators_available: 6, districts: [] }),
+  )
+
+  await getForecast(3)
+
+  expect(fetchMock).toHaveBeenCalledWith('/api/forecast?advisory=3', expect.anything())
 })
 
 test('an error response becomes an ApiError with the backend code and message', async () => {

@@ -1,4 +1,4 @@
-import type { Asset, RiskItem, RunTrace, TraceSpan, TraceTotals } from '../types/scenario'
+import type { Asset, DistrictForecast, OutageForecast, RiskItem, RunTrace, TraceSpan, TraceTotals } from '../types/scenario'
 
 export const makeAsset = (overrides: Partial<Asset> & Pick<Asset, 'id' | 'name' | 'type'>): Asset => ({
   x_km: 0,
@@ -21,6 +21,28 @@ export const makeRiskItem = (overrides: Partial<RiskItem> & Pick<RiskItem, 'asse
   risk_band: 'high',
   top_factor: 'wind',
   ...overrides,
+})
+
+export const makeDistrictForecast = (
+  overrides: Partial<DistrictForecast> & Pick<DistrictForecast, 'district'>,
+): DistrictForecast => ({
+  power_customers: { p50: 26_700, p90: 113_100 },
+  water_customers: { p50: 5_700, p90: 114_800 },
+  failed_assets: { p50: 6, p90: 27 },
+  crews_needed: { p50: 14, p90: 47 },
+  generators_needed: { p50: 10, p90: 17 },
+  crews_for_actions: 4,
+  generators_for_actions: 9,
+  crews_available: 8,
+  ...overrides,
+})
+
+export const makeForecast = (advisoryNo: number, districts: DistrictForecast[]): OutageForecast => ({
+  advisory_no: advisoryNo,
+  model_version: 1,
+  samples: 1000,
+  generators_available: 6,
+  districts,
 })
 
 const T0 = Date.parse('2026-10-30T09:00:00Z')
