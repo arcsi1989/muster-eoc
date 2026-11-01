@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { ApiError } from '../../api/client'
-import { approveSitrep, getClauses, getPackage, postDecision, postDeclaration } from '../../api/scenario'
+import { approveSitrep, getPackage, postDecision, postDeclaration } from '../../api/scenario'
+import { useClauses } from '../../lib/useClauses'
 import { toApiError, useLoad } from '../../lib/useLoad'
 import type { ActivationLevel, Asset, DecisionAction, PackageItem, Role } from '../../types/scenario'
 import { PackageView } from './PackageView'
@@ -16,8 +17,6 @@ interface Props {
   onDeclared: () => void
 }
 
-const loadClauses = () => getClauses()
-
 /** Errors that mean the package on screen is stale: reload it. */
 const STALE_PACKAGE = new Set(['package_closed', 'already_decided', 'no_activation_proposal'])
 
@@ -30,11 +29,7 @@ interface AdvisoryError {
 export function PackagePanel({ advisoryNo, role, hoursToLandfall, assetsById, onSelectAsset, onDeclared }: Props) {
   const loader = useCallback(() => getPackage(advisoryNo), [advisoryNo])
   const { state, retry, setData } = useLoad(advisoryNo > 0 ? loader : null)
-  const { state: clausesState, retry: retryClauses } = useLoad(loadClauses)
-  const clauses = useMemo(
-    () => new Map(clausesState.status === 'ok' ? clausesState.data.map((c) => [c.id, c]) : []),
-    [clausesState],
-  )
+  const { state: clausesState, retry: retryClauses, clauses } = useClauses()
   const [error, setError] = useState<(AdvisoryError & { itemId: number }) | null>(null)
   const [declareError, setDeclareError] = useState<AdvisoryError | null>(null)
   const [sitrepError, setSitrepError] = useState<AdvisoryError | null>(null)
