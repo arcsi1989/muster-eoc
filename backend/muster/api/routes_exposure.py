@@ -1,7 +1,6 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Query
-
+from muster.api.params import AdvisoryQuery
 from muster.api.schemas import ExposureOut
 from muster.deps import SessionDep
 from muster.replay import service
@@ -12,7 +11,7 @@ router = APIRouter()
 @router.get("/exposure", response_model=list[ExposureOut])
 def get_exposure(
     session: SessionDep,
-    advisory: Annotated[int, Query(ge=1)],
+    advisory: AdvisoryQuery,
 ) -> list[ExposureOut]:
     """Hazard exposure of every asset and staging area at an issued advisory."""
     return [

@@ -33,6 +33,7 @@ def get_activation_levels(request: Request) -> list[ActivationLevel]:
 
 
 PlaybookDep = Annotated[Playbook, Depends(get_playbook)]
+ActivationLevelsDep = Annotated[list[ActivationLevel], Depends(get_activation_levels)]
 
 
 def get_scoring_config(request: Request) -> ScoringConfig:

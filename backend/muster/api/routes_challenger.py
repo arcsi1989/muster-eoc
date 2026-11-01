@@ -1,9 +1,9 @@
 from dataclasses import asdict
-from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
 from muster.api.model_version_out import version_out
+from muster.api.params import AdvisoryQuery
 from muster.api.schemas import (
     ChallengerOut,
     DisagreementOut,
@@ -60,7 +60,7 @@ def get_disagreements(
     challenger: ChallengerDep,
     models: ModelsConfigDep,
     scoring: ScoringConfigDep,
-    advisory: Annotated[int, Query(ge=1)],
+    advisory: AdvisoryQuery,
 ) -> DisagreementsOut:
     """The assets the challenger ranks in its top N at an advisory that the champion does not,
     with the challenger's top features: why it ranks them higher."""
