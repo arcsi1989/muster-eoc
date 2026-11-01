@@ -16,7 +16,6 @@ from muster.models import (
     Advisory,
     Alert,
     Exposure,
-    ScenarioState,
     Score,
     ShadowScore,
 )
@@ -31,21 +30,6 @@ from muster.scoring_config import ScoringConfig
 
 class ScenarioComplete(ConflictError):
     code = "scenario_complete"
-
-
-def _state(session: Session) -> ScenarioState:
-    state = session.get(ScenarioState, 1)
-    if state is None:
-        raise DataNotLoaded("scenario state missing; the gold data was not loaded")
-    return state
-
-
-def issued_advisories(session: Session) -> list[Advisory]:
-    current = advisory_context.current_advisory_no(session)
-    query = (
-        select(Advisory).where(Advisory.advisory_no <= current).order_by(col(Advisory.advisory_no))
-    )
-    return list(session.exec(query))
 
 
 def all_advisories(session: Session) -> list[Advisory]:
@@ -69,7 +53,7 @@ def advance(
     scores are stored with its model version and drive nothing. The caller commits, so that what
     else starts the new advisory lands in the same transaction. The advisory cycle (agent)
     evaluates the playbook next."""
-    state = _state(session)
+    state = advisory_context.scenario_state(session)
     advisory = session.get(Advisory, state.current_advisory + 1)
     if advisory is None:
         raise ScenarioComplete(f"all {state.current_advisory} advisories have been issued")
@@ -176,21 +160,14 @@ def reset(session: Session, data_dir: Path) -> None:
     session.exec(delete(Score))
     session.exec(delete(Exposure))
     restore_initial_state(session, data_dir)
-    state = _state(session)
+    state = advisory_context.scenario_state(session)
     state.current_advisory = 0
     session.add(state)
     session.commit()
 
 
-def require_issued(session: Session, advisory_no: int) -> Advisory:
-    advisory = session.get(Advisory, advisory_no)
-    if advisory is None or advisory_no > advisory_context.current_advisory_no(session):
-        raise NotFound(f"advisory {advisory_no} has not been issued")
-    return advisory
-
-
 def ranked_scores(session: Session, advisory_no: int) -> list[Score]:
-    require_issued(session, advisory_no)
+    advisory_context.require_issued(session, advisory_no)
     query = select(Score).where(Score.advisory_no == advisory_no).order_by(col(Score.rank))
     return list(session.exec(query))
 
@@ -222,13 +199,13 @@ def changes(
             ranks=ranks(session, advisory.advisory_no),
         )
 
-    current = require_issued(session, advisory_no)
+    current = advisory_context.require_issued(session, advisory_no)
     previous = session.get(Advisory, advisory_no - 1)
     return diff(snapshot(current), snapshot(previous) if previous else None, top_n)
 
 
 def exposures(session: Session, advisory_no: int) -> list[Exposure]:
-    require_issued(session, advisory_no)
+    advisory_context.require_issued(session, advisory_no)
     query = (
         select(Exposure).where(Exposure.advisory_no == advisory_no).order_by(col(Exposure.site_id))
     )
@@ -236,7 +213,7 @@ def exposures(session: Session, advisory_no: int) -> list[Exposure]:
 
 
 def score(session: Session, asset_id: str, advisory_no: int) -> Score:
-    require_issued(session, advisory_no)
+    advisory_context.require_issued(session, advisory_no)
     found = session.get(Score, (asset_id, advisory_no))
     if found is None:
         raise NotFound(f"asset {asset_id} was not scored")
@@ -248,6 +225,6 @@ def exposure(session: Session, site_id: str, advisory_no: int) -> Exposure | Non
 
 
 def alerts(session: Session, advisory_no: int) -> list[Alert]:
-    require_issued(session, advisory_no)
+    advisory_context.require_issued(session, advisory_no)
     query = select(Alert).where(Alert.advisory_no == advisory_no).order_by(col(Alert.id))
     return list(session.exec(query))

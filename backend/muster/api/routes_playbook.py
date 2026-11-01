@@ -3,11 +3,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
+from muster import advisory_context
 from muster.api.schemas import ClauseOut, FindingOut
 from muster.deps import PlaybookDep, SessionDep
 from muster.playbook.engine import Status
 from muster.playbook.service import finding_views
-from muster.replay import service
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ def list_findings(
     status: Status | None = None,
 ) -> list[FindingOut]:
     """Playbook findings at an issued advisory, optionally filtered by status."""
-    service.require_issued(session, advisory)
+    advisory_context.require_issued(session, advisory)
     return [
         FindingOut(
             **v.finding.model_dump(include=set(FindingOut.model_fields)),

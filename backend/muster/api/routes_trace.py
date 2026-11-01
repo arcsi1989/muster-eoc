@@ -2,9 +2,9 @@ from dataclasses import asdict
 
 from fastapi import APIRouter
 
+from muster import advisory_context
 from muster.api.schemas import RunTraceOut, TraceSpanOut, TraceTotalsOut
 from muster.deps import SessionDep
-from muster.replay import service
 from muster.tracing.store import run_trace
 
 router = APIRouter(prefix="/advisories")
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/advisories")
 def get_trace(advisory_no: int, session: SessionDep) -> RunTraceOut:
     """What the agent did for an issued advisory: its cycle nodes and generations as spans, with
     latency, tokens and estimated cost for the advisory and for the demo run."""
-    service.require_issued(session, advisory_no)
+    advisory_context.require_issued(session, advisory_no)
     trace = run_trace(session, advisory_no)
     return RunTraceOut(
         run_id=trace.run_id,

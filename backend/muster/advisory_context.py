@@ -13,7 +13,7 @@ from typing import Literal, get_args
 from sqlmodel import Session, col, select
 
 from muster.audit.log import record
-from muster.errors import DataNotLoaded
+from muster.errors import DataNotLoaded, NotFound
 from muster.models import Advisory, Finding, OpState, PackageItem, ScenarioState
 from muster.playbook.activation import (
     FULL_ACTIVATION,
@@ -66,12 +66,25 @@ class AdvisoryContext:
         return "incident_commander" if self.full_activation else "director"
 
 
-def current_advisory_no(session: Session) -> int:
-    """The current advisory's number, 0 before advisory 1."""
+def scenario_state(session: Session) -> ScenarioState:
+    """The one row that holds the replay's position."""
     state = session.get(ScenarioState, 1)
     if state is None:
         raise DataNotLoaded("scenario state missing; the gold data was not loaded")
-    return state.current_advisory
+    return state
+
+
+def current_advisory_no(session: Session) -> int:
+    """The current advisory's number, 0 before advisory 1."""
+    return scenario_state(session).current_advisory
+
+
+def require_issued(session: Session, advisory_no: int) -> Advisory:
+    """The advisory, if it has been issued; NotFound otherwise."""
+    advisory = session.get(Advisory, advisory_no)
+    if advisory is None or advisory_no > current_advisory_no(session):
+        raise NotFound(f"advisory {advisory_no} has not been issued")
+    return advisory
 
 
 def _declared(session: Session) -> tuple[str | None, float | None]:
