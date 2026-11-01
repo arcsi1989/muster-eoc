@@ -96,6 +96,7 @@ class DistrictDemand:
     crews_for_actions: int  # the open playbook actions' share of the need
     generators_for_actions: int
     crews_available: int  # at the district's usable staging areas
+    crews_short_p90: int  # crews the P90 needs beyond those available; 0 when there are enough
 
 
 @dataclass(frozen=True)
@@ -136,19 +137,22 @@ def advisory_forecast(
         row = rows[name]
         need = actions.get(name, FieldNeed(crews=0, generators=0))
         crews, generators = need.crews, need.generators
+        crews_needed = shifted(Spread(row.crews_p50, row.crews_p90), crews)
+        available = crews_per_area * areas.count(name)
         districts.append(
             DistrictDemand(
                 district=name,
                 power_customers=Spread(row.power_customers_p50, row.power_customers_p90),
                 water_customers=Spread(row.water_customers_p50, row.water_customers_p90),
                 failed_assets=Spread(row.failed_assets_p50, row.failed_assets_p90),
-                crews_needed=shifted(Spread(row.crews_p50, row.crews_p90), crews),
+                crews_needed=crews_needed,
                 generators_needed=shifted(
                     Spread(row.generators_p50, row.generators_p90), generators
                 ),
                 crews_for_actions=crews,
                 generators_for_actions=generators,
-                crews_available=crews_per_area * areas.count(name),
+                crews_available=available,
+                crews_short_p90=max(0, round(crews_needed.p90) - available),
             )
         )
     return AdvisoryForecast(

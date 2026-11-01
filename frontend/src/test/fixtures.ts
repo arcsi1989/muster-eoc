@@ -34,6 +34,7 @@ export const makeDistrictForecast = (
   crews_for_actions: 4,
   generators_for_actions: 9,
   crews_available: 8,
+  crews_short_p90: 39,
   ...overrides,
 })
 

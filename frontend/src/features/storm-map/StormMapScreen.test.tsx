@@ -88,6 +88,7 @@ const forecast = (no: number) =>
         district: d.name,
         power_customers: { p50: 1000 * no * i, p90: 10_000 * no * (i + 1) },
         crews_available: 4,
+        crews_short_p90: 43,
       }),
     ),
   )
@@ -230,7 +231,7 @@ test('the district summary and the map show the outage forecast, and change with
   const table = await within(summary).findByRole('table', { name: 'Outage forecast by district, advisory 1' })
   const westshore = within(table).getByRole('row', { name: /^Westshore/ })
   expect(within(westshore).getAllByRole('cell')[0]).toHaveTextContent('power 0–10k')
-  expect(within(westshore).getAllByRole('cell')[1]).toHaveTextContent('14–47 / 4 short')
+  expect(within(westshore).getAllByRole('cell')[1]).toHaveTextContent('14–47 / 4 43 short')
   // the district overlay, in the territory view: each district's customers out at P90, under its name
   const map = screen.getByRole('img', { name: 'Storm map, advisory 1' })
   const outage = () => [...map.querySelectorAll('.district-outage')].map((t) => t.textContent)

@@ -181,6 +181,11 @@ def test_each_advisory_forecasts_every_district_west_to_east(client: TestClient)
         "Eastern Plains",
     ]
     assert body["samples"] == 50 * CONFIG.draws
+    shortfalls = [d["crews_short_p90"] for d in body["districts"]]
+    assert shortfalls == [
+        max(0, d["crews_needed"]["p90"] - d["crews_available"]) for d in body["districts"]
+    ]
+    assert any(shortfalls)  # the one rule the copilot and the screens show
     for d in body["districts"]:
         for figure in ("power_customers", "water_customers", "crews_needed", "generators_needed"):
             assert 0 <= d[figure]["p50"] <= d[figure]["p90"], (d["district"], figure)

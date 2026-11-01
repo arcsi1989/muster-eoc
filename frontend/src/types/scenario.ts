@@ -724,6 +724,8 @@ export interface DistrictForecast {
   generators_for_actions: number
   /** at the district's usable staging areas */
   crews_available: number
+  /** crews the P90 needs beyond those available; 0 when there are enough */
+  crews_short_p90: number
 }
 
 /** Customers out and field demand per district at an advisory (ticket 38): context only, never an ICS-215 row. */

@@ -298,7 +298,7 @@ class CopilotTools:
 
     def get_outage_forecast(self, advisory: int | None) -> ToolOutput:
         """District names and counts only: no asset, coordinate or dependency in it. The
-        shortfall is worked out here, so the model never has to subtract (L5)."""
+        shortfall comes worked out, so the model never has to subtract (L5)."""
         number = self._advisory(advisory)
         result = advisory_forecast(self._session, number, self._playbook, self._planning)
 
@@ -312,7 +312,7 @@ class CopilotTools:
                 "water_customers_out": spread(d.water_customers.p50, d.water_customers.p90),
                 "crews_needed": spread(d.crews_needed.p50, d.crews_needed.p90),
                 "crews_available": d.crews_available,
-                "crews_short_at_p90": max(0, round(d.crews_needed.p90) - d.crews_available),
+                "crews_short_at_p90": d.crews_short_p90,
                 "generators_needed": spread(d.generators_needed.p50, d.generators_needed.p90),
             }
             for d in result.districts

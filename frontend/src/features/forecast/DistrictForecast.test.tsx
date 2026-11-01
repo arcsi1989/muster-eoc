@@ -6,7 +6,12 @@ import { makeDistrictForecast, makeForecast } from '../../test/fixtures'
 import { ForecastPanel } from './DistrictForecast'
 
 const FORECAST = makeForecast(3, [
-  makeDistrictForecast({ district: 'Westshore', crews_needed: { p50: 3, p90: 49 }, crews_available: 4 }),
+  makeDistrictForecast({
+    district: 'Westshore',
+    crews_needed: { p50: 3, p90: 49 },
+    crews_available: 4,
+    crews_short_p90: 45,
+  }),
   makeDistrictForecast({
     district: 'Eastern Plains',
     power_customers: { p50: 0, p90: 0 },
@@ -14,6 +19,7 @@ const FORECAST = makeForecast(3, [
     crews_needed: { p50: 0, p90: 2 },
     generators_needed: { p50: 0, p90: 0 },
     crews_available: 4,
+    crews_short_p90: 0,
   }),
 ])
 
@@ -25,7 +31,7 @@ test('each district shows customers out, crews needed against available and gene
   expect(rows.map((r) => within(r).getByRole('rowheader').textContent)).toEqual(['Westshore', 'Eastern Plains'])
   expect(within(rows[0]).getAllByRole('cell').map((c) => c.textContent)).toEqual([
     'power 27k–113k water 5.7k–115k',
-    '3–49 / 4 short',
+    '3–49 / 4 45 short',
     '10–17',
   ])
   // nothing at risk: one value, and no shortfall

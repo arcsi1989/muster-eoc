@@ -42,7 +42,6 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
         </thead>
         <tbody>
           {forecast.districts.map((d) => {
-            const short = d.crews_needed.p90 > d.crews_available
             return (
               <tr key={d.district}>
                 <th scope="row">{d.district}</th>
@@ -54,7 +53,7 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
                   <span className="figure-line">
                     {formatSpread(d.crews_needed)} / {d.crews_available}
                   </span>{' '}
-                  {short && <span className="badge status-overridden">short</span>}
+                  {d.crews_short_p90 > 0 && <span className="badge status-overridden">{d.crews_short_p90} short</span>}
                 </td>
                 <td>{formatSpread(d.generators_needed)}</td>
               </tr>
@@ -64,8 +63,8 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
       </table>
       <p className="hint small">
         Customers out and crews and generators needed, median–P90 over{' '}
-        {forecast.samples.toLocaleString('en-US')} ensemble samples, the open playbook actions included. Short: the
-        P90 needs more crews than the district&apos;s staging areas have. {forecast.generators_available} fuelled
+        {forecast.samples.toLocaleString('en-US')} ensemble samples, the open playbook actions included. Short: crews the
+        P90 needs beyond those at the district&apos;s staging areas. {forecast.generators_available} fuelled
         generators serve the whole territory. A forecast from the risk model, not a decision.
       </p>
     </div>

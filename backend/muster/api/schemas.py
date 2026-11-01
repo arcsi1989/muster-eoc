@@ -607,6 +607,7 @@ class DistrictForecastOut(BaseModel):
     crews_for_actions: int
     generators_for_actions: int
     crews_available: int  # at the district's usable staging areas
+    crews_short_p90: int  # crews the P90 needs beyond those available; 0 when there are enough
 
 
 class ForecastOut(BaseModel):

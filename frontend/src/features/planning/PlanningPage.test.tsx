@@ -82,7 +82,12 @@ const draft = (overrides: Partial<Planning> = {}): Planning => ({
 })
 
 const FORECAST = makeForecast(4, [
-  makeDistrictForecast({ district: 'Bayport East', crews_needed: { p50: 16, p90: 36 }, crews_available: 0 }),
+  makeDistrictForecast({
+    district: 'Bayport East',
+    crews_needed: { p50: 16, p90: 36 },
+    crews_available: 0,
+    crews_short_p90: 36,
+  }),
 ])
 
 /** Answers by method and path, so the order of calls doesn't matter; records what was posted.
@@ -336,7 +341,7 @@ test('the forecast demand is shown beside the worksheet as context, never as wor
 
   const context = await screen.findByRole('complementary', { name: 'Forecast demand (context)' })
   const forecast = await within(context).findByRole('table', { name: 'Outage forecast by district, advisory 4' })
-  expect(within(forecast).getByRole('row', { name: /^Bayport East/ })).toHaveTextContent('16–36 / 0 short')
+  expect(within(forecast).getByRole('row', { name: /^Bayport East/ })).toHaveTextContent('16–36 / 0 36 short')
   expect(context).toHaveTextContent('Not part of the ICS-215')
   expect(context).toHaveClass('no-print')
   // the worksheet keeps its two approved rows

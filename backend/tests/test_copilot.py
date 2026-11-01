@@ -107,7 +107,7 @@ def test_the_outage_answer_names_the_crew_shortfall_the_tool_worked_out(
 
     assert reply["citations"] == []  # districts and counts only: no asset or clause
     for d in forecast["districts"]:
-        short = max(0, round(d["crews_needed"]["p90"]) - d["crews_available"])
+        short = d["crews_short_p90"]
         assert (f"({short:,} short at P90)" in reply["answer"]) == bool(short), d["district"]
 
 
