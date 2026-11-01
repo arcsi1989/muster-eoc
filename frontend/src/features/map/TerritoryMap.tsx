@@ -2,6 +2,7 @@ import { CRS, divIcon, type LatLngExpression } from 'leaflet'
 import { Fragment } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Marker, Pane, Polygon, Polyline, Tooltip } from 'react-leaflet'
+import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
 import { FULL_RED_AT, pFailColor } from '../../lib/pFailColor'
 import type { Advisory, Asset, Coastline, District, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
 
@@ -66,7 +67,7 @@ export function TerritoryMap({
               {d.boundary.length > 0 && (
                 <Polyline
                   positions={d.boundary.map(toLatLng)}
-                  pathOptions={{ className: 'district-boundary', dashArray: '6 5', interactive: false }}
+                  pathOptions={{ className: 'district-boundary', dashArray: DISTRICT_DASH_PX.join(' '), interactive: false }}
                 />
               )}
               <Marker position={toLatLng(d.label)} pane="districts" interactive={false} keyboard={false} icon={districtLabel(d.name)} />

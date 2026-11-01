@@ -39,7 +39,7 @@ export const nextAdvisory = () => api<Scenario>('/advisories/next', { method: 'P
 export const resetScenario = () => api<Scenario>('/advisories/reset', { method: 'POST' })
 export const getAssets = () => api<Asset[]>('/assets')
 export const getCoastline = () => api<Coastline>('/coastline')
-export const getMapDistricts = () => api<District[]>('/districts')
+export const getDistricts = () => api<District[]>('/districts')
 export const getRisk = (advisoryNo: number) => api<RiskList>(`/risk?advisory=${advisoryNo}`)
 export const getChanges = (advisoryNo: number) => api<AdvisoryChanges>(`/advisories/${advisoryNo}/changes`)
 export const getFacilities = () => api<Facility[]>('/facilities')
@@ -49,7 +49,7 @@ export const getTerritory = async () => {
   const [assets, coastline, districts, facilities, stagingAreas] = await Promise.all([
     getAssets(),
     getCoastline(),
-    getMapDistricts(),
+    getDistricts(),
     getFacilities(),
     getStagingAreas(),
   ])
@@ -105,7 +105,7 @@ export const getChallenger = () =>
 export const proposeChallenger = () => api<ModelVersion>('/challenger/propose', { method: 'POST' })
 export const getDisagreements = (advisoryNo: number) =>
   api<Disagreements>(`/challenger/disagreements?advisory=${advisoryNo}`)
-export const getDistricts = () => api<string[]>('/field/districts')
+export const getFieldDistrictNames = () => api<string[]>('/field/districts')
 export const getFieldTasks = (district: string) =>
   api<FieldTask[]>(`/field/tasks?district=${encodeURIComponent(district)}`)
 /** Reports a field task done or blocked; returns the district's tasks as they now stand. */

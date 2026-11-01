@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
 import { formatPercent } from '../../lib/format'
 import type { Advisory, Asset, AssetType, Coastline, District, Facility, Point, RiskItem, StagingArea } from '../../types/scenario'
 import { CATEGORY_COLOR, CATEGORY_LABEL, formatLocalTime, LABEL_EVERY_H, RISK_BAND_COLOR, timeLabels } from './stormTrack'
@@ -16,9 +17,10 @@ const FONT_SIZE = 13
 /** Asset radius: the smallest, plus up to this much more as consequence grows (area tracks it). */
 const ASSET_R_MIN = 2.5
 const ASSET_R_SPAN = 5
-/** District names, relative to the font size, and a character's width for the fit check. */
+/** District names, relative to the font size. */
 const DISTRICT_FONT = 0.85
-const CHAR_WIDTH = 0.55
+/** A character's average width, in font sizes, for fitting text in a box. */
+const CHAR_WIDTH = 0.56
 /** A time label's box, in font sizes, for the collision check. */
 const LABEL_BOX = { width: 6, height: 1.3 }
 
@@ -89,7 +91,7 @@ export function StormMap({ coastline, districts, assets, facilities, stagingArea
                 <polyline
                   className="district-boundary"
                   points={path(d.boundary)}
-                  style={{ strokeWidth: scale, strokeDasharray: `${6 * scale} ${5 * scale}` }}
+                  style={{ strokeWidth: scale, strokeDasharray: DISTRICT_DASH_PX.map((px) => px * scale).join(' ') }}
                 />
               )}
               <DistrictLabel district={d} font={font * DISTRICT_FONT} />
@@ -261,7 +263,7 @@ function DistrictLabel({ district, font }: { district: District; font: number })
 }
 
 function HoverCard({ hover, scale, font }: { hover: Hover; scale: number; font: number }) {
-  const width = Math.max(...hover.lines.map((l) => l.length)) * font * 0.56 + 12 * scale
+  const width = Math.max(...hover.lines.map((l) => l.length)) * font * CHAR_WIDTH + 12 * scale
   const height = hover.lines.length * font * 1.3 + 8 * scale
   const x = hover.at.x_km + 10 * scale
   const y = -hover.at.y_km - height - 6 * scale

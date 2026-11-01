@@ -65,18 +65,20 @@ const ASSETS = [
   makeAsset({ id: 'SUB-01', name: 'Harbour Substation', type: 'substation' }),
 ]
 
-const DISTRICTS: District[] = [
-  ['Westshore', 0, 75],
-  ['Bayport West', 75, 135],
-  ['Bayport East', 135, 190],
-  ['Eastern Plains', 190, 260],
-].map(([name, west, east], i) => ({
-  name: name as string,
-  west_km: west as number,
-  east_km: east as number,
-  label: { x_km: ((west as number) + (east as number)) / 2, y_km: 200 },
-  boundary: i === 0 ? [] : [{ x_km: west as number, y_km: 55 }, { x_km: west as number, y_km: 220 }],
-}))
+const district = (name: string, west_km: number, east_km: number): District => ({
+  name,
+  west_km,
+  east_km,
+  label: { x_km: (west_km + east_km) / 2, y_km: 165 },
+  boundary: west_km === 0 ? [] : [{ x_km: west_km, y_km: 55 }, { x_km: west_km, y_km: 220 }],
+})
+
+const DISTRICTS = [
+  district('Westshore', 0, 75),
+  district('Bayport West', 75, 135),
+  district('Bayport East', 135, 190),
+  district('Eastern Plains', 190, 260),
+]
 
 function backend(failRiskOnce = false) {
   let current = 1
@@ -138,9 +140,10 @@ test('the map names the four served districts and draws a dashed boundary betwee
   const boundaries = container.querySelectorAll<SVGPolylineElement>('.district-boundary')
   expect([...boundaries].map((b) => b.getAttribute('points'))).toEqual(['75,-55 75,-220', '135,-55 135,-220', '190,-55 190,-220'])
   expect(boundaries[0].style.strokeDasharray).not.toBe('')
-  // drawn before the cone, so the cone, track and assets lie on top
-  const layers = [...container.querySelectorAll('.districts, .cone')].map((e) => e.getAttribute('class'))
-  expect(layers[0]).toBe('districts')
+  // drawn before the cone, the track and the assets, so they lie on top
+  const order = [...container.querySelectorAll('.districts, .cone, .track-forecast, .asset')]
+  expect(order[0].getAttribute('class')).toBe('districts')
+  expect(container.querySelectorAll('.cone, .track-forecast, .asset').length).toBeGreaterThanOrEqual(4)
 })
 
 test('forecast dots are coloured by intensity category', async () => {
