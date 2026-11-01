@@ -4,10 +4,14 @@
 
 **Blocked by:** 39 (the copilot validates numbers at runtime)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `results.json` records tokens in and out, latency and estimated cost per answer and per run
-- [ ] `make eval-compare` runs the golden set per configured model and writes the comparison table (category pass rates, gate, latency P50/P90, tokens, cost); models listed in `config/evals.yaml`
-- [ ] Tests with fake providers of different quality, speed and token use show the table ranks and sums them correctly; no network in tests
-- [ ] README documents `make eval-compare` and its cost
-- [ ] `./scripts/check.sh` passes
+- [x] `results.json` records tokens in and out, latency and estimated cost per answer and per run
+- [x] `make eval-compare` runs the golden set per configured model and writes the comparison table (category pass rates, gate, latency P50/P90, tokens, cost); models listed in `config/evals.yaml`
+- [x] Tests with fake providers of different quality, speed and token use show the table ranks and sums them correctly; no network in tests
+- [x] README documents `make eval-compare` and its cost
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as 13d8d95 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 5/5 ticked.
