@@ -22,7 +22,6 @@ import type {
   FieldOutcome,
   FieldReport,
   FieldTask,
-  Finding,
   LineageEntry,
   OutageForecast,
   ModelVersion,
@@ -63,7 +62,6 @@ export const getExplanation = (assetId: string, advisoryNo: number) =>
   api<Explanation>(`/assets/${encodeURIComponent(assetId)}/explain?advisory=${advisoryNo}`)
 export const getForecast = (advisoryNo: number) => api<OutageForecast>(`/forecast?advisory=${advisoryNo}`)
 export const getAlerts = (advisoryNo: number) => api<Alert[]>(`/alerts?advisory=${advisoryNo}`)
-export const getFindings = (advisoryNo: number) => api<Finding[]>(`/findings?advisory=${advisoryNo}`)
 export const getClauses = () => api<Clause[]>('/clauses')
 export const getPackage = (advisoryNo: number) => api<DecisionPackage>(`/packages/${advisoryNo}`)
 export const postDecision = (
