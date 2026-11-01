@@ -188,6 +188,34 @@ def test_an_answer_naming_an_id_no_tool_returned_falls_back(make_client: ClientF
     assert reply["citations"] == [{"id": "P-4.2", "kind": "clause"}], "the template answer"
 
 
+def test_correct_numbers_pass_the_runtime_validator(make_client: ClientFactory) -> None:
+    fake = FakeChat(
+        [("get_asset", {"asset_id": "SUB-07"}), ("list_top_risks", {"advisory": None, "n": 1})], ""
+    )
+    with make_client(fake) as client:
+        advance_to(client, 3)
+        top = client.get("/risk", params={"advisory": 3}).json()["items"][0]
+        percent = int(top["p_fail"] * 100 + 0.5)  # half-up, as a person writes it
+        fake.text = (
+            f"SUB-07 serves 4,400 customers (4400), 5.8km from the coast, about 6 km; installed "
+            f"in 1972. {top['asset_id']} fails with {percent}% at the 90th percentile."
+        )
+        reply = ask(client, "How is SUB-07?")
+
+    assert (reply["provider"], reply["fallback"]) == ("fake", False)
+
+
+def test_an_invented_number_falls_back(make_client: ClientFactory) -> None:
+    fake = FakeChat([("get_asset", {"asset_id": "SUB-07"})], "SUB-07 serves 12,000 customers.")
+    with make_client(fake) as client:
+        advance_to(client, 1)
+        reply = ask(client, "How many customers does SUB-07 serve?")
+        event = next(e for e in client.get("/audit").json() if e["type"] == "copilot_answered")
+
+    assert (reply["provider"], reply["fallback"]) == ("template (fallback)", True)
+    assert "12,000" in event["payload"]["fallback_reason"]
+
+
 @pytest.mark.parametrize(
     "failure", [LLMUnavailable("the model call timed out"), RuntimeError("boom")]
 )
