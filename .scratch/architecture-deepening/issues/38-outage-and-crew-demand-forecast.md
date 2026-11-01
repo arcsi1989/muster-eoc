@@ -4,16 +4,18 @@
 
 **Blocked by:** 36 (CR-02: districts on the storm map and the operations map), 37 (UI: Situation and Decisions pages, and a copilot dock on every page)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Forecast per advisory and district: customers affected (power and water separately) and crews and generators needed vs available, each as median and P90 from the ensemble members; deterministic for a seed; tunables in `config/`
-- [ ] Tests with known expected results (a district with no at-risk assets forecasts zero; doubling customers served doubles customers affected; P90 ≥ median)
-- [ ] Back-test on the synthetic history with Storm Delta held out, written to `docs/eval/` and documented with its caveat in `docs/assumptions_limitations.md`
-- [ ] Storm map per-district summary and ICS-215 context panel, changing with each advisory (tests); the ICS-215 rows unchanged
-- [ ] Copilot read-only tool for the forecast; no restricted field in its result (test)
-- [ ] `./scripts/check.sh` passes
+- [x] Forecast per advisory and district: customers affected (power and water separately) and crews and generators needed vs available, each as median and P90 from the ensemble members; deterministic for a seed; tunables in `config/`
+- [x] Tests with known expected results (a district with no at-risk assets forecasts zero; doubling customers served doubles customers affected; P90 ≥ median)
+- [x] Back-test on the synthetic history with Storm Delta held out, written to `docs/eval/` and documented with its caveat in `docs/assumptions_limitations.md`
+- [x] Storm map per-district summary and ICS-215 context panel, changing with each advisory (tests); the ICS-215 rows unchanged
+- [x] Copilot read-only tool for the forecast; no restricted field in its result (test)
+- [x] `./scripts/check.sh` passes
 
 ## Comments
 
 - 2026-11-01: Parked by the owner's priorities: the reviewers care about code quality and AI capabilities, not new operational functionality. The ML discipline this would show is already shown by the champion and challenger (tickets 32 to 34). Kept as the documented next module (`docs/assumptions_limitations.md`, distribution and outage forecast).
 - 2026-11-01: Un-parked by the owner. Runs after 37 (both change the storm map and the copilot), before 42 and 43.
+
+- 2026-11-01: Merged into `main` as c3f5f63 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
