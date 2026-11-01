@@ -19,7 +19,7 @@ The demo scenario starts 72 hours before a hurricane lands. Five forecast adviso
 
 ## Run it
 
-Requirements: Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 20.19+ or 22.12+ (Vite 8) with [pnpm](https://pnpm.io/).
+Requirements: Python 3.12 with [uv](https://docs.astral.sh/uv/), Node 24 (`frontend/.nvmrc`; 22.22+ also works) with [pnpm](https://pnpm.io/).
 
 ```bash
 make install     # backend and frontend dependencies, from the lockfiles
