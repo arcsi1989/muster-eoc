@@ -209,7 +209,7 @@ def answer(
     """`prompt` replaces the copilot prompt (the evaluation tries a candidate prompt with it).
     `on_step` is told each step of the turn as it happens (the streamed progress)."""
     config = scoring.copilot
-    tools = CopilotTools(session, playbook, config)
+    tools = CopilotTools(session, playbook, config, scoring.planning)
     recent = history[-config.history_turns :]
     step = on_step or (lambda _: None)
     now = GenerationEvent("attempt", 1, provider.name)  # the step a tool call belongs to

@@ -133,6 +133,10 @@ _Avoid_: Auto-promotion, promotion gate
 Fitting the fragility curves to the failures of a past storm (Storm Delta) and back-testing the fit against the version in use: reliability table, Brier score and top-decile capture, before and after.
 _Avoid_: Training, tuning
 
+**Outage forecast**:
+Per district at an advisory: the power and water customers out, and the crews and portable generators needed against those available, each as a median and a P90 over the ensemble. Failures are drawn from the risk model's failure probabilities and followed through the dependency graph; the open actions' field work is added. It is context for the EOC: never an ICS-215 row, a finding or operational state.
+_Avoid_: Outage prediction, damage estimate
+
 **Data class**:
 How sensitive a data field is: `public`, `internal` or `restricted`. Every field of the data contracts carries one. Restricted fields (coordinates, elevation, the dependency graph) never reach a model; the one dependency behind a finding is internal.
 _Avoid_: Sensitivity, security level

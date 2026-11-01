@@ -588,3 +588,34 @@ class DisagreementsOut(BaseModel):
     model_version: int  # the challenger's
     top_n: int  # config/scoring.yaml risk.top_n
     items: list[DisagreementOut]  # by the challenger's rank; empty when it is the champion
+
+
+class SpreadOut(BaseModel):
+    """The median and the P90 of a forecast figure over the ensemble's drawn samples."""
+
+    p50: float
+    p90: float
+
+
+class DistrictForecastOut(BaseModel):
+    district: str
+    power_customers: SpreadOut
+    water_customers: SpreadOut
+    failed_assets: SpreadOut
+    crews_needed: SpreadOut  # the expected failures plus the open playbook actions
+    generators_needed: SpreadOut
+    crews_for_actions: int
+    generators_for_actions: int
+    crews_available: int  # at the district's usable staging areas
+    crews_short_p90: int  # crews the P90 needs beyond those available; 0 when there are enough
+
+
+class ForecastOut(BaseModel):
+    """Customers out and field demand per district at an advisory (ticket 38). Context only:
+    never an ICS-215 row, a finding or operational state."""
+
+    advisory_no: int
+    model_version: int
+    samples: int  # ensemble members x failure draws
+    generators_available: int  # the fuelled fleet, for the whole territory
+    districts: list[DistrictForecastOut]

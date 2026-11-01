@@ -1,5 +1,6 @@
 """The template copilot: a fixed set of questions answered through the same tools, so the demo
-works offline (plan section 5): why ranked, top risks, what depends on X, what clause Y says.
+works offline (plan section 5): why ranked, top risks, what depends on X, what clause Y says,
+how bad the outage could be by district.
 It declines any request to change something, and answers "will X fail" with a probability."""
 
 import re
@@ -9,6 +10,12 @@ from muster.ids import ASSET_ID, CLAUSE_ID
 from muster.llm.schemas import ChatResult, ToolRunner
 
 DEPENDS = re.compile(r"depend|feeds?\b|supplies|supplied|upstream|downstream", re.IGNORECASE)
+# "How bad, where, and do we have enough?": the outage forecast (ticket 38).
+OUTAGE = re.compile(
+    r"how bad|customers? (?:out|affected)|outages?|enough (?:crews|generators)"
+    r"|how many (?:crews|generators)|(?:crews|generators) (?:are )?(?:needed|short)",
+    re.IGNORECASE,
+)
 TOP = re.compile(r"\btop\b|highest|most at risk|riskiest", re.IGNORECASE)
 # A request to change something, which the copilot cannot do (CLAUDE.md hard rules).
 ACT = re.compile(
@@ -27,8 +34,9 @@ DECLINE = (
 HELP = (
     "I can answer, offline: why an asset is ranked where it is "
     '("Why is <asset ID> ranked where it is?"), the top risks ("What are the top risks?"), '
-    'what depends on an asset ("What depends on <asset ID>?") and what a clause says '
-    '("What does <clause ID> say?").'
+    'what depends on an asset ("What depends on <asset ID>?"), what a clause says '
+    '("What does <clause ID> say?") and how bad the outage could be, by district '
+    '("How bad, where, and do we have enough crews?").'
 )
 
 
@@ -80,6 +88,30 @@ def dependencies(data: dict[str, Any]) -> str:
     )
 
 
+def outage(data: dict[str, Any]) -> str:
+    """The forecast district by district, each figure as P50 to P90, as the tool returned it."""
+
+    def spread(figure: dict[str, int]) -> str:
+        return f"{figure['p50']:,}–{figure['p90']:,}"
+
+    rows = []
+    for d in data["districts"]:
+        short = d["crews_short_at_p90"]
+        rows.append(
+            f"{d['district']}: {spread(d['power_customers_out'])} power and "
+            f"{spread(d['water_customers_out'])} water customers out; crews needed "
+            f"{spread(d['crews_needed'])} against {d['crews_available']:,} available"
+            + (f" ({short:,} short at P90)" if short else "")
+            + f", generators needed {spread(d['generators_needed'])}"
+        )
+    return (
+        f"Forecast at advisory {data['advisory']} (P50–P90 over the ensemble): "
+        + "; ".join(rows)
+        + f". The fuelled generator fleet for the whole territory is "
+        f"{data['generators_fuelled_territory']:,}. A forecast, not a decision."
+    )
+
+
 def clause(data: dict[str, Any]) -> str:
     c = data["clauses"][0]
     return f"{c['id']} {c['title']} ({c['section']}): {c['text']}"
@@ -110,9 +142,12 @@ def template_chat(question: str, run_tool: ToolRunner, top_n: int) -> ChatResult
                 f"Nobody can say whether {data['asset_id']} will fail; the ranking gives a "
                 f"probability, not a forecast. {text}"
             )
-    elif TOP.search(question):
+    elif TOP.search(question):  # before the forecast: "top risks for generators" is a ranking
         data = call("list_top_risks", {"advisory": None, "n": top_n})
         text = data.get("error") or top_risks(data)
+    elif OUTAGE.search(question):
+        data = call("get_outage_forecast", {"advisory": None})
+        text = data.get("error") or outage(data)
     else:
         text = HELP
     return ChatResult(str(text), used, None, None, 0, {})

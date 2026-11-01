@@ -83,6 +83,53 @@ def test_what_a_clause_says(client: TestClient) -> None:
     assert reply["citations"] == [{"id": "P-8.2", "kind": "clause"}]
 
 
+def test_how_bad_and_where_answers_from_the_outage_forecast(client: TestClient) -> None:
+    advance_to(client, 3)
+    forecast = client.get("/forecast", params={"advisory": 3}).json()
+
+    reply = ask(client, "How bad, where, and do we have enough crews?")
+
+    assert reply["tools_used"] == ["get_outage_forecast"]
+    assert (reply["provider"], reply["fallback"]) == ("template", False)  # every number grounded
+    for d in forecast["districts"]:
+        p50, p90 = round(d["power_customers"]["p50"]), round(d["power_customers"]["p90"])
+        assert f"{d['district']}: {p50:,}–{p90:,} power" in reply["answer"]
+    assert "A forecast, not a decision." in reply["answer"]
+
+
+def test_the_outage_answer_names_the_crew_shortfall_the_tool_worked_out(
+    client: TestClient,
+) -> None:
+    advance_to(client, 4)
+    forecast = client.get("/forecast", params={"advisory": 4}).json()
+
+    reply = ask(client, "How many customers out by district?")
+
+    assert reply["citations"] == []  # districts and counts only: no asset or clause
+    for d in forecast["districts"]:
+        short = d["crews_short_p90"]
+        assert (f"({short:,} short at P90)" in reply["answer"]) == bool(short), d["district"]
+
+
+@pytest.mark.parametrize(
+    ("message", "tool"),
+    [
+        ("What are the top risks for generators?", "list_top_risks"),
+        ("Which assets are most at risk, and do crews have enough time?", "list_top_risks"),
+        ("How many customers out in Bayport West?", "get_outage_forecast"),
+        ("Do we have enough crews?", "get_outage_forecast"),
+        ("How many generators are needed?", "get_outage_forecast"),
+        ("Where is the outage worst?", "get_outage_forecast"),
+    ],
+)
+def test_the_template_routes_forecast_questions_and_only_those(
+    client: TestClient, message: str, tool: str
+) -> None:
+    advance_to(client, 3)
+
+    assert ask(client, message)["tools_used"] == [tool]
+
+
 def test_unknown_questions_get_the_list_of_supported_ones(client: TestClient) -> None:
     reply = ask(client, "Tell me a joke")
 

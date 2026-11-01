@@ -1,0 +1,2323 @@
+{
+  "history": [
+    "Storm S01",
+    "Storm S02",
+    "Storm S03",
+    "Storm S04",
+    "Storm S05",
+    "Storm S06",
+    "Storm S07",
+    "Storm S08",
+    "Storm S09",
+    "Storm S10",
+    "Storm S11",
+    "Storm S12",
+    "Storm S13",
+    "Storm S14",
+    "Storm S15",
+    "Storm S16",
+    "Storm S17",
+    "Storm S18",
+    "Storm S19",
+    "Storm S20"
+  ],
+  "held_out": "Storm Delta",
+  "draws": 20,
+  "samples": 1000,
+  "storms": [
+    {
+      "storm": "Storm S01",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 63801.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 14496.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 22.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 50726.0,
+              "p50": 7867.0,
+              "p90": 115978.0
+            },
+            "water_customers": {
+              "observed": 5552.0,
+              "p50": 0.0,
+              "p90": 114706.0
+            },
+            "crews": {
+              "observed": 15.0,
+              "p50": 2.0,
+              "p90": 46.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 79201.0,
+              "p50": 18613.0,
+              "p90": 71328.0
+            },
+            "water_customers": {
+              "observed": 30996.0,
+              "p50": 6441.0,
+              "p90": 25749.0
+            },
+            "crews": {
+              "observed": 36.0,
+              "p50": 8.0,
+              "p90": 29.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 1.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 105688.0,
+              "p50": 5347.0,
+              "p90": 73003.0
+            },
+            "water_customers": {
+              "observed": 13787.0,
+              "p50": 1410.0,
+              "p90": 9652.0
+            },
+            "crews": {
+              "observed": 38.0,
+              "p50": 3.0,
+              "p90": 27.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S02",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 8713.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1745.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 13807.0,
+              "p50": 0.0,
+              "p90": 8949.0
+            },
+            "water_customers": {
+              "observed": 5225.0,
+              "p50": 0.0,
+              "p90": 2925.0
+            },
+            "crews": {
+              "observed": 7.0,
+              "p50": 0.0,
+              "p90": 3.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 13514.0,
+              "p50": 0.0,
+              "p90": 5420.0
+            },
+            "water_customers": {
+              "observed": 6255.0,
+              "p50": 0.0,
+              "p90": 2420.0
+            },
+            "crews": {
+              "observed": 7.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 19684.0,
+              "p50": 0.0,
+              "p90": 5347.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1410.0
+            },
+            "crews": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S03",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 8932.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 863.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 0.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 9405.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2985.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 18721.0,
+              "p50": 0.0,
+              "p90": 19192.0
+            },
+            "water_customers": {
+              "observed": 9577.0,
+              "p50": 0.0,
+              "p90": 14387.0
+            },
+            "crews": {
+              "observed": 10.0,
+              "p50": 0.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 45055.0,
+              "p50": 6271.0,
+              "p90": 19439.0
+            },
+            "water_customers": {
+              "observed": 7678.0,
+              "p50": 1410.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 4.0,
+              "p90": 9.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 2.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S04",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 10733.0,
+              "p50": 0.0,
+              "p90": 22220.0
+            },
+            "water_customers": {
+              "observed": 3631.0,
+              "p50": 0.0,
+              "p90": 7402.0
+            },
+            "crews": {
+              "observed": 5.0,
+              "p50": 0.0,
+              "p90": 9.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 55188.0,
+              "p50": 0.0,
+              "p90": 71690.0
+            },
+            "water_customers": {
+              "observed": 98610.0,
+              "p50": 0.0,
+              "p90": 103748.0
+            },
+            "crews": {
+              "observed": 20.0,
+              "p50": 0.0,
+              "p90": 28.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 46957.0,
+              "p50": 9346.0,
+              "p90": 65956.0
+            },
+            "water_customers": {
+              "observed": 26564.0,
+              "p50": 6667.0,
+              "p90": 25188.0
+            },
+            "crews": {
+              "observed": 27.0,
+              "p50": 5.0,
+              "p90": 27.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 1.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 108284.0,
+              "p50": 24456.0,
+              "p90": 73291.0
+            },
+            "water_customers": {
+              "observed": 14338.0,
+              "p50": 3868.0,
+              "p90": 9886.0
+            },
+            "crews": {
+              "observed": 43.0,
+              "p50": 10.0,
+              "p90": 27.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 2.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S05",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 41716.0,
+              "p50": 3653.0,
+              "p90": 20704.0
+            },
+            "water_customers": {
+              "observed": 14186.0,
+              "p50": 534.0,
+              "p90": 4103.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 2.0,
+              "p90": 6.0
+            },
+            "generators": {
+              "observed": 5.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 63840.0,
+              "p50": 0.0,
+              "p90": 16951.0
+            },
+            "water_customers": {
+              "observed": 100053.0,
+              "p50": 0.0,
+              "p90": 5259.0
+            },
+            "crews": {
+              "observed": 24.0,
+              "p50": 2.0,
+              "p90": 6.0
+            },
+            "generators": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 12693.0,
+              "p50": 0.0,
+              "p90": 9899.0
+            },
+            "water_customers": {
+              "observed": 9845.0,
+              "p50": 0.0,
+              "p90": 3584.0
+            },
+            "crews": {
+              "observed": 8.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 14422.0,
+              "p50": 0.0,
+              "p90": 6335.0
+            },
+            "water_customers": {
+              "observed": 1410.0,
+              "p50": 0.0,
+              "p90": 1410.0
+            },
+            "crews": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S06",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 79374.0
+            },
+            "water_customers": {
+              "observed": 1383.0,
+              "p50": 0.0,
+              "p90": 17292.0
+            },
+            "crews": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 28.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 94187.0,
+              "p50": 0.0,
+              "p90": 56316.0
+            },
+            "water_customers": {
+              "observed": 107362.0,
+              "p50": 0.0,
+              "p90": 102964.0
+            },
+            "crews": {
+              "observed": 34.0,
+              "p50": 0.0,
+              "p90": 22.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 63822.0,
+              "p50": 0.0,
+              "p90": 41269.0
+            },
+            "water_customers": {
+              "observed": 23489.0,
+              "p50": 2949.0,
+              "p90": 20247.0
+            },
+            "crews": {
+              "observed": 29.0,
+              "p50": 2.0,
+              "p90": 16.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 22704.0,
+              "p50": 2222.0,
+              "p90": 37247.0
+            },
+            "water_customers": {
+              "observed": 4186.0,
+              "p50": 1410.0,
+              "p90": 5863.0
+            },
+            "crews": {
+              "observed": 13.0,
+              "p50": 2.0,
+              "p90": 15.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 1.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S07",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 1543.0,
+              "p50": 0.0,
+              "p90": 46610.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 10824.0
+            },
+            "crews": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 16.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 56767.0,
+              "p50": 7867.0,
+              "p90": 36034.0
+            },
+            "water_customers": {
+              "observed": 100015.0,
+              "p50": 1790.0,
+              "p90": 11716.0
+            },
+            "crews": {
+              "observed": 20.0,
+              "p50": 4.0,
+              "p90": 13.0
+            },
+            "generators": {
+              "observed": 10.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 24300.0,
+              "p50": 0.0,
+              "p90": 20295.0
+            },
+            "water_customers": {
+              "observed": 14952.0,
+              "p50": 0.0,
+              "p90": 11987.0
+            },
+            "crews": {
+              "observed": 17.0,
+              "p50": 0.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 13363.0,
+              "p50": 0.0,
+              "p90": 20976.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 9.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S08",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 187050.0,
+              "p50": 45779.0,
+              "p90": 117705.0
+            },
+            "water_customers": {
+              "observed": 35614.0,
+              "p50": 7992.0,
+              "p90": 23949.0
+            },
+            "crews": {
+              "observed": 68.0,
+              "p50": 15.0,
+              "p90": 40.0
+            },
+            "generators": {
+              "observed": 5.0,
+              "p50": 3.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 147549.0,
+              "p50": 11977.0,
+              "p90": 87565.0
+            },
+            "water_customers": {
+              "observed": 115981.0,
+              "p50": 4863.0,
+              "p90": 108172.0
+            },
+            "crews": {
+              "observed": 47.0,
+              "p50": 5.0,
+              "p90": 33.0
+            },
+            "generators": {
+              "observed": 12.0,
+              "p50": 1.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 20905.0,
+              "p50": 0.0,
+              "p90": 48974.0
+            },
+            "water_customers": {
+              "observed": 9480.0,
+              "p50": 0.0,
+              "p90": 17747.0
+            },
+            "crews": {
+              "observed": 10.0,
+              "p50": 0.0,
+              "p90": 20.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 29454.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 13.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S09",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 201766.0,
+              "p50": 57088.0,
+              "p90": 166173.0
+            },
+            "water_customers": {
+              "observed": 30222.0,
+              "p50": 11042.0,
+              "p90": 30364.0
+            },
+            "crews": {
+              "observed": 72.0,
+              "p50": 19.0,
+              "p90": 59.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 3.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 48402.0,
+              "p50": 12005.0,
+              "p90": 147016.0
+            },
+            "water_customers": {
+              "observed": 102209.0,
+              "p50": 2950.0,
+              "p90": 122109.0
+            },
+            "crews": {
+              "observed": 19.0,
+              "p50": 4.0,
+              "p90": 58.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 1.0,
+              "p90": 9.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 68318.0
+            },
+            "water_customers": {
+              "observed": 507.0,
+              "p50": 0.0,
+              "p90": 20620.0
+            },
+            "crews": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 28.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 61264.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 7044.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 25.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S10",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 127412.0,
+              "p50": 12321.0,
+              "p90": 170920.0
+            },
+            "water_customers": {
+              "observed": 25846.0,
+              "p50": 2282.0,
+              "p90": 31335.0
+            },
+            "crews": {
+              "observed": 40.0,
+              "p50": 4.0,
+              "p90": 61.0
+            },
+            "generators": {
+              "observed": 9.0,
+              "p50": 1.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 181812.0,
+              "p50": 58310.0,
+              "p90": 155073.0
+            },
+            "water_customers": {
+              "observed": 128877.0,
+              "p50": 12687.0,
+              "p90": 123076.0
+            },
+            "crews": {
+              "observed": 76.0,
+              "p50": 21.0,
+              "p90": 60.0
+            },
+            "generators": {
+              "observed": 7.0,
+              "p50": 3.0,
+              "p90": 9.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 110805.0,
+              "p50": 39037.0,
+              "p90": 88055.0
+            },
+            "water_customers": {
+              "observed": 27122.0,
+              "p50": 13168.0,
+              "p90": 28736.0
+            },
+            "crews": {
+              "observed": 42.0,
+              "p50": 17.0,
+              "p90": 36.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 2.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 37438.0,
+              "p50": 20934.0,
+              "p90": 91655.0
+            },
+            "water_customers": {
+              "observed": 5863.0,
+              "p50": 2776.0,
+              "p90": 12523.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 8.0,
+              "p90": 34.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 1.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S11",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 6539.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2378.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 0.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 12267.0,
+              "p50": 0.0,
+              "p90": 9416.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3806.0
+            },
+            "crews": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 22567.0,
+              "p50": 0.0,
+              "p90": 5420.0
+            },
+            "water_customers": {
+              "observed": 6640.0,
+              "p50": 0.0,
+              "p90": 2733.0
+            },
+            "crews": {
+              "observed": 9.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 19698.0,
+              "p50": 0.0,
+              "p90": 8429.0
+            },
+            "water_customers": {
+              "observed": 2776.0,
+              "p50": 0.0,
+              "p90": 2776.0
+            },
+            "crews": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S12",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 89184.0,
+              "p50": 34692.0,
+              "p90": 168122.0
+            },
+            "water_customers": {
+              "observed": 23101.0,
+              "p50": 10901.0,
+              "p90": 29954.0
+            },
+            "crews": {
+              "observed": 36.0,
+              "p50": 14.0,
+              "p90": 57.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 2.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 209933.0,
+              "p50": 66493.0,
+              "p90": 148305.0
+            },
+            "water_customers": {
+              "observed": 121500.0,
+              "p50": 99003.0,
+              "p90": 120755.0
+            },
+            "crews": {
+              "observed": 79.0,
+              "p50": 27.0,
+              "p90": 57.0
+            },
+            "generators": {
+              "observed": 7.0,
+              "p50": 4.0,
+              "p90": 9.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 110157.0,
+              "p50": 27404.0,
+              "p90": 82736.0
+            },
+            "water_customers": {
+              "observed": 26874.0,
+              "p50": 10955.0,
+              "p90": 26857.0
+            },
+            "crews": {
+              "observed": 44.0,
+              "p50": 12.0,
+              "p90": 33.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 1.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 54169.0,
+              "p50": 21250.0,
+              "p90": 92605.0
+            },
+            "water_customers": {
+              "observed": 11179.0,
+              "p50": 2776.0,
+              "p90": 11880.0
+            },
+            "crews": {
+              "observed": 18.0,
+              "p50": 7.0,
+              "p90": 34.0
+            },
+            "generators": {
+              "observed": 4.0,
+              "p50": 1.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S13",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 10240.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1917.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 5683.0,
+              "p50": 0.0,
+              "p90": 11291.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3442.0
+            },
+            "crews": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 4.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 10449.0,
+              "p50": 0.0,
+              "p90": 15266.0
+            },
+            "water_customers": {
+              "observed": 14731.0,
+              "p50": 0.0,
+              "p90": 12864.0
+            },
+            "crews": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 5.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 19393.0,
+              "p50": 2222.0,
+              "p90": 12606.0
+            },
+            "water_customers": {
+              "observed": 4186.0,
+              "p50": 1410.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 12.0,
+              "p50": 2.0,
+              "p90": 6.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 2.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S14",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 16953.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 5371.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 6.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 33566.0,
+              "p50": 7824.0,
+              "p90": 36014.0
+            },
+            "water_customers": {
+              "observed": 93224.0,
+              "p50": 1010.0,
+              "p90": 14837.0
+            },
+            "crews": {
+              "observed": 15.0,
+              "p50": 3.0,
+              "p90": 14.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 8997.0,
+              "p50": 0.0,
+              "p90": 19156.0
+            },
+            "water_customers": {
+              "observed": 12654.0,
+              "p50": 0.0,
+              "p90": 7341.0
+            },
+            "crews": {
+              "observed": 8.0,
+              "p50": 1.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 11130.0,
+              "p50": 0.0,
+              "p90": 12981.0
+            },
+            "water_customers": {
+              "observed": 1677.0,
+              "p50": 0.0,
+              "p90": 2776.0
+            },
+            "crews": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 5.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S15",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 9541.0,
+              "p50": 0.0,
+              "p90": 29172.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 6901.0
+            },
+            "crews": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 10.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 10043.0,
+              "p50": 0.0,
+              "p90": 28581.0
+            },
+            "water_customers": {
+              "observed": 1010.0,
+              "p50": 0.0,
+              "p90": 7447.0
+            },
+            "crews": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 10.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 50308.0,
+              "p50": 0.0,
+              "p90": 19810.0
+            },
+            "water_customers": {
+              "observed": 24386.0,
+              "p50": 0.0,
+              "p90": 10375.0
+            },
+            "crews": {
+              "observed": 22.0,
+              "p50": 0.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 7.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 36055.0,
+              "p50": 2222.0,
+              "p90": 18157.0
+            },
+            "water_customers": {
+              "observed": 4186.0,
+              "p50": 1410.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 2.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 1.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S16",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 34242.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 8484.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 11.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 45939.0,
+              "p50": 3424.0,
+              "p90": 38599.0
+            },
+            "water_customers": {
+              "observed": 9903.0,
+              "p50": 0.0,
+              "p90": 13911.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 2.0,
+              "p90": 14.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 37250.0,
+              "p50": 0.0,
+              "p90": 23736.0
+            },
+            "water_customers": {
+              "observed": 21792.0,
+              "p50": 0.0,
+              "p90": 9733.0
+            },
+            "crews": {
+              "observed": 16.0,
+              "p50": 1.0,
+              "p90": 9.0
+            },
+            "generators": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 48637.0,
+              "p50": 2222.0,
+              "p90": 24842.0
+            },
+            "water_customers": {
+              "observed": 8872.0,
+              "p50": 1410.0,
+              "p90": 4186.0
+            },
+            "crews": {
+              "observed": 22.0,
+              "p50": 2.0,
+              "p90": 10.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S17",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 11900.0,
+              "p50": 0.0,
+              "p90": 29984.0
+            },
+            "water_customers": {
+              "observed": 8397.0,
+              "p50": 0.0,
+              "p90": 6882.0
+            },
+            "crews": {
+              "observed": 5.0,
+              "p50": 0.0,
+              "p90": 9.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 59599.0,
+              "p50": 9417.0,
+              "p90": 29558.0
+            },
+            "water_customers": {
+              "observed": 97165.0,
+              "p50": 2558.0,
+              "p90": 10769.0
+            },
+            "crews": {
+              "observed": 22.0,
+              "p50": 4.0,
+              "p90": 11.0
+            },
+            "generators": {
+              "observed": 4.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 42873.0,
+              "p50": 4479.0,
+              "p90": 19192.0
+            },
+            "water_customers": {
+              "observed": 17002.0,
+              "p50": 1905.0,
+              "p90": 7196.0
+            },
+            "crews": {
+              "observed": 20.0,
+              "p50": 2.0,
+              "p90": 7.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 52317.0,
+              "p50": 2222.0,
+              "p90": 18054.0
+            },
+            "water_customers": {
+              "observed": 9652.0,
+              "p50": 0.0,
+              "p90": 3638.0
+            },
+            "crews": {
+              "observed": 18.0,
+              "p50": 2.0,
+              "p90": 6.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 2.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S18",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 109692.0,
+              "p50": 0.0,
+              "p90": 47392.0
+            },
+            "water_customers": {
+              "observed": 20073.0,
+              "p50": 0.0,
+              "p90": 10680.0
+            },
+            "crews": {
+              "observed": 39.0,
+              "p50": 0.0,
+              "p90": 16.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 41274.0,
+              "p50": 0.0,
+              "p90": 28058.0
+            },
+            "water_customers": {
+              "observed": 6199.0,
+              "p50": 0.0,
+              "p90": 10302.0
+            },
+            "crews": {
+              "observed": 14.0,
+              "p50": 0.0,
+              "p90": 11.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 3.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 10389.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 3618.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 5.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 1.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2222.0
+            },
+            "water_customers": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 0.0
+            },
+            "crews": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 2.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S19",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 1543.0,
+              "p50": 0.0,
+              "p90": 102896.0
+            },
+            "water_customers": {
+              "observed": 2768.0,
+              "p50": 0.0,
+              "p90": 21061.0
+            },
+            "crews": {
+              "observed": 3.0,
+              "p50": 0.0,
+              "p90": 35.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 27632.0,
+              "p50": 19872.0,
+              "p90": 106888.0
+            },
+            "water_customers": {
+              "observed": 8577.0,
+              "p50": 4324.0,
+              "p90": 113900.0
+            },
+            "crews": {
+              "observed": 10.0,
+              "p50": 7.0,
+              "p90": 41.0
+            },
+            "generators": {
+              "observed": 4.0,
+              "p50": 1.0,
+              "p90": 8.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 69517.0,
+              "p50": 13793.0,
+              "p90": 67841.0
+            },
+            "water_customers": {
+              "observed": 29447.0,
+              "p50": 6083.0,
+              "p90": 24683.0
+            },
+            "crews": {
+              "observed": 35.0,
+              "p50": 7.0,
+              "p90": 28.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 1.0,
+              "p90": 5.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 139391.0,
+              "p50": 8556.0,
+              "p90": 71991.0
+            },
+            "water_customers": {
+              "observed": 14338.0,
+              "p50": 1410.0,
+              "p90": 9652.0
+            },
+            "crews": {
+              "observed": 47.0,
+              "p50": 4.0,
+              "p90": 27.0
+            },
+            "generators": {
+              "observed": 3.0,
+              "p50": 1.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm S20",
+      "held_out": false,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 10307.0,
+              "p50": 0.0,
+              "p90": 55554.0
+            },
+            "water_customers": {
+              "observed": 2754.0,
+              "p50": 0.0,
+              "p90": 16404.0
+            },
+            "crews": {
+              "observed": 6.0,
+              "p50": 0.0,
+              "p90": 20.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 79708.0,
+              "p50": 14766.0,
+              "p90": 87648.0
+            },
+            "water_customers": {
+              "observed": 99112.0,
+              "p50": 1790.0,
+              "p90": 109158.0
+            },
+            "crews": {
+              "observed": 26.0,
+              "p50": 5.0,
+              "p90": 33.0
+            },
+            "generators": {
+              "observed": 5.0,
+              "p50": 0.0,
+              "p90": 7.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 72938.0,
+              "p50": 28195.0,
+              "p90": 68293.0
+            },
+            "water_customers": {
+              "observed": 29305.0,
+              "p50": 15058.0,
+              "p90": 25991.0
+            },
+            "crews": {
+              "observed": 34.0,
+              "p50": 14.0,
+              "p90": 28.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 3.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 89965.0,
+              "p50": 39093.0,
+              "p90": 75932.0
+            },
+            "water_customers": {
+              "observed": 8872.0,
+              "p50": 4370.0,
+              "p90": 10286.0
+            },
+            "crews": {
+              "observed": 36.0,
+              "p50": 15.0,
+              "p90": 27.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 2.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "storm": "Storm Delta",
+      "held_out": true,
+      "districts": [
+        {
+          "district": "Westshore",
+          "figures": {
+            "power_customers": {
+              "observed": 9190.0,
+              "p50": 0.0,
+              "p90": 82998.0
+            },
+            "water_customers": {
+              "observed": 863.0,
+              "p50": 0.0,
+              "p90": 18786.0
+            },
+            "crews": {
+              "observed": 2.0,
+              "p50": 0.0,
+              "p90": 30.0
+            },
+            "generators": {
+              "observed": 1.0,
+              "p50": 0.0,
+              "p90": 4.0
+            }
+          }
+        },
+        {
+          "district": "Bayport West",
+          "figures": {
+            "power_customers": {
+              "observed": 22633.0,
+              "p50": 25961.0,
+              "p90": 105364.0
+            },
+            "water_customers": {
+              "observed": 1010.0,
+              "p50": 4219.0,
+              "p90": 114222.0
+            },
+            "crews": {
+              "observed": 7.0,
+              "p50": 9.0,
+              "p90": 41.0
+            },
+            "generators": {
+              "observed": 0.0,
+              "p50": 0.0,
+              "p90": 8.0
+            }
+          }
+        },
+        {
+          "district": "Bayport East",
+          "figures": {
+            "power_customers": {
+              "observed": 98678.0,
+              "p50": 23635.0,
+              "p90": 71536.0
+            },
+            "water_customers": {
+              "observed": 31264.0,
+              "p50": 10504.0,
+              "p90": 25767.0
+            },
+            "crews": {
+              "observed": 43.0,
+              "p50": 11.0,
+              "p90": 29.0
+            },
+            "generators": {
+              "observed": 4.0,
+              "p50": 2.0,
+              "p90": 6.0
+            }
+          }
+        },
+        {
+          "district": "Eastern Plains",
+          "figures": {
+            "power_customers": {
+              "observed": 72738.0,
+              "p50": 19478.0,
+              "p90": 71110.0
+            },
+            "water_customers": {
+              "observed": 10949.0,
+              "p50": 2776.0,
+              "p90": 9502.0
+            },
+            "crews": {
+              "observed": 31.0,
+              "p50": 8.0,
+              "p90": 26.0
+            },
+            "generators": {
+              "observed": 2.0,
+              "p50": 2.0,
+              "p90": 3.0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "history_metrics": {
+    "power_customers": {
+      "cases": 80,
+      "p90_coverage": 0.5,
+      "p50_mean_abs_error": 38030.4625,
+      "p50_mean_bias": -38030.4625,
+      "observed_total": 3693676.0,
+      "p50_total": 651239.0
+    },
+    "water_customers": {
+      "cases": 80,
+      "p90_coverage": 0.575,
+      "p50_mean_abs_error": 19656.9375,
+      "p50_mean_bias": -19656.9375,
+      "observed_total": 1823167.0,
+      "p50_total": 250612.0
+    },
+    "crews": {
+      "cases": 80,
+      "p90_coverage": 0.4625,
+      "p50_mean_abs_error": 14.725,
+      "p50_mean_bias": -14.725,
+      "observed_total": 1448.0,
+      "p50_total": 270.0
+    },
+    "generators": {
+      "cases": 80,
+      "p90_coverage": 0.7875,
+      "p50_mean_abs_error": 1.9375,
+      "p50_mean_bias": -1.8125,
+      "observed_total": 186.0,
+      "p50_total": 41.0
+    }
+  },
+  "held_out_metrics": {
+    "power_customers": {
+      "cases": 4,
+      "p90_coverage": 0.5,
+      "p50_mean_abs_error": 35205.25,
+      "p50_mean_bias": -33541.25,
+      "observed_total": 203239.0,
+      "p50_total": 69074.0
+    },
+    "water_customers": {
+      "cases": 4,
+      "p90_coverage": 0.5,
+      "p50_mean_abs_error": 8251.25,
+      "p50_mean_bias": -6646.75,
+      "observed_total": 44086.0,
+      "p50_total": 17499.0
+    },
+    "crews": {
+      "cases": 4,
+      "p90_coverage": 0.5,
+      "p50_mean_abs_error": 14.75,
+      "p50_mean_bias": -13.75,
+      "observed_total": 83.0,
+      "p50_total": 28.0
+    },
+    "generators": {
+      "cases": 4,
+      "p90_coverage": 1.0,
+      "p50_mean_abs_error": 0.75,
+      "p50_mean_bias": -0.75,
+      "observed_total": 7.0,
+      "p50_total": 4.0
+    }
+  }
+}

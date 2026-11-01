@@ -2,7 +2,7 @@
 FRONTEND_PORT ?= 5173
 BACKEND_PORT ?= 8000
 
-.PHONY: install data history train eval eval-llm eval-compare dev test demo-reset
+.PHONY: install data history train forecast-backtest eval eval-llm eval-compare dev test demo-reset
 
 install: ## Install backend and frontend dependencies from the lockfiles
 	cd backend && uv sync --locked
@@ -17,6 +17,9 @@ history: ## Regenerate the synthetic storm history the challenger trains on (see
 
 train: ## Train the challenger, compare it with the rule-based champion on Storm Delta, save it for shadow scoring
 	cd backend && uv run python -m muster.challenger.train
+
+forecast-backtest: ## Back-test the outage forecast on the synthetic history, Storm Delta held out; writes docs/eval/forecast_results.json
+	cd backend && uv run python -m muster.forecast.backtest
 
 eval: ## Run the golden set with the template provider (deterministic) and gate it; writes docs/eval/
 	cd backend && uv run python -m muster.evals.run

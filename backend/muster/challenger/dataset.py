@@ -138,15 +138,16 @@ def history_storms(history: Sequence[SyntheticStormFile]) -> list[PastStorm]:
     ]
 
 
-def storm_sample(
+def storm_assets(
     storm: PastStorm,
     seed_index: int,
     world: World,
     scoring: ScoringConfig,
     config: ChallengerConfig,
-) -> StormSample:
-    """The storm's rows. Exposure is the ensemble around the best track, spread as a forecast
-    `forecast_cone_radius_km` wide (the ensemble seed is the scenario's plus `seed_index`)."""
+) -> list[AssetFeatures]:
+    """The features of every asset with an outcome in the storm. Exposure is the ensemble around
+    the best track, spread as a forecast `forecast_cone_radius_km` wide (the ensemble seed is
+    the scenario's plus `seed_index`)."""
     best = storm.best_track
     lead_hours = math.ceil(best.landfall_t_hours)
     forecast = StormInput(
@@ -164,16 +165,32 @@ def storm_sample(
         )
         if e.site_id in storm.failed
     ]
-    assets = asset_features(exposures, world.network, world.age_year)
-    rules = RuleBasedModel(
+    return asset_features(exposures, world.network, world.age_year)
+
+
+def published_rules(world: World, scoring: ScoringConfig) -> RuleBasedModel:
+    """The rule-based score with the published curves: the champion every past storm is
+    compared with."""
+    return RuleBasedModel(
         PUBLISHED_VERSION, world.champion_curves, scoring.risk.condition_theta_reduction_per_step
     )
+
+
+def storm_sample(
+    storm: PastStorm,
+    seed_index: int,
+    world: World,
+    scoring: ScoringConfig,
+    config: ChallengerConfig,
+) -> StormSample:
+    """The storm's rows (see `storm_assets` for the exposure)."""
+    assets = storm_assets(storm, seed_index, world, scoring, config)
     return StormSample(
         storm=storm.name,
         asset_ids=[a.asset.id for a in assets],
         features=feature_matrix(assets),
         failed=np.array([storm.failed[a.asset.id] for a in assets]),
-        champion_p=np.array([p.p_fail for p in rules.predict(assets)]),
+        champion_p=np.array([p.p_fail for p in published_rules(world, scoring).predict(assets)]),
     )
 
 

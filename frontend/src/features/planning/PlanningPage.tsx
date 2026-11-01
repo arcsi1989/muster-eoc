@@ -2,6 +2,8 @@ import type { ApiError } from '../../api/client'
 import { formatIssuedAt } from '../../lib/labels'
 import { roleLabel } from '../../lib/roles'
 import type { Commander, Ics215Row, IapObjective, Planning } from '../../types/scenario'
+import { ForecastPanel } from '../forecast/DistrictForecast'
+import { useForecast } from '../forecast/useForecast'
 import { currentAdvisories } from '../scenario/currentAdvisory'
 import { useScenario } from '../scenario/useScenario'
 import { usePlanning } from './usePlanning'
@@ -99,7 +101,24 @@ function PlanningProducts({ advisoryNo }: { advisoryNo: number }) {
           onRelease={release}
         />
       )}
+      <ForecastContext advisoryNo={advisoryNo} />
     </>
+  )
+}
+
+/** The forecast demand beside the worksheet, as context: never worksheet rows, which come from
+ * approved items only (CR-02 C3). Not printed with the worksheet. */
+function ForecastContext({ advisoryNo }: { advisoryNo: number }) {
+  const forecast = useForecast(advisoryNo)
+  return (
+    <aside className="card planning-section no-print" aria-label="Forecast demand (context)">
+      <h3>Forecast demand, for context</h3>
+      <p className="hint small">
+        What the expected failures and the open playbook actions would need, by district. Not part of the ICS-215: its
+        rows come from approved field work only.
+      </p>
+      <ForecastPanel state={forecast.state} onRetry={forecast.retry} />
+    </aside>
   )
 }
 

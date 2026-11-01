@@ -78,3 +78,20 @@ planning:                     # CR-02 C3: the ICS-215 and IAP draft for the next
     barrier_installed: {kind: Flood barrier crew, per_site: 1, per_staging_area: 1}
     inspection_completed: {kind: Inspection crew, per_site: 1, per_staging_area: 2}
     relocated: {kind: Relocation crew, per_site: 1, per_staging_area: 1}
+
+forecast:                     # customers out and field demand per district (ticket 38)
+  draws: 20                   # failure draws per ensemble member: 50 members x 20 = 1000 samples
+  seed: 42                    # each advisory uses seed + advisory_no; the back-test seed + storm index
+  supply_lost_share: 0.5      # an asset with feeders is out once at least this share of them is out
+  customers:                  # whose customers an asset's outage counts towards
+    substation: power
+    pump_station: water
+    treatment_plant: water
+  per_failed:                 # what restoring one failed asset needs
+    substation: {crews: 2, generators: 0}
+    pump_station: {crews: 1, generators: 0}
+    treatment_plant: {crews: 4, generators: 0}
+  per_supply_lost:            # what keeps one asset running that is intact but lost its supply
+    substation: {crews: 0, generators: 0}
+    pump_station: {crews: 0, generators: 1}
+    treatment_plant: {crews: 0, generators: 2}

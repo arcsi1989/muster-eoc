@@ -816,6 +816,17 @@ button.link {
   stroke-opacity: 0.55;
 }
 
+.storm-map-canvas .district-outage {
+  fill: var(--text);
+  fill-opacity: 0.75;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--land);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
 .storm-map-canvas .district-label {
   fill: var(--text);
   fill-opacity: 0.6;
@@ -1781,4 +1792,22 @@ button.link {
   display: block;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.district-forecast {
+  overflow-x: auto;
+}
+
+.district-forecast table {
+  font-size: 0.85rem;
+}
+
+.district-forecast .figure-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.district-forecast table th[scope='row'] {
+  text-align: left;
+  font-weight: 600;
 }

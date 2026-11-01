@@ -229,6 +229,27 @@ class ShadowScore(SQLModel, table=True):
     factors: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
 
 
+class OutageForecast(SQLModel, table=True):
+    """Customers out and field demand in one district at one advisory, from the failures the
+    advisory's ensemble expects (ticket 38): median and P90 over the drawn samples. The demand of
+    the open playbook actions is added when it is read; it changes as decisions are taken."""
+
+    advisory_no: int = Field(primary_key=True, foreign_key="advisory.advisory_no")
+    district: str = Field(primary_key=True, foreign_key="district.name")
+    model_version: int = Field(foreign_key="modelversion.id")  # the curves that gave p_fail
+    samples: int  # ensemble members x draws
+    power_customers_p50: float
+    power_customers_p90: float
+    water_customers_p50: float
+    water_customers_p90: float
+    crews_p50: float
+    crews_p90: float
+    generators_p50: float
+    generators_p90: float
+    failed_assets_p50: float
+    failed_assets_p90: float
+
+
 class Finding(SQLModel, table=True):
     """The result of evaluating one playbook rule for one entity at one advisory."""
 

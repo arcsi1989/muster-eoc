@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
-import { makeAsset, makeRiskItem } from '../../test/fixtures'
+import { makeAsset, makeDistrictForecast, makeForecast, makeRiskItem } from '../../test/fixtures'
 import type { Advisory, District, RiskList, Scenario, TrackPoint } from '../../types/scenario'
 import { StormMapScreen } from './StormMapScreen'
 import { CATEGORY_COLOR, RISK_BAND_COLOR } from './stormTrack'
@@ -80,6 +80,19 @@ const DISTRICTS = [
   district('Eastern Plains', 190, 260),
 ]
 
+const forecast = (no: number) =>
+  makeForecast(
+    no,
+    DISTRICTS.map((d, i) =>
+      makeDistrictForecast({
+        district: d.name,
+        power_customers: { p50: 1000 * no * i, p90: 10_000 * no * (i + 1) },
+        crews_available: 4,
+        crews_short_p90: 43,
+      }),
+    ),
+  )
+
 function backend(failRiskOnce = false) {
   let current = 1
   let failed = false
@@ -92,6 +105,7 @@ function backend(failRiskOnce = false) {
     if (url === '/api/districts') return json(DISTRICTS)
     if (url === '/api/facilities') return json([{ id: 'HOSP-01', name: 'General Hospital', type: 'hospital', x_km: 1, y_km: 1 }])
     if (url === '/api/staging-areas') return json([])
+    if (url.startsWith('/api/forecast')) return json(forecast(Number(url.split('=')[1])))
     if (url.startsWith('/api/risk')) {
       if (failRiskOnce && !failed) {
         failed = true
@@ -207,4 +221,29 @@ test('the ranked list uses the same risk band colour as the map', async () => {
   const row = await screen.findByRole('button', { name: /^1.*PS-14/ })
   const swatch = row.querySelector<HTMLElement>('.swatch')!
   expect(swatch.style.background).toBe(hexToRgb(RISK_BAND_COLOR.high))
+})
+
+test('the district summary and the map show the outage forecast, and change with each advisory', async () => {
+  backend()
+  render(<StormMapScreen />)
+
+  const summary = screen.getByRole('region', { name: 'How bad, where' })
+  const table = await within(summary).findByRole('table', { name: 'Outage forecast by district, advisory 1' })
+  const westshore = within(table).getByRole('row', { name: /^Westshore/ })
+  expect(within(westshore).getAllByRole('cell')[0]).toHaveTextContent('power 0–10k')
+  expect(within(westshore).getAllByRole('cell')[1]).toHaveTextContent('14–47 / 4 43 short')
+  // the district overlay, in the territory view: each district's customers out at P90, under its name
+  const map = screen.getByRole('img', { name: 'Storm map, advisory 1' })
+  const outage = () => [...map.querySelectorAll('.district-outage')].map((t) => t.textContent)
+  expect(outage()).toEqual([])
+  await userEvent.click(screen.getByRole('button', { name: 'Territory' }))
+  expect(outage()[0]).toBe('10.0k power 114.8k water out (P90)')
+  expect(outage()).toHaveLength(4)
+
+  await userEvent.click(screen.getByRole('button', { name: 'Issue advisory 2 ▶' }))
+
+  expect(await within(summary).findByRole('table', { name: 'Outage forecast by district, advisory 2' })).toBeInTheDocument()
+  const bayportWest = within(summary).getByRole('row', { name: /^Bayport West/ })
+  expect(within(bayportWest).getAllByRole('cell')[0]).toHaveTextContent('power 2.0k–40k')
+  expect(outage()[0]).toBe('20.0k power 114.8k water out (P90)')
 })

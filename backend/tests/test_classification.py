@@ -114,6 +114,7 @@ def test_no_tool_result_contains_a_restricted_field(seeded: SeededScenario) -> N
         ("search_playbook", {"query": "P-6.2"}),
         ("get_decision_package", {"advisory": None}),
         ("get_findings", {"advisory": None, "status": None}),
+        ("get_outage_forecast", {"advisory": None}),
     ]
     provider = Capturing(asset_calls + other_calls)
 
