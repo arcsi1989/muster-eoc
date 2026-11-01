@@ -2,7 +2,7 @@ from dataclasses import asdict
 
 from fastapi import APIRouter
 
-from muster.api.routes_risk import AdvisoryQuery
+from muster.api.params import AdvisoryQuery
 from muster.api.schemas import ForecastOut
 from muster.deps import PlaybookDep, ScoringConfigDep, SessionDep
 from muster.forecast.service import advisory_forecast

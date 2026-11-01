@@ -93,10 +93,7 @@ def storm_result(
 ) -> StormResult:
     """The forecast and the simulated outcome of one storm, district by district."""
     assets = storm_assets(storm, seed_index, world, scoring, challenger)
-    forecast_assets = [
-        ForecastAsset(a.asset.id, a.asset.type, a.asset.district, a.asset.customers_served)
-        for a in assets
-    ]
+    forecast_assets = [ForecastAsset.of(a) for a in assets]
     fed_by = world.network.fed_by
     member_p = published_rules(world, scoring).member_p_fail(assets)
     config = scoring.forecast

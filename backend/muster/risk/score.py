@@ -5,7 +5,7 @@ members of the fragility curves; an approved challenger may replace it as the ch
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -17,6 +17,8 @@ from muster.risk.consequence import Consequence, consequence
 from muster.risk.fragility import adjusted_theta, combine, failure_probability
 from muster.risk.model import AssetFeatures, Prediction, RiskModel
 from muster.scoring_config import ScoringConfig
+
+Hazard = Literal["wind", "flood"]  # the hazards a fragility curve is fitted for
 
 
 @dataclass(frozen=True)
@@ -77,14 +79,13 @@ class RuleBasedModel:
     def version(self) -> int:
         return self._version
 
-    def _hazard(self, features: AssetFeatures, name: str) -> tuple[HazardFactor, FloatArray]:
+    def _hazard(self, features: AssetFeatures, name: Hazard) -> tuple[HazardFactor, FloatArray]:
         """One hazard's curve for the asset and its failure probability per member."""
         asset = features.asset
-        members = (
-            features.exposure.wind_members_mph
-            if name == "wind"
-            else features.exposure.flood_members_m
-        )
+        members = {
+            "wind": features.exposure.wind_members_mph,
+            "flood": features.exposure.flood_members_m,
+        }[name]
         c = self._curves[(asset.type, name)]
         theta_adj = adjusted_theta(c.theta, asset.condition_score, self._step)
         p = failure_probability(members, theta_adj, c.beta)

@@ -30,7 +30,7 @@ from muster.playbook.package import FIELD_WORK_KEYS, actionable, satisfying_stat
 from muster.playbook.service import Playbook
 from muster.risk.model import AssetFeatures
 from muster.risk.score import RuleBasedModel
-from muster.scoring_config import ForecastConfig, PlanningConfig
+from muster.scoring_config import FieldNeed, ForecastConfig, PlanningConfig
 
 
 def district_names(session: Session) -> list[str]:
@@ -49,10 +49,7 @@ def store(
     """Forecasts the advisory's customers out and field demand per district from the rule-based
     curves in use, and stores it. Seeded with `seed + advisory_no`: the same advisory forecasts
     the same figures every time."""
-    forecast_assets = [
-        ForecastAsset(a.asset.id, a.asset.type, a.asset.district, a.asset.customers_served)
-        for a in assets
-    ]
+    forecast_assets = [ForecastAsset.of(a) for a in assets]
     member_p = rules.member_p_fail(assets)
     result = forecast(
         forecast_assets,
@@ -126,7 +123,7 @@ def advisory_forecast(
     }
     names = [n for n in district_names(session) if n in rows]
     actions = _action_demand(session, advisory, playbook, planning)
-    crews_per_area = sum(r.per_staging_area or 0 for r in planning.resources.values())
+    crews_per_area = sum(r.per_staging_area or 0 for r in planning.resources.values() if r.is_crew)
     areas = [a.district for a in usable_staging_areas(session, advisory)]
     fuelled = session.get(OpState, ("event", "generators_fuelled"))
     first = next(iter(rows.values()), None)
@@ -137,7 +134,8 @@ def advisory_forecast(
     districts = []
     for name in names:
         row = rows[name]
-        crews, generators = actions.get(name, (0, 0))
+        need = actions.get(name, FieldNeed(crews=0, generators=0))
+        crews, generators = need.crews, need.generators
         districts.append(
             DistrictDemand(
                 district=name,
@@ -164,8 +162,8 @@ def advisory_forecast(
 
 def _action_demand(
     session: Session, advisory: Advisory, playbook: Playbook, planning: PlanningConfig
-) -> dict[str, tuple[int, int]]:
-    """District -> (crews, generators) the advisory's open actions with field work need, as
+) -> dict[str, FieldNeed]:
+    """District -> the crews and generators the advisory's open actions with field work need, as
     the ICS-215 would count them per site. An overridden action needs nothing."""
     overridden = set(
         session.exec(
@@ -178,7 +176,7 @@ def _action_demand(
     district_of = {a.id: a.district for a in session.exec(select(Asset))}
     district_of |= {s.id: s.district for s in session.exec(select(StagingArea))}
     findings = session.exec(select(Finding).where(Finding.advisory_no == advisory.advisory_no))
-    demand: dict[str, tuple[int, int]] = {}
+    demand: dict[str, FieldNeed] = {}
     for finding in findings:
         if not actionable(finding) or finding.id in overridden:
             continue
@@ -189,10 +187,9 @@ def _action_demand(
             if change.key not in FIELD_WORK_KEYS:
                 continue
             resource = planning.resources[change.key]
-            crews, generators = demand.get(district, (0, 0))
-            if resource.per_staging_area is not None:
-                crews += resource.per_site
-            else:
-                generators += resource.per_site
-            demand[district] = (crews, generators)
+            need = demand.get(district, FieldNeed(crews=0, generators=0))
+            demand[district] = FieldNeed(
+                crews=need.crews + (resource.per_site if resource.is_crew else 0),
+                generators=need.generators + (0 if resource.is_crew else resource.per_site),
+            )
     return demand

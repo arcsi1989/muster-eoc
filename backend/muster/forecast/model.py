@@ -11,12 +11,14 @@ computes or changes any of it."""
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from typing import get_args
 
 import numpy as np
 
 from muster.calibration.backtest import BoolArray
 from muster.geo import FloatArray
-from muster.scoring_config import ForecastConfig
+from muster.risk.model import AssetFeatures
+from muster.scoring_config import CustomerService, ForecastConfig
 
 
 @dataclass(frozen=True)
@@ -25,6 +27,11 @@ class ForecastAsset:
     type: str
     district: str
     customers_served: int
+
+    @classmethod
+    def of(cls, features: AssetFeatures) -> "ForecastAsset":
+        a = features.asset
+        return cls(a.id, a.type, a.district, a.customers_served)
 
 
 @dataclass(frozen=True)
@@ -146,7 +153,7 @@ def _district_totals(
         service: per_asset(
             [a.customers_served if config.customers[a.type] == service else 0 for a in assets]
         )
-        for service in ("power", "water")
+        for service in get_args(CustomerService)
     }
     crews_failed = per_asset([config.per_failed[a.type].crews for a in assets])
     crews_lost = per_asset([config.per_supply_lost[a.type].crews for a in assets])

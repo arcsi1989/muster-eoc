@@ -109,6 +109,12 @@ class PlanningResource(Strict):
     stock_state: str | None = None
     per_staging_area: int | None = None
 
+    @property
+    def is_crew(self) -> bool:
+        """A crew works from the staging areas; anything else (a portable generator) is stock
+        the operational state counts."""
+        return self.per_staging_area is not None
+
     @model_validator(mode="after")
     def one_stock_source(self) -> "PlanningResource":
         if (self.stock_state is None) == (self.per_staging_area is None):

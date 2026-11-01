@@ -1,7 +1,6 @@
-from typing import Annotated
+from fastapi import APIRouter
 
-from fastapi import APIRouter, Query
-
+from muster.api.params import AdvisoryQuery
 from muster.api.schemas import (
     AlertOut,
     AssetOut,
@@ -19,8 +18,6 @@ from muster.risk.bands import risk_band, top_factor
 from muster.risk.explain import explain_asset
 
 router = APIRouter()
-
-AdvisoryQuery = Annotated[int, Query(ge=1)]
 
 
 @router.get("/risk", response_model=RiskListOut)
