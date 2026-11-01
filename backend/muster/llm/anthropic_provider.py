@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from typing import Any
 
 import anthropic
+from anthropic.types.beta import BetaOutputConfigParam
 from pydantic import BaseModel
 
 from muster.llm.schemas import (
@@ -61,6 +62,10 @@ def _content(tag: str, data: Any, task: str, rejected: str, feedback: list[str])
     return content
 
 
+# Every call writes short text over prepared, deterministic data.
+OUTPUT_CONFIG: BetaOutputConfigParam = {"effort": "low"}
+
+
 class AnthropicProvider:
     name = "anthropic"
 
@@ -81,7 +86,7 @@ class AnthropicProvider:
                 system=prompt.system,
                 messages=[{"role": "user", "content": content}],
                 output_format=output,
-                output_config={"effort": "low"},  # short text over prepared, deterministic data
+                output_config=OUTPUT_CONFIG,
                 fallbacks="default",
                 betas=[FALLBACK_BETA],
             )
@@ -152,7 +157,7 @@ class AnthropicProvider:
                     system=prompt.system,
                     messages=messages,
                     tools=strict_tools,
-                    output_config={"effort": "low"},
+                    output_config=OUTPUT_CONFIG,
                     fallbacks="default",
                     betas=[FALLBACK_BETA],
                 )
