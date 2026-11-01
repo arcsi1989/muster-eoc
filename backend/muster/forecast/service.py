@@ -12,7 +12,6 @@ from dataclasses import dataclass, replace
 from sqlmodel import Session, col, delete, select
 
 from muster import advisory_context
-from muster.errors import NotFound
 from muster.forecast.model import ForecastAsset, Spread, forecast
 from muster.models import (
     Advisory,
@@ -113,9 +112,7 @@ def advisory_forecast(
 ) -> AdvisoryForecast:
     """The stored forecast of an issued advisory with the open actions' demand and what is
     available, district by district, west to east."""
-    advisory = session.get(Advisory, advisory_no)
-    if advisory is None or advisory_no > advisory_context.current_advisory_no(session):
-        raise NotFound(f"advisory {advisory_no} has not been issued")
+    advisory = advisory_context.require_issued(session, advisory_no)
     rows = {
         r.district: r
         for r in session.exec(

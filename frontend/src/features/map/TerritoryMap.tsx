@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Marker, Pane, Polygon, Polyline, Tooltip } from 'react-leaflet'
 import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
+import { formatPercent } from '../../lib/format'
 import { FULL_RED_AT, pFailColor } from '../../lib/pFailColor'
 import type { Advisory, Asset, Coastline, District, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
 
@@ -131,7 +132,7 @@ export function TerritoryMap({
             >
               <Tooltip>
                 {asset.id} {asset.name}
-                {score !== undefined && ` · failure probability ${Math.round(score * 100)}%`}
+                {score !== undefined && ` · failure probability ${formatPercent(score)}`}
                 {exposureText(exposure.get(asset.id))}
               </Tooltip>
             </CircleMarker>
@@ -155,9 +156,9 @@ export function TerritoryMap({
         <p className="legend-scale">
           <span className="legend-dot" style={{ background: pFailColor(0) }} aria-hidden /> 0%
           <span className="legend-dot" style={{ background: pFailColor(FULL_RED_AT / 2) }} aria-hidden />{' '}
-          {Math.round((FULL_RED_AT / 2) * 100)}%
+          {formatPercent(FULL_RED_AT / 2)}
           <span className="legend-dot" style={{ background: pFailColor(FULL_RED_AT) }} aria-hidden /> ≥
-          {Math.round(FULL_RED_AT * 100)}%
+          {formatPercent(FULL_RED_AT)}
           <span className="legend-dot" style={{ background: '#9aa0a6' }} aria-hidden /> not scored
         </p>
         <p className="hint">Asset colour = failure probability at this advisory. Click an asset to see why.</p>

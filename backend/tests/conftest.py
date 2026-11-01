@@ -44,6 +44,7 @@ def test_settings(tmp_path: Path) -> Settings:
     # _env_file=None: tests never read a local .env (CODING_STANDARDS T2).
     return Settings(  # type: ignore[call-arg]
         _env_file=None,
+        llm_provider="template",  # init kwargs beat a shell LLM_PROVIDER (T2)
         database_path=tmp_path / "test.sqlite",
         checkpoint_path=tmp_path / "checkpoints.sqlite",
         eval_results_path=None,  # no committed evaluation in the audit log; test_evals sets one

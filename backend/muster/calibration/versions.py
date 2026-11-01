@@ -27,7 +27,7 @@ class NotProposed(ConflictError):
 
 
 @dataclass(frozen=True)
-class ActiveModelVersion:
+class LatestCurves:
     id: int
     label: str
     curves: list[FragilityCurve]
@@ -48,11 +48,11 @@ def _latest_approved(session: Session, kind: ModelVersionKind | None = None) -> 
     return version
 
 
-def latest_curves(session: Session) -> ActiveModelVersion:
+def latest_curves(session: Session) -> LatestCurves:
     """The latest approved fragility curves: the rule-based score of the next advisory, and its
     p_fail too while the rules are the champion."""
     version = _latest_approved(session, "curves")
-    return ActiveModelVersion(version.id or 0, version.label, curves(version))
+    return LatestCurves(version.id or 0, version.label, curves(version))
 
 
 def champion(session: Session) -> ModelVersion:

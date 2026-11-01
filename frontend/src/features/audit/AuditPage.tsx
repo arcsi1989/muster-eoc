@@ -21,7 +21,7 @@ export function AuditPage() {
 
   return (
     <main className="page">
-      <h2>Audit trail</h2>
+      <h2>Audit log</h2>
       <p className="hint">
         Every step of the advisory cycle, every model call and every decision, newest first. Scenario time is the
         advisory in force; the clock time is when it happened.
@@ -36,10 +36,10 @@ export function AuditPage() {
           ))}
         </select>
       </label>
-      {state.status === 'loading' && <p className="hint">Loading the audit trail…</p>}
+      {state.status === 'loading' && <p className="hint">Loading the audit log…</p>}
       {state.status === 'error' && (
         <div role="alert">
-          <p className="error-text">Could not load the audit trail: {state.error.message}</p>
+          <p className="error-text">Could not load the audit log: {state.error.message}</p>
           <button type="button" onClick={retry}>
             Retry
           </button>

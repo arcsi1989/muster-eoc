@@ -1,6 +1,13 @@
 import { formatWallClock } from '../../lib/format'
 import { roleLabel } from '../../lib/roles'
-import type { AuditEvent } from '../../types/scenario'
+import type { AuditActor, AuditEvent } from '../../types/scenario'
+
+const ACTOR_LABEL: Record<AuditActor, string> = {
+  system: 'System',
+  agent: 'Agent (LLM)',
+  human: 'Person',
+  field_supervisor: 'Field supervisor',
+}
 
 function scenarioTime(e: AuditEvent): string {
   if (e.advisory_no === null) return 'Before advisory 1'
@@ -52,13 +59,13 @@ function KeyFacts({ e }: { e: AuditEvent }) {
 }
 
 export function AuditList({ events }: { events: AuditEvent[] }) {
-  if (events.length === 0) return <p className="hint">No events yet. Issue an advisory to start the trail.</p>
+  if (events.length === 0) return <p className="hint">No events yet. Issue an advisory to start the log.</p>
   return (
     <ol className="audit-list">
       {events.map((e) => (
         <li key={e.id} className={`audit-event actor-${e.actor}`}>
           <div className="audit-head">
-            <span className={`badge actor-badge-${e.actor}`}>{e.actor}</span>
+            <span className={`badge actor-badge-${e.actor}`}>{ACTOR_LABEL[e.actor]}</span>
             <span className="small">{scenarioTime(e)}</span>
             <span className="hint small">{formatWallClock(e.recorded_at, { seconds: true })}</span>
             <code className="small">{e.type}</code>

@@ -33,6 +33,7 @@ test('lists events with scenario time, actor and expandable details', async () =
   expect(screen.getByText('Advisory 3 · T-48 h')).toBeInTheDocument()
   expect(screen.getByText('12 items closed as not decided')).toBeInTheDocument()
   expect(screen.getByText('Before advisory 1')).toBeInTheDocument()
+  expect(screen.getByText('Person')).toBeInTheDocument() // the actor, labelled, not the raw enum
   await userEvent.click(screen.getAllByText('Details')[0])
   expect(screen.getByText('abc123')).toBeInTheDocument()
   expect(screen.getByText('rules_version: 3.2')).toBeInTheDocument()
@@ -78,7 +79,7 @@ test('shows a loading message, then who decided and which model ran', async () =
 
   render(<AuditPage />)
 
-  expect(screen.getByText(/loading the audit trail/i)).toBeInTheDocument()
+  expect(screen.getByText(/loading the audit log/i)).toBeInTheDocument()
   expect(await screen.findByText(/Role: Incident Commander · action: override · reason: “crew shortage”/)).toBeInTheDocument()
   expect(screen.getByText(/Model call 1: claude-sonnet-5-5 · 2100 ms · 3000 in \/ 600 out tokens/)).toBeInTheDocument()
 })

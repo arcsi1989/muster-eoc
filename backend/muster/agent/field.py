@@ -31,7 +31,6 @@ from muster.models import (
 )
 from muster.playbook.package import FieldWork, StateChange, field_work
 from muster.playbook.service import Playbook, entity_names, reevaluate
-from muster.replay import service
 
 FIELD_SUPERVISOR: Final = "field_supervisor"  # the audit actor and the state's set_by
 FIELD_REPORT = "field_report"  # the decision step's action for a report
@@ -101,7 +100,7 @@ def current_tasks(session: Session, playbook: Playbook, district: str) -> list[F
     if not advisory_no:
         _require_district(session, district)
         return []
-    return tasks(session, playbook, service.require_issued(session, advisory_no), district)
+    return tasks(session, playbook, advisory_context.require_issued(session, advisory_no), district)
 
 
 def _require_district(session: Session, district: str) -> None:

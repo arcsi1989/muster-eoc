@@ -1,7 +1,7 @@
 from datetime import timedelta
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from sqlmodel import Session
 
 from muster import advisory_context
@@ -17,12 +17,12 @@ from muster.api.schemas import (
     TrackPointOut,
 )
 from muster.deps import (
+    ActivationLevelsDep,
     ChallengerDep,
     CycleDep,
+    ScoringConfigDep,
     SessionDep,
     SettingsDep,
-    get_activation_levels,
-    get_scoring_config,
 )
 from muster.hazard.track import cone_polygon, intensity_category
 from muster.models import Advisory
@@ -32,9 +32,6 @@ from muster.replay.diff import AdvisoryChanges
 from muster.scoring_config import ScoringConfig
 
 router = APIRouter(prefix="/advisories")
-
-LevelsDep = Annotated[list[ActivationLevel], Depends(get_activation_levels)]
-ConfigDep = Annotated[ScoringConfig, Depends(get_scoring_config)]
 
 
 def _scenario(
@@ -95,15 +92,17 @@ def _scenario(
 
 
 @router.get("", response_model=ScenarioOut)
-def get_scenario(session: SessionDep, levels: LevelsDep, config: ConfigDep) -> ScenarioOut:
+def get_scenario(
+    session: SessionDep, levels: ActivationLevelsDep, config: ScoringConfigDep
+) -> ScenarioOut:
     return _scenario(session, levels, config)
 
 
 @router.post("/next", response_model=ScenarioOut)
 def next_advisory(
     session: SessionDep,
-    levels: LevelsDep,
-    config: ConfigDep,
+    levels: ActivationLevelsDep,
+    config: ScoringConfigDep,
     cycle: CycleDep,
     challenger: ChallengerDep,
 ) -> ScenarioOut:
@@ -114,8 +113,8 @@ def next_advisory(
 @router.post("/reset", response_model=ScenarioOut)
 def reset_scenario(
     session: SessionDep,
-    levels: LevelsDep,
-    config: ConfigDep,
+    levels: ActivationLevelsDep,
+    config: ScoringConfigDep,
     cycle: CycleDep,
     settings: SettingsDep,
 ) -> ScenarioOut:
@@ -125,6 +124,6 @@ def reset_scenario(
 
 @router.get("/{advisory_no}/changes", response_model=AdvisoryChanges)
 def get_changes(
-    advisory_no: int, session: SessionDep, levels: LevelsDep, config: ConfigDep
+    advisory_no: int, session: SessionDep, levels: ActivationLevelsDep, config: ScoringConfigDep
 ) -> AdvisoryChanges:
     return service.changes(session, advisory_no, levels, config.risk.top_n)

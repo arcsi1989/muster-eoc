@@ -1,6 +1,6 @@
 import type { Role } from '../types/scenario'
 
-export const ROLE_LABEL: Record<Role, string> = {
+const ROLE_LABEL: Record<Role, string> = {
   incident_commander: 'Incident Commander',
   director: 'Director',
   planning: 'Planning',

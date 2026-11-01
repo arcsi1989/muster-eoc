@@ -30,9 +30,9 @@ from muster.challenger.dataset import (
     StormSample,
     World,
     held_out_storm,
-    history_storms,
     stack,
     storm_sample,
+    training_storms,
 )
 from muster.challenger.model import Comparison, ModelMetrics, TrainedChallenger, baseline, save
 from muster.geo import FloatArray
@@ -141,9 +141,7 @@ def run(
     """Cross-validates on the history, trains the final model on all of it and compares both
     models on the held-out storm. Returns the report and the final model."""
     held_out_name = scoring.calibration.storm
-    storms = history_storms(history)
-    if any(s.name == held_out_name for s in storms):
-        raise ValueError(f"{held_out_name} is the held-out storm; it cannot be in the history")
+    storms = training_storms(history, held_out_name)
     offset = config.ensemble_seed_offset
     samples = [
         storm_sample(storm, offset + 1 + i, world, scoring, config)

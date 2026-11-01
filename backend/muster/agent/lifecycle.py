@@ -167,7 +167,7 @@ def _commander_if_open(
 def package_view(
     session: Session, playbook: Playbook, cycle: AdvisoryCycle, advisory_no: int
 ) -> PackageView:
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
     package = session.get(DecisionPackage, advisory_no)
     if package is None:
         raise NotFound(f"no decision package for advisory {advisory_no}")
@@ -217,7 +217,7 @@ def decide(
     """Checks the decision once, before anything changes (so a refusal changes nothing): the
     package is open, then the decision rules for the role that commands at the advisory's
     activation level. Then the cycle applies it."""
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
     item = session.get(PackageItem, item_id)
     if item is None or item.advisory_no != advisory_no:
         raise NotFound(f"no item {item_id} in the package for advisory {advisory_no}")
@@ -241,7 +241,7 @@ def approve_sitrep(
     """Approves the (possibly edited) situation report behind the same gate as an item decision:
     the package is open, then the role that commands at the advisory approves. Then the cycle
     applies it, which satisfies P-7.1."""
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
 
     def precheck() -> None:  # under the cycle's lock, so two approvals cannot both pass
         lead = _commander_if_open(session, playbook, cycle, advisory)
@@ -294,7 +294,7 @@ def draft_planning(
 ) -> PlanningDraft:
     """Drafts the ICS-215 and IAP objectives for the period after `advisory_no` from its
     package's decisions so far, while the package is open and the draft is not yet approved."""
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
     _require_open(session, cycle, advisory_no)
     planning.check_redraft(session, advisory_no)
     fallback = TemplateProvider.from_config(config)
@@ -314,7 +314,7 @@ def release_planning(
     """The next release approval of the planning draft, behind the same gate as an item
     decision: the package is open, then the Planning Section Chief approves and the role that
     commands at the advisory releases. Then the cycle records it."""
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
 
     def precheck() -> None:  # under the cycle's lock, so two approvals cannot both pass
         lead = _commander_if_open(session, playbook, cycle, advisory)
@@ -339,7 +339,7 @@ def report_field_work(
     advisory_no = advisory_context.current_advisory_no(session)
     if not advisory_no or not is_open(session, cycle, advisory_no):
         raise PackageClosed("no decision package is open; field work is reported during one")
-    advisory = service.require_issued(session, advisory_no)
+    advisory = advisory_context.require_issued(session, advisory_no)
 
     def precheck() -> None:  # under the cycle's lock, so two reports cannot both pass
         _require_open(session, cycle, advisory_no)

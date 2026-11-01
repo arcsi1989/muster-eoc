@@ -11,7 +11,7 @@ export function IntroPanel({ total }: { total: number }) {
           <strong>Issue the next advisory</strong> to receive the next of {total} forecasts.
         </li>
         <li>The app recomputes which assets are most at risk and shows what changed since the last forecast.</li>
-        <li>From T-48 h the EOC is at full activation, and more of the playbook applies.</li>
+        <li>From T-48 h the playbook proposes Full activation; once a person declares it, more of the playbook applies.</li>
       </ol>
       <p className="hint">The forecasts are replayed in order; you can reset at any time.</p>
     </div>

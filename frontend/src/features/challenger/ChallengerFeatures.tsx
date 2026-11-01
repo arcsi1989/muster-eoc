@@ -1,3 +1,4 @@
+import { formatDelta } from '../../lib/labels'
 import type { ChallengerFeature } from '../../types/scenario'
 
 /** The challenger's features (backend muster/challenger/dataset.py FEATURES), as a person reads them. */
@@ -34,9 +35,7 @@ function formatValue({ feature, value }: ChallengerFeature): string {
 
 /** "+12 pts": how much the feature raises (or lowers) the challenger's failure probability. */
 function formatContribution(c: number): string {
-  const points = Math.round(c * 100)
-  if (points === 0) return '±0 pts'
-  return `${points > 0 ? '+' : '−'}${Math.abs(points)} pts`
+  return formatDelta(Math.round(c * 100), 'pts') ?? ''
 }
 
 /** The challenger's top features for an asset, the largest push upward first. */

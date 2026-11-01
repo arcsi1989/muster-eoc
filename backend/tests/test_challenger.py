@@ -14,6 +14,7 @@ from muster.challenger.dataset import (
     load_world,
     stack,
     storm_sample,
+    training_storms,
 )
 from muster.challenger.train import build_model, cross_validate, failure_probability, run
 from muster.config import REPO_ROOT
@@ -198,3 +199,12 @@ def test_the_challenger_learns_age_as_an_interaction_with_condition(
     poor, good = age_uplift(EFFECT.min_condition_score), age_uplift(1)
     assert poor > 0.1
     assert poor > 2 * good
+
+
+def test_the_held_out_storm_is_never_in_the_training_history() -> None:
+    storms = history_slice()
+    with_held_out = [storms[0].model_copy(update={"name": "Storm Delta"}), *storms[1:]]
+
+    assert [s.name for s in training_storms(storms, "Storm Delta")] == [s.name for s in storms]
+    with pytest.raises(ValueError, match="Storm Delta is the held-out storm"):
+        training_storms(with_held_out, "Storm Delta")

@@ -64,7 +64,7 @@ export function RiskList({ items, assetsById, onSelect, swatchColor = pFailSwatc
                     <span className={`confidence confidence-${item.confidence}`}> {item.confidence} confidence</span>
                   )}
                 </span>
-                <span className="score" title={`p_fail ${formatPercent(item.p_fail)} × ${formatCustomers(item.consequence)}`}>
+                <span className="score" title={`failure probability ${formatPercent(item.p_fail)} × ${formatCustomers(item.consequence)}`}>
                   {formatCustomers(item.risk)}
                 </span>
                 <RankChange item={item} />

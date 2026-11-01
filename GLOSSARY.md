@@ -121,6 +121,10 @@ _Avoid_: ML model, new model
 The challenger's failure probability, risk and rank for an asset at an advisory, stored with its model version beside the champion's score. It never drives the ranking, the playbook check or the decision package.
 _Avoid_: Test score, preview score
 
+**Risk alert**:
+A change in the risk list at one advisory worth a look: an asset whose risk crosses the alert threshold, enters the top-risk list, or rises a set number of places near the top (`risk.alert` in `config/scoring.yaml`). It points at a score; it is not a finding and needs no decision.
+_Avoid_: Finding, alarm
+
 **Disagreement**:
 An asset the challenger's shadow score ranks in the top 10 at an advisory that the champion does not, shown with the challenger's top features as the reason. It informs a promotion decision; it changes nothing.
 _Avoid_: Conflict, mismatch

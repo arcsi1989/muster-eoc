@@ -24,9 +24,9 @@ from muster.challenger.dataset import (
     PastStorm,
     World,
     held_out_storm,
-    history_storms,
     published_rules,
     storm_assets,
+    training_storms,
 )
 from muster.forecast.model import ForecastAsset, forecast, outcome
 from muster.forecast.service import district_names
@@ -142,9 +142,7 @@ def run(
     """Each storm uses the challenger's ensemble seed for it, so both back-tests see the same
     exposure; the forecast's draws are seeded with its own seed plus the same index."""
     held_out_name = scoring.calibration.storm
-    storms = history_storms(history)
-    if any(s.name == held_out_name for s in storms):
-        raise ValueError(f"{held_out_name} is the held-out storm; it cannot be in the history")
+    storms = training_storms(history, held_out_name)
     districts = district_names(session)
     offset = challenger.ensemble_seed_offset
     past = [

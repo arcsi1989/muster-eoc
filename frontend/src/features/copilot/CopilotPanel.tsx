@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ApiError } from '../../api/client'
-import { getClauses, streamChat } from '../../api/scenario'
-import { toApiError, useLoad } from '../../lib/useLoad'
+import { streamChat } from '../../api/scenario'
+import { useClauses } from '../../lib/useClauses'
+import { toApiError } from '../../lib/useLoad'
 import type { ChatReply, ChatTurn, CopilotStep } from '../../types/scenario'
 import { HowIGotThis } from './HowIGotThis'
 import { stepLabel } from './steps'
@@ -19,8 +20,6 @@ interface Exchange {
   steps: CopilotStep[]
 }
 
-const loadClauses = () => getClauses()
-
 export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: string) => void }) {
   const [exchanges, setExchanges] = useState<Exchange[]>([])
   const [draft, setDraft] = useState('')
@@ -29,11 +28,7 @@ export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: strin
   const [error, setError] = useState<ApiError | null>(null)
   const [openClause, setOpenClause] = useState<string | null>(null)
   const [lastQuestion, setLastQuestion] = useState('')
-  const { state: clausesState, retry: retryClauses } = useLoad(loadClauses)
-  const clauses = useMemo(
-    () => new Map(clausesState.status === 'ok' ? clausesState.data.map((c) => [c.id, c]) : []),
-    [clausesState],
-  )
+  const { state: clausesState, retry: retryClauses, clauses } = useClauses()
 
   async function ask(question: string) {
     const text = question.trim()
