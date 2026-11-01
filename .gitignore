@@ -12,3 +12,5 @@ coverage/
 CLAUDE.local.md
 .mypy_cache/
 data/runtime/
+ci-out/
+.coverage
