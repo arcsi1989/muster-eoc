@@ -1,0 +1,73 @@
+# The definition of done on every push and pull request: ./scripts/check.sh (ruff, mypy strict,
+# pytest, the template eval gate, oxlint, tsc, vitest), the same command people and agents run.
+# Template mode: no secrets, no network beyond installing the locked dependencies.
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LLM_PROVIDER: template
+      # check.sh keeps the template eval report here instead of a temporary folder.
+      CHECK_EVAL_OUT: ${{ github.workspace }}/ci-out/eval
+      # Coverage from the same pytest run check.sh makes (pytest-cov, a backend dev dependency).
+      PYTEST_ADDOPTS: >-
+        --cov=muster --cov-report=term
+        --cov-report=xml:${{ github.workspace }}/ci-out/coverage/coverage.xml
+        --cov-report=html:${{ github.workspace }}/ci-out/coverage/html
+      CHECK_WORKERS: auto
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: backend/.python-version
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.13.0"
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      # pnpm version from frontend/package.json "packageManager".
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # Installs from the lockfiles (uv sync --locked, pnpm install --frozen-lockfile), then checks.
+      - name: ./scripts/check.sh
+        run: ./scripts/check.sh
+
+      - name: Upload the template eval report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: ci-out/eval/
+          if-no-files-found: warn
+
+      - name: Upload the backend coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-backend
+          path: ci-out/coverage/
+          if-no-files-found: warn

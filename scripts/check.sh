@@ -159,11 +159,23 @@ extra_checks() {
   checking backend && step backend "types" uv run mypy
   if checking backend; then
     # make eval's gate (CR-03 C1), template mode; the report goes to a temporary folder, so only
-    # make eval or make eval-llm changes the committed docs/eval/report.md.
-    local eval_out
-    eval_out="$(mktemp -d)"
+    # make eval or make eval-llm changes the committed docs/eval/report.md. CHECK_EVAL_OUT=<dir>
+    # keeps it there instead (CI uploads it as an artifact).
+    # Made absolute here, because step runs the eval from backend/.
+    local eval_out keep_eval=
+    if [ -n "${CHECK_EVAL_OUT:-}" ]; then
+      keep_eval=1
+      eval_out="$(mkdir -p "$CHECK_EVAL_OUT" && cd "$CHECK_EVAL_OUT" && pwd)"
+    else
+      eval_out="$(mktemp -d)"
+    fi
+    if [ -z "$eval_out" ]; then
+      echo "FAILED: [backend] eval: cannot create the report folder ${CHECK_EVAL_OUT:-(temporary)}"
+      ran=$((ran + 1)); failed=1
+      return
+    fi
     step backend "eval" uv run python -m muster.evals.run --out "$eval_out"
-    rm -rf "$eval_out"
+    [ -n "$keep_eval" ] || rm -rf "$eval_out"
   fi
 }
 extra_checks

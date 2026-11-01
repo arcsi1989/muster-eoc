@@ -4,10 +4,14 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] `.github/workflows/` runs `./scripts/check.sh` on push and pull request with locked dependencies and caching; no secrets
-- [ ] The template eval report and a coverage report are uploaded as artifacts
+- [x] `.github/workflows/` runs `./scripts/check.sh` on push and pull request with locked dependencies and caching; no secrets
+- [x] The template eval report and a coverage report are uploaded as artifacts
 - [ ] The workflow passes a linter (for example `actionlint`); how it was validated is recorded
-- [ ] README badge and a note on when it runs
-- [ ] `./scripts/check.sh` passes
+- [x] README badge and a note on when it runs
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as 976914a after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 4/5 ticked; still open: The workflow passes a linter (for example `actionlint`);  how it was validated is recorded.
