@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] `.github/workflows/` runs `./scripts/check.sh` on push and pull request with locked dependencies and caching; no secrets
 - [ ] The template eval report and a coverage report are uploaded as artifacts

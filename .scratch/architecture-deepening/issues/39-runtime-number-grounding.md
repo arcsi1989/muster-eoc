@@ -4,7 +4,7 @@
 
 **Blocked by:** 35 (number check accepts percentile names and half-up rounding)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] One number-grounding function, used by the copilot's runtime validator and by the evaluation's grounding check (no second copy)
 - [ ] Test: an answer with an invented number is rejected at runtime, retried with the problem, and falls back to the template when the retry also invents one; the audit event lists both attempts' problems
