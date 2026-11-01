@@ -27,7 +27,7 @@ export function ForecastPanel({ state, shown, onRetry }: PanelProps) {
 }
 
 /** Customers out and crews and generators needed against available, per district, as P50–P90. */
-export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }) {
+function DistrictForecastTable({ forecast }: { forecast: OutageForecast }) {
   if (forecast.districts.length === 0) return <p className="hint">No forecast for advisory {forecast.advisory_no}.</p>
   return (
     <div className="district-forecast">

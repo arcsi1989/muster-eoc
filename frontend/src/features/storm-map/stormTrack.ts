@@ -1,7 +1,7 @@
 import type { IntensityCategory, RiskBand, TrackPoint } from '../../types/scenario'
 
 /** The fictional territory's local time: a fixed UTC-4, so no real place is named. */
-export const LOCAL_TIME_ZONE = 'Etc/GMT+4'
+const LOCAL_TIME_ZONE = 'Etc/GMT+4'
 export const LOCAL_TIME_NAME = 'UTC−4'
 
 const localFormat = new Intl.DateTimeFormat('en-GB', {

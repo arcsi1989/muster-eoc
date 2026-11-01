@@ -3,7 +3,7 @@ import type { TraceSpan } from '../../types/scenario'
 /** Idle time between spans (a person deciding before await_approval resumes, or before asking
  * the copilot) is drawn at most this share of the busy time, so the waterfall shows the agent's
  * work rather than the wait. */
-export const IDLE_GAP_SHARE = 0.1
+const IDLE_GAP_SHARE = 0.1
 
 export interface WaterfallRow {
   span: TraceSpan
@@ -63,7 +63,7 @@ export function layoutWaterfall(spans: TraceSpan[]): { rows: WaterfallRow[]; bre
 }
 
 /** How far apart, in percent of the axis, two idle labels must be so their text does not overlap. */
-export const BREAK_LABEL_MIN_GAP = 25
+const BREAK_LABEL_MIN_GAP = 25
 
 /** Which idle breaks get their text label: the longest first, each only where no labelled break
  * is nearer than BREAK_LABEL_MIN_GAP. The rest keep the marker, with the duration on hover. */
