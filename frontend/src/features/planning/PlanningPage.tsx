@@ -21,7 +21,7 @@ function wordingLabel(planning: Planning): string {
 }
 
 /** The planning products of the period after the current advisory: the ICS-215 and the IAP
- * objectives, DRAFT until the Planning Section Chief approves and the commander releases them. */
+ * objectives, DRAFT until the Planning Section Chief approves and the role that commands releases them. */
 export function PlanningPage() {
   const scenario = useScenario()
   const { currentNo } = currentAdvisories(scenario.state.status === 'ok' ? scenario.state.data : null)
@@ -32,7 +32,7 @@ export function PlanningPage() {
       <p className="hint no-print">
         Drafted from approved package items and open findings for the next operational period. Code writes the rows
         and objectives; a model may only reword the objectives. Nothing is released until the Planning Section Chief
-        approves and the commander releases it.
+        approves and the Incident Commander (the Director below Full activation) releases it.
       </p>
       {scenario.state.status === 'loading' && <p className="hint">Loading the scenario…</p>}
       {scenario.state.status === 'error' && (
@@ -195,9 +195,9 @@ interface ApprovalsProps {
   onRelease: (role: ReleaseRole) => void
 }
 
-/** The two release approvals, in order: the Planning Section Chief, then the commander. */
+/** The two release approvals, in order: the Planning Section Chief, then the role that commands. */
 function ReleaseApprovals({ planning, open, commander, busy, onRelease }: ApprovalsProps) {
-  const commanderLabel = commander ? roleLabel(commander) : 'the commander'
+  const commanderLabel = commander ? roleLabel(commander) : 'role that commands'
   return (
     <section aria-label="Release approvals" className="planning-section">
       <h3>Release</h3>
