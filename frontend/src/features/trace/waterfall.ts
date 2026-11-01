@@ -61,3 +61,16 @@ export function layoutWaterfall(spans: TraceSpan[]): { rows: WaterfallRow[]; bre
     breaks: breaks.map((b) => ({ at: percent(axis(b.from) + maxIdle / 2), idleMs: b.idleMs })),
   }
 }
+
+/** How far apart, in percent of the axis, two idle labels must be so their text does not overlap. */
+export const BREAK_LABEL_MIN_GAP = 25
+
+/** Which idle breaks get their text label: the longest first, each only where no labelled break
+ * is nearer than BREAK_LABEL_MIN_GAP. The rest keep the marker, with the duration on hover. */
+export function labelBreaks(breaks: WaterfallBreak[]): (WaterfallBreak & { labelled: boolean })[] {
+  const labelled: number[] = []
+  for (const b of [...breaks].sort((x, y) => y.idleMs - x.idleMs || x.at - y.at)) {
+    if (labelled.every((at) => Math.abs(at - b.at) >= BREAK_LABEL_MIN_GAP)) labelled.push(b.at)
+  }
+  return breaks.map((b) => ({ ...b, labelled: labelled.includes(b.at) }))
+}

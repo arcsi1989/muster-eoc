@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { makeSpan } from '../../test/fixtures'
-import { layoutWaterfall } from './waterfall'
+import { labelBreaks, layoutWaterfall } from './waterfall'
 
 test('places each span on one time axis, as a share of the advisory trace', () => {
   const { rows, breaks } = layoutWaterfall([
@@ -68,4 +68,22 @@ test('an empty trace has no rows; a zero-length trace does not divide by zero', 
   expect(layoutWaterfall([])).toEqual({ rows: [], breaks: [] })
   const { rows } = layoutWaterfall([makeSpan({ span_id: 'a', node: 'ingest' }, 0, 0)])
   expect(rows).toEqual([expect.objectContaining({ left: 0, width: 0 })])
+})
+
+test('labels the longest idle breaks where their text has room; the others keep the marker', () => {
+  const breaks = [
+    { at: 10, idleMs: 44 },
+    { at: 30, idleMs: 6_800 },
+    { at: 34, idleMs: 45 },
+    { at: 38, idleMs: 48 },
+    { at: 60, idleMs: 48 },
+  ]
+
+  expect(labelBreaks(breaks).map((b) => [b.at, b.labelled])).toEqual([
+    [10, false],
+    [30, true],
+    [34, false],
+    [38, false],
+    [60, true],
+  ])
 })

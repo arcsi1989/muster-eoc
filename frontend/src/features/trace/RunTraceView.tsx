@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { formatCost, formatDuration, formatTokens, plural } from '../../lib/format'
 import type { RunTrace, TraceSpan, TraceTotals } from '../../types/scenario'
-import { layoutWaterfall } from './waterfall'
+import { labelBreaks, layoutWaterfall } from './waterfall'
 
 const highlighted = (span: TraceSpan) => span.retries > 0 || span.fallback || span.status === 'error'
 
@@ -27,14 +27,14 @@ export function RunTraceView({ trace }: { trace: RunTrace }) {
                 <th scope="col">Step</th>
                 <th scope="col" className="trace-axis">
                   Time
-                  {breaks.map((b) => (
+                  {labelBreaks(breaks).map((b) => (
                     <span
                       key={b.at}
                       className="trace-break"
                       style={{ left: `${b.at}%` }}
                       title={`${formatDuration(b.idleMs)} idle, shortened`}
                     >
-                      ⋯ {formatDuration(b.idleMs)} idle
+                      {b.labelled ? `⋯ ${formatDuration(b.idleMs)} idle` : '⋯'}
                     </span>
                   ))}
                 </th>
