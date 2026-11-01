@@ -224,6 +224,7 @@ def test_a_version_is_approved_once(client: TestClient) -> None:
     again = approve(client, proposed, "planning")
 
     assert again.status_code == 409
+    assert again.json()["error"]["code"] == "already_approved"
     assert approve(client, 1, "planning").status_code == 409  # the published curves
 
 

@@ -178,7 +178,9 @@ def test_a_supervisor_reports_only_on_their_own_district(client: TestClient) -> 
 def test_reporting_refusals(client: TestClient) -> None:
     ps14 = approve_ps14_inspection(client)
 
-    assert report(client, ps14, "blocked", "  ").status_code == 422, "a block needs a note"
+    no_note = report(client, ps14, "blocked", "  ")
+    assert no_note.status_code == 422, "a block needs a note"
+    assert no_note.json()["error"]["code"] == "note_required"
     assert report(client, ps14, "done", None).status_code == 200
     again = report(client, ps14, "blocked", JAMMED)
     assert again.status_code == 409

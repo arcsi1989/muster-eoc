@@ -166,6 +166,7 @@ def test_approving_the_draft_unchanged_is_not_an_edit_and_holds_one_period(
 
     assert approved.json()["edited"] is False
     assert again.status_code == 409
+    assert again.json()["error"]["code"] == "sitrep_already_approved"
     findings = client.get("/findings", params={"advisory": 2}).json()
     assert next(f for f in findings if f["rule_id"] == "P-7.1")["status"] == "open"
     late = client.post("/sitrep/1/approve", json={"role": "director", "text": "late"})
