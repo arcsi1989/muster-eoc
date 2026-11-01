@@ -65,6 +65,8 @@ The 8-minute demo walkthrough is in [docs/demo_script.md](docs/demo_script.md).
 
 ![Decision package with a conflict at advisory 5](docs/screenshots/decision-package.jpg)
 
+More screens, in demo order (`docs/demo_script.md`): [field tasks](docs/screenshots/field-tasks.jpg), [run trace](docs/screenshots/run-trace.jpg), [ICS-215 and IAP](docs/screenshots/ics215.jpg), [calibration](docs/screenshots/calibration.jpg), [champion and challenger](docs/screenshots/champion-challenger.jpg).
+
 ## Documentation
 
 | Document | Contents |
