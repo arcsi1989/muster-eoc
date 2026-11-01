@@ -4,8 +4,15 @@
 
 **Blocked by:** 37, 38, 39, 40, 41, 42
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] `docs/review/whole-repo-review.md`: ranked findings with file references and rule IDs, each marked fixed or left with a reason
-- [ ] Fixes in small commits; no behaviour change (the demo scenario tests and the eval gate unchanged)
-- [ ] `./scripts/check.sh` passes
+- [x] `docs/review/whole-repo-review.md`: ranked findings with file references and rule IDs, each marked fixed or left with a reason
+- [x] Fixes in small commits; no behaviour change (the demo scenario tests and the eval gate unchanged)
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Reviewed; auto-merge held back for an owner decision (see .ht/reply.md in the worktree).
+
+- 2026-11-01: Merged into `main` as 35920e9 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 3/3 ticked.
+- 2026-11-01: Owner accepted both disclosed visible changes (JSON body on unexpected 500s; glossary wording in UI and README); merged as 35920e9.
