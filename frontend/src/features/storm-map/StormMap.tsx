@@ -32,6 +32,14 @@ const ASSET_R_SPAN = 5
 const DISTRICT_FONT = 0.85
 /** The customers-out line under a district's name, relative to the district font. */
 const OUTAGE_FONT = 0.8
+/** District label layout, in em: the first line's baseline below the label point when it is one
+ * line, how far each further line lifts the first, the line height, and the gap before the
+ * customers-out lines. */
+const LABEL_BASELINE_EM = 0.35
+const LABEL_LIFT_PER_LINE_EM = 0.55
+const LABEL_LINE_EM = 1.1
+const OUTAGE_GAP_EM = 1.2
+const OUTAGE_LINE_EM = 1.15
 /** A character's average width, in font sizes, for fitting text in a box. */
 const CHAR_WIDTH = 0.56
 /** A time label's box, in font sizes, for the collision check. */
@@ -278,12 +286,16 @@ function DistrictLabel({ district, font, outage }: { district: District; font: n
   const fits = name.length * font * CHAR_WIDTH < district.east_km - district.west_km
   const lines = fits ? [name] : name.split(' ')
   // the name's last line sits this far below the label point, in em
-  const lastLine = 0.35 + (lines.length - 1) * 0.55
+  const lastLine = LABEL_BASELINE_EM + (lines.length - 1) * LABEL_LIFT_PER_LINE_EM
   return (
     <>
       <text className="district-label" x={at.x_km} y={-at.y_km} style={{ fontSize: font }}>
         {lines.map((line, i) => (
-          <tspan key={i} x={at.x_km} dy={i === 0 ? `${0.35 - (lines.length - 1) * 0.55}em` : '1.1em'}>
+          <tspan key={i} x={at.x_km} dy={
+              i === 0
+                ? `${LABEL_BASELINE_EM - (lines.length - 1) * LABEL_LIFT_PER_LINE_EM}em`
+                : `${LABEL_LINE_EM}em`
+            }>
             {/* the space keeps the name whole in the text's content */}
             {i < lines.length - 1 ? `${line} ` : line}
           </tspan>
@@ -293,11 +305,11 @@ function DistrictLabel({ district, font, outage }: { district: District; font: n
         <text
           className="district-outage"
           x={at.x_km}
-          y={-at.y_km + font * (lastLine + 1.2)}
+          y={-at.y_km + font * (lastLine + OUTAGE_GAP_EM)}
           style={{ fontSize: font * OUTAGE_FONT }}
         >
           <tspan x={at.x_km}>{formatCustomers(outage.power_customers.p90)} power</tspan>{' '}
-          <tspan x={at.x_km} dy="1.15em">
+          <tspan x={at.x_km} dy={`${OUTAGE_LINE_EM}em`}>
             {formatCustomers(outage.water_customers.p90)} water out (P90)
           </tspan>
         </text>
