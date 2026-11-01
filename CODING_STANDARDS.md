@@ -42,7 +42,7 @@ Where they and this file disagree, they win.
 - **B3** Expensive clients (LLM, HTTP, DB) are created once at startup (`lifespan`) and injected with `Depends`. Never per request, never at import time.
 - **B4** Every endpoint declares `response_model`. Request and response models are separate.
 - **B5** I/O endpoints are `async def` and use async client methods. No blocking calls inside `async def`.
-- **B6** Errors: domain code raises domain exceptions; handlers in `errors.py` map them to status codes. One error body everywhere: `{"error": {"code": "...", "message": "..."}}`. Never return stack traces or raw provider errors.
+- **B6** Errors: domain code raises the exceptions in `errors.py`; handlers in `api/error_handlers.py` map them to status codes. One error body everywhere: `{"error": {"code": "...", "message": "..."}}`. Never return stack traces or raw provider errors.
 - **B7** Every outbound call has a timeout. Upstream failures return 502 with a generic message and are logged with details server-side.
 - **B8** Type hints on all public functions. **[gate]** ruff format, ruff check and mypy (strict) pass.
 - **B9** Tunable numbers (thresholds, weights, ensemble sizes) live in `config/*.yaml`, not in code. Thresholds in `data/playbook/playbook_rules.yaml` and clause text in `docs/playbook.md` are never edited.
