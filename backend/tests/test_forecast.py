@@ -1,14 +1,18 @@
 """The customers-out and field-demand forecast (ticket 38): known expected results on small
 networks, then the forecast the advisory cycle stores and serves."""
 
-from dataclasses import replace
+import json
+from dataclasses import asdict, replace
 from typing import Any
 
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
+from muster.challenger.dataset import load_world
 from muster.config import REPO_ROOT
+from muster.datagen.history import HISTORY_FILE
+from muster.forecast.backtest import RESULTS_FILE, ForecastBacktest, run
 from muster.forecast.model import (
     DistrictForecast,
     DistrictOutcome,
@@ -18,13 +22,17 @@ from muster.forecast.model import (
 )
 from muster.forecast.service import advisory_forecast
 from muster.geo import FloatArray
+from muster.ingest.contracts import SyntheticStormFile
 from muster.models import Advisory, OutageForecast
+from muster.models_config import load_models_config
+from muster.numbers import rounded
 from muster.planning.ics215 import usable_staging_areas
 from muster.scoring_config import load_scoring_config
 from tests.conftest import SeededScenario
 from tests.test_demo_scenario import advance_to
 
 CONFIG = load_scoring_config(REPO_ROOT / "config" / "scoring.yaml").forecast
+MODELS = load_models_config(REPO_ROOT / "config" / "models.yaml")
 DISTRICTS = ["West", "East"]
 
 # Two districts. West: a substation feeding a pumping station, which feeds the treatment plant.
@@ -227,3 +235,53 @@ def test_an_advisory_not_yet_issued_has_no_forecast(client: TestClient) -> None:
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "not_found"
+
+
+# The back-test on the synthetic history, Storm Delta held out.
+
+
+def history() -> list[SyntheticStormFile]:
+    return [SyntheticStormFile.model_validate(s) for s in json.loads(HISTORY_FILE.read_text())]
+
+
+def backtest(seeded: SeededScenario, storms: list[SyntheticStormFile]) -> ForecastBacktest:
+    world = load_world(seeded.session, seeded.scoring)
+    return run(seeded.session, world, storms, seeded.scoring, MODELS.challenger)
+
+
+def test_the_backtest_holds_storm_delta_out_and_reports_it_on_its_own(
+    seeded: SeededScenario,
+) -> None:
+    report = backtest(seeded, history()[:2])
+
+    assert report.held_out == "Storm Delta"
+    assert "Storm Delta" not in report.history
+    assert [(s.storm, s.held_out) for s in report.storms] == [
+        ("Storm S01", False),
+        ("Storm S02", False),
+        ("Storm Delta", True),
+    ]
+    for metrics, storms in ((report.history_metrics, 2), (report.held_out_metrics, 1)):
+        for m in metrics.values():
+            assert m.cases == storms * 4  # every district of every storm
+            assert 0 <= m.p90_coverage <= 1
+    for storm in report.storms:
+        for d in storm.districts:
+            for figure in d.figures.values():
+                assert figure.observed >= 0 and figure.p90 >= figure.p50 >= 0
+
+
+def test_storm_delta_cannot_be_in_the_backtest_history(seeded: SeededScenario) -> None:
+    storms = history()[:1]
+    storms[0] = storms[0].model_copy(update={"name": "Storm Delta"})
+
+    with pytest.raises(ValueError, match="held-out"):
+        backtest(seeded, storms)
+
+
+def test_the_committed_backtest_results_are_reproduced(seeded: SeededScenario) -> None:
+    """make forecast-backtest wrote docs/eval/forecast_results.json from the same seeds."""
+    report = backtest(seeded, history())
+
+    committed = json.loads((REPO_ROOT / RESULTS_FILE).read_text())
+    assert rounded(asdict(report)) == committed

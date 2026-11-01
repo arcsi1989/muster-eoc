@@ -14,7 +14,6 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from dataclasses import fields as dataclass_fields
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from sklearn.calibration import CalibratedClassifierCV
@@ -39,6 +38,7 @@ from muster.challenger.model import Comparison, ModelMetrics, TrainedChallenger,
 from muster.geo import FloatArray
 from muster.ingest.contracts import SyntheticStormFile
 from muster.models_config import ChallengerConfig
+from muster.numbers import rounded
 from muster.scoring_config import ScoringConfig
 
 MODEL_NAME = "challenger-hgb"
@@ -176,18 +176,7 @@ def run(
 
 def write_report(report: ChallengerReport, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(_rounded(asdict(report)), indent=2) + "\n")
-
-
-def _rounded(value: Any) -> Any:
-    """Six decimals: the results file stays readable and stable in diffs."""
-    if isinstance(value, float):
-        return round(value, 6)
-    if isinstance(value, dict):
-        return {k: _rounded(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_rounded(v) for v in value]
-    return value
+    path.write_text(json.dumps(rounded(asdict(report)), indent=2) + "\n")
 
 
 def summary(report: ChallengerReport) -> str:
