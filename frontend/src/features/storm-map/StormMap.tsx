@@ -120,7 +120,7 @@ export function StormMap({
                   style={{ strokeWidth: scale, strokeDasharray: DISTRICT_DASH_PX.map((px) => px * scale).join(' ') }}
                 />
               )}
-              <DistrictLabel district={d} font={font * DISTRICT_FONT} outage={outage?.get(d.name)} />
+              <DistrictLabel district={d} font={font * DISTRICT_FONT} outage={view === 'territory' ? outage?.get(d.name) : undefined} />
             </g>
           ))}
         </g>
@@ -272,7 +272,7 @@ export function StormMap({
 }
 
 /** A district's name centred on its label point; one word per line when it is wider than its district.
- * Under it, once forecast, the customers out at P90: power and water. */
+ * Under it, in the territory view once forecast, the customers out at P90: power and water. */
 function DistrictLabel({ district, font, outage }: { district: District; font: number; outage?: DistrictForecast }) {
   const { name, label: at } = district
   const fits = name.length * font * CHAR_WIDTH < district.east_km - district.west_km

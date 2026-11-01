@@ -1794,6 +1794,19 @@ button.link {
   color: var(--muted);
 }
 
+.district-forecast {
+  overflow-x: auto;
+}
+
+.district-forecast table {
+  font-size: 0.85rem;
+}
+
+.district-forecast .figure-line {
+  display: block;
+  white-space: nowrap;
+}
+
 .district-forecast table th[scope='row'] {
   text-align: left;
   font-weight: 600;

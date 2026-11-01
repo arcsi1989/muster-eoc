@@ -229,11 +229,13 @@ test('the district summary and the map show the outage forecast, and change with
   const summary = screen.getByRole('region', { name: 'How bad, where' })
   const table = await within(summary).findByRole('table', { name: 'Outage forecast by district, advisory 1' })
   const westshore = within(table).getByRole('row', { name: /^Westshore/ })
-  expect(within(westshore).getAllByRole('cell')[0]).toHaveTextContent('0–10.0k')
-  expect(within(westshore).getAllByRole('cell')[2]).toHaveTextContent('14–47 / 4 short at P90')
-  // the district overlay: each district's customers out at P90, under its name
+  expect(within(westshore).getAllByRole('cell')[0]).toHaveTextContent('power 0–10k')
+  expect(within(westshore).getAllByRole('cell')[1]).toHaveTextContent('14–47 / 4 short')
+  // the district overlay, in the territory view: each district's customers out at P90, under its name
   const map = screen.getByRole('img', { name: 'Storm map, advisory 1' })
   const outage = () => [...map.querySelectorAll('.district-outage')].map((t) => t.textContent)
+  expect(outage()).toEqual([])
+  await userEvent.click(screen.getByRole('button', { name: 'Territory' }))
   expect(outage()[0]).toBe('10.0k power 114.8k water out (P90)')
   expect(outage()).toHaveLength(4)
 
@@ -241,6 +243,6 @@ test('the district summary and the map show the outage forecast, and change with
 
   expect(await within(summary).findByRole('table', { name: 'Outage forecast by district, advisory 2' })).toBeInTheDocument()
   const bayportWest = within(summary).getByRole('row', { name: /^Bayport West/ })
-  expect(within(bayportWest).getAllByRole('cell')[0]).toHaveTextContent('2.0k–40.0k')
+  expect(within(bayportWest).getAllByRole('cell')[0]).toHaveTextContent('power 2.0k–40k')
   expect(outage()[0]).toBe('20.0k power 114.8k water out (P90)')
 })

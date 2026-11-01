@@ -24,13 +24,12 @@ test('each district shows customers out, crews needed against available and gene
   const rows = within(table).getAllByRole('row').slice(1)
   expect(rows.map((r) => within(r).getByRole('rowheader').textContent)).toEqual(['Westshore', 'Eastern Plains'])
   expect(within(rows[0]).getAllByRole('cell').map((c) => c.textContent)).toEqual([
-    '26.7k–113.1k',
-    '5.7k–114.8k',
-    '3–49 / 4 short at P90',
+    'power 27k–113k water 5.7k–115k',
+    '3–49 / 4 short',
     '10–17',
   ])
   // nothing at risk: one value, and no shortfall
-  expect(within(rows[1]).getAllByRole('cell').map((c) => c.textContent)).toEqual(['0', '0', '0–2 / 4', '0'])
+  expect(within(rows[1]).getAllByRole('cell').map((c) => c.textContent)).toEqual(['power 0 water 0', '0–2 / 4 ', '0'])
   expect(screen.getByText(/6 fuelled generators serve the whole territory/)).toBeInTheDocument()
   expect(screen.getByText(/not a decision/)).toBeInTheDocument()
 })

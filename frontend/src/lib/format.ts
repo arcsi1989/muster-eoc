@@ -5,6 +5,12 @@ export function formatCustomers(value: number): string {
   return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value.toFixed(0)
 }
 
+/** Customers in a narrow column: 840, 5.6k, 27k, 113k. */
+export function formatCustomersShort(value: number): string {
+  if (value < 1000) return value.toFixed(0)
+  return value < 10_000 ? `${(value / 1000).toFixed(1)}k` : `${Math.round(value / 1000)}k`
+}
+
 /** A forecast figure as its median to its P90 ("26.7k–113.1k"); one value when they are equal. */
 export const formatSpread = (s: Spread, format: (n: number) => string = (n) => n.toLocaleString('en-US')) =>
   s.p50 === s.p90 ? format(s.p50) : `${format(s.p50)}–${format(s.p90)}`

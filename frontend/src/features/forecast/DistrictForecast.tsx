@@ -1,4 +1,4 @@
-import { formatCustomers, formatSpread } from '../../lib/format'
+import { formatCustomersShort, formatSpread } from '../../lib/format'
 import type { LoadState } from '../../lib/useLoad'
 import type { OutageForecast } from '../../types/scenario'
 
@@ -35,10 +35,9 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
         <thead>
           <tr>
             <th scope="col">District</th>
-            <th scope="col">Power customers out</th>
-            <th scope="col">Water customers out</th>
-            <th scope="col">Crews needed / available</th>
-            <th scope="col">Generators needed</th>
+            <th scope="col">Customers out</th>
+            <th scope="col">Crews / have</th>
+            <th scope="col">Gen&shy;erators</th>
           </tr>
         </thead>
         <tbody>
@@ -47,11 +46,15 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
             return (
               <tr key={d.district}>
                 <th scope="row">{d.district}</th>
-                <td>{formatSpread(d.power_customers, formatCustomers)}</td>
-                <td>{formatSpread(d.water_customers, formatCustomers)}</td>
                 <td>
-                  {formatSpread(d.crews_needed)} / {d.crews_available}
-                  {short && <span className="badge status-overridden"> short at P90</span>}
+                  <span className="figure-line">power {formatSpread(d.power_customers, formatCustomersShort)}</span>{' '}
+                  <span className="figure-line">water {formatSpread(d.water_customers, formatCustomersShort)}</span>
+                </td>
+                <td>
+                  <span className="figure-line">
+                    {formatSpread(d.crews_needed)} / {d.crews_available}
+                  </span>{' '}
+                  {short && <span className="badge status-overridden">short</span>}
                 </td>
                 <td>{formatSpread(d.generators_needed)}</td>
               </tr>
@@ -60,9 +63,10 @@ export function DistrictForecastTable({ forecast }: { forecast: OutageForecast }
         </tbody>
       </table>
       <p className="hint small">
-        Median–P90 over {forecast.samples.toLocaleString('en-US')} ensemble samples. Needs include the open playbook
-        actions; {forecast.generators_available} fuelled generators serve the whole territory. A forecast from the risk
-        model, not a decision.
+        Customers out and crews and generators needed, median–P90 over{' '}
+        {forecast.samples.toLocaleString('en-US')} ensemble samples, the open playbook actions included. Short: the
+        P90 needs more crews than the district&apos;s staging areas have. {forecast.generators_available} fuelled
+        generators serve the whole territory. A forecast from the risk model, not a decision.
       </p>
     </div>
   )
