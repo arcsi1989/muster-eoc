@@ -165,6 +165,13 @@ class DraftResult:
     usage: dict[str, int]
 
 
+def attempt_tokens(attempt: dict[str, Any]) -> tuple[int, int]:
+    """Input and output tokens of one entry of grounded generation's attempt log (zero for an
+    attempt that failed before the provider reported usage)."""
+    usage = attempt.get("usage") or {}
+    return usage.get("input_tokens", 0), usage.get("output_tokens", 0)
+
+
 class LLMUnavailable(Exception):
     """The provider could not produce a usable draft (network, API error, refusal, no output)."""
 

@@ -12,6 +12,7 @@ import {
   nextAdvisory,
   postDeclaration,
   runCalibration,
+  streamChat,
 } from './scenario'
 
 afterEach(() => vi.restoreAllMocks())
@@ -122,4 +123,50 @@ test('approveModelVersion posts the role to the version it approves', async () =
     '/api/model-versions/2/approve',
     expect.objectContaining({ method: 'POST', body: JSON.stringify({ role: 'planning' }) }),
   )
+})
+
+/** A server-sent event stream that arrives in the given chunks. */
+function sse(...chunks: string[]) {
+  const encoder = new TextEncoder()
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk))
+      controller.close()
+    },
+  })
+  return new Response(body, { status: 200, headers: { 'content-type': 'text/event-stream' } })
+}
+
+const step = (kind: string, tool: string | null = null) =>
+  `event: step\ndata: ${JSON.stringify({ kind, attempt: 1, provider: 'template', problems: [], reason: null, tool, args: {} })}\n\n`
+
+test('streamChat reports each step as it arrives and resolves with the answer', async () => {
+  const answer = `event: answer\ndata: ${JSON.stringify({ answer: 'SUB-07 supports HOSP-01.', citations: [] })}\n\n`
+  const whole = step('attempt') + step('tool_call', 'get_dependencies') + answer
+  // split mid-event, so a step only counts once its block is complete
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(sse(whole.slice(0, 50), whole.slice(50)))
+  const steps: string[] = []
+
+  const reply = await streamChat('What depends on SUB-07?', [], (s) => steps.push(s.tool ?? s.kind))
+
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/copilot/chat/stream',
+    expect.objectContaining({ method: 'POST', body: JSON.stringify({ message: 'What depends on SUB-07?', history: [] }) }),
+  )
+  expect(steps).toEqual(['attempt', 'get_dependencies'])
+  expect(reply.answer).toBe('SUB-07 supports HOSP-01.')
+})
+
+test('streamChat rejects with the error event of the stream', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    sse(step('attempt'), `event: error\ndata: ${JSON.stringify({ error: { code: 'internal', message: 'the copilot could not answer' } })}\n\n`),
+  )
+
+  await expect(streamChat('Hi', [], () => {})).rejects.toMatchObject({ code: 'internal', message: 'the copilot could not answer' })
+})
+
+test('streamChat rejects with the error body of a refused request', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ error: { code: 'validation_error', message: 'message: too short' } }, 422))
+
+  await expect(streamChat('', [], () => {})).rejects.toBeInstanceOf(ApiError)
 })

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { ApiError } from '../../api/client'
-import { getClauses, postChat } from '../../api/scenario'
+import { getClauses, streamChat } from '../../api/scenario'
 import { toApiError, useLoad } from '../../lib/useLoad'
-import type { ChatReply, ChatTurn } from '../../types/scenario'
+import type { ChatReply, ChatTurn, CopilotStep } from '../../types/scenario'
+import { HowIGotThis } from './HowIGotThis'
+import { stepLabel } from './steps'
 
 const SUGGESTIONS = [
   'Why is PS-14 ranked where it is?',
@@ -14,6 +16,7 @@ const SUGGESTIONS = [
 interface Exchange {
   question: string
   reply: ChatReply
+  steps: CopilotStep[]
 }
 
 const loadClauses = () => getClauses()
@@ -22,6 +25,7 @@ export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: strin
   const [exchanges, setExchanges] = useState<Exchange[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
+  const [live, setLive] = useState<CopilotStep[]>([])
   const [error, setError] = useState<ApiError | null>(null)
   const [openClause, setOpenClause] = useState<string | null>(null)
   const [lastQuestion, setLastQuestion] = useState('')
@@ -41,23 +45,32 @@ export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: strin
     setBusy(true)
     setError(null)
     setLastQuestion(text)
+    setLive([])
+    const steps: CopilotStep[] = []
     try {
-      const reply = await postChat(text, history)
-      setExchanges((previous) => [...previous, { question: text, reply }])
+      // the steps show while the turn runs; the answer only once it has passed validation
+      const reply = await streamChat(text, history, (step) => {
+        steps.push(step)
+        setLive([...steps])
+      })
+      setExchanges((previous) => [...previous, { question: text, reply, steps }])
       setDraft('')
     } catch (e) {
       setError(toApiError(e))
     } finally {
       setBusy(false)
+      setLive([])
     }
   }
 
   const shown = openClause ? clauses.get(openClause) : undefined
 
   return (
-    <section className="card" aria-label="Copilot">
-      <h2>Copilot</h2>
-      <p className="hint small">Answers come from the same data as the screens; every ID it cites was returned by a tool.</p>
+    <section className="copilot">
+      <p className="hint small">
+        Answers come from the same data as the screens, about the current advisory; every ID and number in an answer was
+        returned by a tool.
+      </p>
       {exchanges.length === 0 && (
         <div className="suggestions">
           {SUGGESTIONS.map((s) => (
@@ -94,8 +107,10 @@ export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: strin
               </p>
               <p className="hint small">
                 {e.reply.fallback ? 'Offline answer (the AI answer was not used)' : e.reply.provider === 'template' ? 'Offline answer' : 'AI answer'}
+                {e.reply.advisory !== null && ` · advisory ${e.reply.advisory}`}
                 {e.reply.tools_used.length > 0 && ` · tools: ${e.reply.tools_used.join(', ')}`}
               </p>
+              <HowIGotThis work={e.reply.work} steps={e.steps} />
             </div>
           </li>
         ))}
@@ -108,7 +123,16 @@ export function CopilotPanel({ onSelectAsset }: { onSelectAsset: (assetId: strin
           {shown.text}
         </aside>
       )}
-      {busy && <p className="hint">Looking it up…</p>}
+      {busy && (
+        <div className="copilot-progress" role="status" aria-label="Copilot progress">
+          <p className="hint">Working on it…</p>
+          <ol className="work-list">
+            {live.map((step, i) => (
+              <li key={i}>{stepLabel(step)}</li>
+            ))}
+          </ol>
+        </div>
+      )}
       {error && (
         <p role="alert" className="error-text small">
           Could not answer: {error.message}{' '}
