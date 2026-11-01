@@ -1,5 +1,6 @@
 """Loads config/llm.yaml: the model prices the run trace estimates cost with (B9)."""
 
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
@@ -30,8 +31,13 @@ class LLMConfig(Strict):
     def attempts_cost_usd(self, attempts: list[dict[str, Any]]) -> float | None:
         """The estimated cost of a generation's attempt log (grounded generation's format):
         None if any attempt has tokens from a model with no price."""
-        costs = [self.cost_usd(a.get("model"), *attempt_tokens(a)) for a in attempts]
-        return None if None in costs else sum(c for c in costs if c is not None)
+        return total_cost(self.cost_usd(a.get("model"), *attempt_tokens(a)) for a in attempts)
+
+
+def total_cost(costs: Iterable[float | None]) -> float | None:
+    """The sum of cost estimates, or None when any is unknown: never understated."""
+    known = list(costs)
+    return None if None in known else sum(c for c in known if c is not None)
 
 
 def load_llm_config(path: Path) -> LLMConfig:

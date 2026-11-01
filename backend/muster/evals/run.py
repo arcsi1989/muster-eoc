@@ -34,6 +34,7 @@ from muster.evals.golden import (
     verdict,
 )
 from muster.evals.scenario import Prompts, Transcript, world
+from muster.evals.usage import RunUsage, run_usage
 from muster.llm.factory import build_provider
 from muster.llm.provider import LLMProvider
 from muster.llm.template import TemplateProvider
@@ -58,10 +59,11 @@ class Run:
         return not self.problems
 
     def to_json(self) -> dict[str, Any]:
-        """A failed run keeps its whole transcript; a passed one what it answered and with what."""
+        """A failed run keeps its whole transcript; a passed one what it answered and with what.
+        Both say what the answer spent."""
         t = self.transcript
         transcript = (
-            t.to_json()
+            {k: v for k, v in t.to_json().items() if k != "usage"}
             if self.problems
             else {
                 "answer": t.answer,
@@ -73,7 +75,12 @@ class Run:
                 "prompt_version": t.prompt_version,
             }
         )
-        return {"passed": self.passed, "problems": self.problems, "transcript": transcript}
+        return {
+            "passed": self.passed,
+            "problems": self.problems,
+            "usage": asdict(t.usage),
+            "transcript": transcript,
+        }
 
 
 @dataclass(frozen=True)
@@ -113,11 +120,17 @@ class Evaluation:
     def gate_passed(self) -> bool:
         return all(s.gate_passed for s in self.summary.values())
 
+    @property
+    def usage(self) -> RunUsage:
+        """Tokens, cost and latency over every answer of the run."""
+        return run_usage([run.transcript.usage for r in self.results for run in r.runs])
+
     def to_json(self) -> dict[str, Any]:
         return {
             "stamp": asdict(self.stamp),
             "gate_passed": self.gate_passed,
             "summary": {c: asdict(s) for c, s in self.summary.items()},
+            "usage": asdict(self.usage),
             "cases": [
                 {
                     "id": r.case.id,

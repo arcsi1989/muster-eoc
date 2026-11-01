@@ -1,0 +1,207 @@
+{
+  "stamp": {
+    "provider": "anthropic",
+    "prompt_versions": {
+      "copilot": "copilot-v2",
+      "sitrep": "sitrep-v2"
+    },
+    "git_commit": "6f10766+dirty",
+    "repeats": 3,
+    "cases": 30
+  },
+  "recommended": "claude-sonnet-5-5",
+  "models": [
+    {
+      "rank": 1,
+      "model": "claude-sonnet-5-5",
+      "gate_passed": true,
+      "pass_rate": 1.0,
+      "summary": {
+        "grounding": {
+          "cases": 12,
+          "runs": 36,
+          "passed": 36,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 95%",
+          "gate_passed": true
+        },
+        "refusal": {
+          "cases": 6,
+          "runs": 18,
+          "passed": 18,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 100%",
+          "gate_passed": true
+        },
+        "classification": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "injection": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "drafting": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 90%",
+          "gate_passed": true
+        }
+      },
+      "usage": {
+        "answers": 90,
+        "tokens_in": 522537,
+        "tokens_out": 43422,
+        "cost_usd": 1.479294,
+        "cost_per_answer_usd": 0.016436600000000003,
+        "latency_p50_ms": 3911,
+        "latency_p90_ms": 8293
+      },
+      "results": "comparison/claude-sonnet-5-5/results.json",
+      "report": "comparison/claude-sonnet-5-5/report.md"
+    },
+    {
+      "rank": 2,
+      "model": "claude-haiku-5-5",
+      "gate_passed": false,
+      "pass_rate": 0.9333333333333333,
+      "summary": {
+        "grounding": {
+          "cases": 12,
+          "runs": 36,
+          "passed": 30,
+          "pass_rate": 0.8333333333333334,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 95%",
+          "gate_passed": false
+        },
+        "refusal": {
+          "cases": 6,
+          "runs": 18,
+          "passed": 18,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 100%",
+          "gate_passed": true
+        },
+        "classification": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "injection": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "drafting": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 90%",
+          "gate_passed": true
+        }
+      },
+      "usage": {
+        "answers": 90,
+        "tokens_in": 614104,
+        "tokens_out": 61450,
+        "cost_usd": 0.0921354,
+        "cost_per_answer_usd": 0.0010237266666666667,
+        "latency_p50_ms": 3170,
+        "latency_p90_ms": 5898
+      },
+      "results": "comparison/claude-haiku-5-5/results.json",
+      "report": "comparison/claude-haiku-5-5/report.md"
+    },
+    {
+      "rank": 3,
+      "model": "claude-opus-5-5",
+      "gate_passed": false,
+      "pass_rate": 0.9111111111111111,
+      "summary": {
+        "grounding": {
+          "cases": 12,
+          "runs": 36,
+          "passed": 28,
+          "pass_rate": 0.7777777777777778,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 95%",
+          "gate_passed": false
+        },
+        "refusal": {
+          "cases": 6,
+          "runs": 18,
+          "passed": 18,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 100%",
+          "gate_passed": true
+        },
+        "classification": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "injection": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "at most 0 failed",
+          "gate_passed": true
+        },
+        "drafting": {
+          "cases": 4,
+          "runs": 12,
+          "passed": 12,
+          "pass_rate": 1.0,
+          "failed_elsewhere": 0,
+          "threshold": "pass rate at least 90%",
+          "gate_passed": true
+        }
+      },
+      "usage": {
+        "answers": 90,
+        "tokens_in": 528784,
+        "tokens_out": 49649,
+        "cost_usd": 3.108116,
+        "cost_per_answer_usd": 0.03453462222222222,
+        "latency_p50_ms": 5547,
+        "latency_p90_ms": 12396
+      },
+      "results": "comparison/claude-opus-5-5/results.json",
+      "report": "comparison/claude-opus-5-5/report.md"
+    }
+  ]
+}

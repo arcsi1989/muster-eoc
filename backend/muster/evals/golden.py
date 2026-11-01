@@ -137,9 +137,16 @@ class Repeats(Strict):
     live: int = Field(ge=1)
 
 
+class Compare(Strict):
+    """`make eval-compare`: the models of the configured provider to run the golden set with."""
+
+    models: list[str] = Field(min_length=1)
+
+
 class EvalConfig(Strict):
     repeats: Repeats
     gates: dict[Category, Gate]
+    compare: Compare
 
     @model_validator(mode="after")
     def _every_category(self) -> Self:
