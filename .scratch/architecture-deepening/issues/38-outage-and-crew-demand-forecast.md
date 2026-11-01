@@ -4,7 +4,7 @@
 
 **Blocked by:** 36 (CR-02: districts on the storm map and the operations map), 37 (UI: Situation and Decisions pages, and a copilot dock on every page)
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] Forecast per advisory and district: customers affected (power and water separately) and crews and generators needed vs available, each as median and P90 from the ensemble members; deterministic for a seed; tunables in `config/`
 - [ ] Tests with known expected results (a district with no at-risk assets forecasts zero; doubling customers served doubles customers affected; P90 ≥ median)
@@ -12,3 +12,7 @@
 - [ ] Storm map per-district summary and ICS-215 context panel, changing with each advisory (tests); the ICS-215 rows unchanged
 - [ ] Copilot read-only tool for the forecast; no restricted field in its result (test)
 - [ ] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Parked by the owner's priorities: the reviewers care about code quality and AI capabilities, not new operational functionality. The ML discipline this would show is already shown by the champion and challenger (tickets 32 to 34). Kept as the documented next module (`docs/assumptions_limitations.md`, distribution and outage forecast).
