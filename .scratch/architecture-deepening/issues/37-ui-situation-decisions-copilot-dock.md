@@ -4,11 +4,15 @@
 
 **Blocked by:** 39 (the copilot validates numbers at runtime)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] The copilot opens from a header button on every page, stays open across page changes, and asks about the current advisory; no copilot tab remains in the operations panel (tests)
-- [ ] Progress events (tool call, validation, retry, fallback) reach the UI while the turn runs; the answer text is shown only after validation (backend and frontend tests)
-- [ ] Each answer has a "How I got this" panel with tools, arguments, results as shown to the model, validation result, retries, provider, model, prompt version, tokens and cost; no restricted field appears in it (tests)
-- [ ] Template mode works the same offline; the audit event and run trace are unchanged in content
-- [ ] Demo script and screenshot updated
-- [ ] `./scripts/check.sh` passes
+- [x] The copilot opens from a header button on every page, stays open across page changes, and asks about the current advisory; no copilot tab remains in the operations panel (tests)
+- [x] Progress events (tool call, validation, retry, fallback) reach the UI while the turn runs; the answer text is shown only after validation (backend and frontend tests)
+- [x] Each answer has a "How I got this" panel with tools, arguments, results as shown to the model, validation result, retries, provider, model, prompt version, tokens and cost; no restricted field appears in it (tests)
+- [x] Template mode works the same offline; the audit event and run trace are unchanged in content
+- [x] Demo script and screenshot updated
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as b54d584 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
