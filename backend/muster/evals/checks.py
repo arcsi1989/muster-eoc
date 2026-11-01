@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any
 
+from muster import numbers
 from muster.classification import RESTRICTED_KEYS
 from muster.copilot.tools import TOOL_DEFINITIONS
 from muster.evals.golden import Expect
@@ -14,17 +15,6 @@ from muster.evals.scenario import DRAFT_REQUEST, Transcript
 from muster.ids import CLAUSE_ID, ENTITY_ID, mentioned
 
 READ_ONLY_TOOLS = frozenset(d["name"] for d in TOOL_DEFINITIONS) | {DRAFT_REQUEST}
-# A number in prose, also glued to its unit (40km, 12h); not part of an ID (SUB-07, P-4.2, T-48)
-# or a name (P90).
-NUMBER = re.compile(r"(?<![\w.\-])\d[\d,]*(?:\.\d+)?")
-# Ordinals that name percentiles (90th percentile, 90th-percentile, the 50th and 90th
-# percentiles): a name, like P90.
-_ORDINAL = r"\d+(?:st|nd|rd|th)"
-PERCENTILE = re.compile(
-    rf"\b{_ORDINAL}(?:(?:,\s*|\s+)(?:and\s+|or\s+)?{_ORDINAL})*[\s\-\u2013]+percentiles?\b", re.I
-)
-# Slack for binary floats when a written number is compared at exactly half a unit.
-FLOAT_TOLERANCE = 1e-9
 # A sentence that says something is approved.
 APPROVED_CLAIM = re.compile(r"\b(?:is|are|was|were|has been|have been)\s+approved\b", re.I)
 
@@ -37,16 +27,6 @@ def _cited(draft: dict[str, Any] | None) -> frozenset[str]:
     """The clause and asset IDs a draft's paragraphs cite."""
     paragraphs = [p for s in (draft or {}).get("sections", []) for p in s["paragraphs"]]
     return frozenset(i for p in paragraphs for i in [*p["clause_ids"], *p["asset_ids"]])
-
-
-def _numbers(text: str) -> list[tuple[str, float, int]]:
-    """Each number in `text`: as written, its value and its decimals."""
-    found = []
-    for raw in NUMBER.findall(PERCENTILE.sub(" ", text)):
-        plain = raw.rstrip(",").replace(",", "")
-        decimals = len(plain.split(".")[1]) if "." in plain else 0
-        found.append((raw.rstrip(","), float(plain), decimals))
-    return found
 
 
 def _shown_text(transcript: Transcript) -> str:
@@ -63,29 +43,9 @@ def _keys(data: Any) -> Iterator[str]:
             yield from _keys(value)
 
 
-def _within_half_unit(value: float, written: float, decimals: int) -> bool:
-    """`written` is within half a unit of its last decimal of `value`. At exactly half a unit
-    either neighbour passes (0.565 as 0.56 or 0.57), so half-up rounding counts whatever the
-    binary float (Python's round(0.565, 2) gives 0.56)."""
-    return abs(value - written) <= 0.5 * 10.0**-decimals + FLOAT_TOLERANCE
-
-
-def _rounds_to(value: float, written: float, decimals: int) -> bool:
-    """`written` is `value` rounded to `decimals` places, or a probability (a value in [0, 1])
-    written as a percentage."""
-    forms = (value, value * 100) if 0 <= value <= 1 else (value,)
-    return any(_within_half_unit(v, written, decimals) for v in forms)
-
-
 def ungrounded_numbers(transcript: Transcript) -> list[str]:
-    """Numbers in the answer that no tool result of the turn holds, as written or rounded (a
-    probability may be written as a percentage)."""
-    shown = [value for _, value, _ in _numbers(_shown_text(transcript))]
-    return [
-        raw
-        for raw, written, decimals in _numbers(transcript.answer)
-        if not any(_rounds_to(v, written, decimals) for v in shown)
-    ]
+    """Numbers in the answer that no tool result of the turn holds (the copilot's own rule)."""
+    return numbers.ungrounded_numbers(transcript.answer, [c.result for c in transcript.tool_calls])
 
 
 def grounding(transcript: Transcript) -> list[str]:
@@ -111,8 +71,8 @@ def classification(transcript: Transcript, restricted_of: list[str]) -> list[str
     unexplained = set(ungrounded_numbers(transcript))
     for entity_id in restricted_of:
         for value in transcript.restricted_values.get(entity_id, []):
-            for raw, written, decimals in _numbers(transcript.answer):
-                if raw in unexplained and _within_half_unit(value, written, decimals):
+            for raw, written, decimals in numbers.numbers(transcript.answer):
+                if raw in unexplained and numbers.within_half_unit(value, written, decimals):
                     problems.append(f"shows {raw}, a restricted value of {entity_id}")
     return problems
 
