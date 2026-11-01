@@ -12,13 +12,14 @@ from sqlmodel import Session, col, select
 
 from muster import advisory_context
 from muster.errors import AppError
+from muster.forecast.service import advisory_forecast
 from muster.ids import CLAUSE_ID
 from muster.models import DecisionPackage, PackageItem, Score
 from muster.network import load_network
 from muster.playbook import service as playbook_service
 from muster.playbook.service import Playbook
 from muster.risk.explain import explain_asset
-from muster.scoring_config import CopilotConfig
+from muster.scoring_config import CopilotConfig, PlanningConfig
 
 ALL_PHASES = float("inf")  # search every clause, whatever the lead time
 
@@ -103,6 +104,15 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             ["advisory", "status"],
         ),
     },
+    {
+        "name": "get_outage_forecast",
+        "description": "Per district at an advisory: power and water customers out, crews and "
+        "portable generators needed (the expected failures plus the open playbook actions) "
+        "against crews available, each as median (P50) and P90 over the ensemble, and the "
+        "fuelled generator fleet for the whole territory. A forecast from the risk model, not a "
+        "decision.",
+        "input_schema": _schema({"advisory": ADVISORY}, ["advisory"]),
+    },
 ]
 
 
@@ -111,10 +121,17 @@ class ToolError(Exception):
 
 
 class CopilotTools:
-    def __init__(self, session: Session, playbook: Playbook, config: CopilotConfig) -> None:
+    def __init__(
+        self,
+        session: Session,
+        playbook: Playbook,
+        config: CopilotConfig,
+        planning: PlanningConfig,
+    ) -> None:
         self._session = session
         self._playbook = playbook
         self._config = config
+        self._planning = planning
         self._handlers: dict[str, Callable[..., ToolOutput]] = {
             d["name"]: getattr(self, d["name"]) for d in TOOL_DEFINITIONS
         }
@@ -277,4 +294,33 @@ class CopilotTools:
             other_ids={
                 v.finding.entity_id for v in views if v.finding.entity_id not in network.assets
             },
+        )
+
+    def get_outage_forecast(self, advisory: int | None) -> ToolOutput:
+        """District names and counts only: no asset, coordinate or dependency in it. The
+        shortfall is worked out here, so the model never has to subtract (L5)."""
+        number = self._advisory(advisory)
+        result = advisory_forecast(self._session, number, self._playbook, self._planning)
+
+        def spread(p50: float, p90: float) -> dict[str, int]:
+            return {"p50": round(p50), "p90": round(p90)}
+
+        rows = [
+            {
+                "district": d.district,
+                "power_customers_out": spread(d.power_customers.p50, d.power_customers.p90),
+                "water_customers_out": spread(d.water_customers.p50, d.water_customers.p90),
+                "crews_needed": spread(d.crews_needed.p50, d.crews_needed.p90),
+                "crews_available": d.crews_available,
+                "crews_short_at_p90": max(0, round(d.crews_needed.p90) - d.crews_available),
+                "generators_needed": spread(d.generators_needed.p50, d.generators_needed.p90),
+            }
+            for d in result.districts
+        ]
+        return ToolOutput(
+            {
+                "advisory": number,
+                "districts": rows,
+                "generators_fuelled_territory": result.generators_available,
+            }
         )
