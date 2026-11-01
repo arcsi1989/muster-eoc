@@ -102,7 +102,7 @@ class DistrictRecord(Contract):
     name: str = Field(min_length=1, json_schema_extra=INTERNAL)
     west_km: float = Field(json_schema_extra=RESTRICTED)
     east_km: float = Field(json_schema_extra=RESTRICTED)
-    label_at: PointRecord = Field(json_schema_extra=INTERNAL)  # where the maps write its name
+    label: PointRecord = Field(json_schema_extra=INTERNAL)  # where the maps write its name
 
     @model_validator(mode="after")
     def _east_of_west(self) -> "DistrictRecord":

@@ -30,7 +30,7 @@
       "title": "East Km",
       "type": "number"
     },
-    "label_at": {
+    "label": {
       "$ref": "#/$defs/PointRecord",
       "data_class": "internal"
     },
@@ -50,7 +50,7 @@
     "name",
     "west_km",
     "east_km",
-    "label_at"
+    "label"
   ],
   "title": "DistrictRecord",
   "type": "object"

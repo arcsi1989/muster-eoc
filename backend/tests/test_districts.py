@@ -3,6 +3,7 @@ of the field view's district list too."""
 
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -14,7 +15,7 @@ from muster.datagen.generate import generate
 from muster.db import create_fresh_engine
 from muster.geo import inside_polygon
 from muster.ingest.loader import GoldDataMissing, load_gold
-from muster.models import QualityIssue
+from muster.models import Coastline, QualityIssue
 
 GOLD = REPO_ROOT / "data" / "gold"
 WEST_TO_EAST = ["Westshore", "Bayport West", "Bayport East", "Eastern Plains"]
@@ -103,3 +104,16 @@ def test_a_site_in_an_unknown_district_is_rejected(tmp_path: Path) -> None:
     issues = load_issues(tmp_path)
 
     assert ("assets.json", "district: unknown district Nowhere") in issues
+
+
+@pytest.mark.parametrize("path", ["/coastline", "/districts"])
+def test_the_map_layers_answer_404_without_a_coastline(client: TestClient, path: str) -> None:
+    engine: Any = client.app.state.engine  # type: ignore[attr-defined]
+    with Session(engine) as session:
+        session.delete(session.get(Coastline, 1))
+        session.commit()
+
+    response = client.get(path)
+
+    assert response.status_code == 404
+    assert response.json()["error"]["message"] == "coastline not loaded"

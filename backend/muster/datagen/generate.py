@@ -166,7 +166,7 @@ def build_districts() -> list[dict[str, Any]]:
                 "name": name,
                 "west_km": west,
                 "east_km": east,
-                "label_at": {"x_km": (west + east) / 2, "y_km": DISTRICT_LABEL_Y_KM},
+                "label": {"x_km": (west + east) / 2, "y_km": DISTRICT_LABEL_Y_KM},
             }
         )
     return districts

@@ -3,6 +3,7 @@ from dataclasses import asdict
 from fastapi import APIRouter
 from sqlmodel import col, select
 
+from muster import territory
 from muster.api.schemas import (
     AssetOut,
     CoastlineOut,
@@ -13,10 +14,8 @@ from muster.api.schemas import (
     StagingAreaOut,
 )
 from muster.deps import SessionDep
-from muster.errors import NotFound
-from muster.geo import boundary_inland
 from muster.ingest.lineage import lineage_report
-from muster.models import Asset, Coastline, District, Facility, StagingArea
+from muster.models import Asset, Facility, StagingArea
 
 router = APIRouter()
 
@@ -41,9 +40,7 @@ def list_staging_areas(session: SessionDep) -> list[StagingAreaOut]:
 
 @router.get("/coastline", response_model=CoastlineOut)
 def get_coastline(session: SessionDep) -> CoastlineOut:
-    row = session.get(Coastline, 1)
-    if row is None:
-        raise NotFound("coastline not loaded")
+    row = territory.coastline(session)
     return CoastlineOut(
         coastline=[PointOut(x_km=x, y_km=y) for x, y in row.coastline],
         land=[PointOut(x_km=x, y_km=y) for x, y in row.land],
@@ -52,27 +49,15 @@ def get_coastline(session: SessionDep) -> CoastlineOut:
 
 @router.get("/districts", response_model=list[DistrictOut])
 def list_districts(session: SessionDep) -> list[DistrictOut]:
-    """The districts west to east, each with its label and its boundary with its western
-    neighbour, for the maps."""
-    coast = session.get(Coastline, 1)
-    if coast is None:
-        raise NotFound("coastline not loaded")
-    line = [(x, y) for x, y in coast.coastline]
-    land = [(x, y) for x, y in coast.land]
-    districts = session.exec(select(District).order_by(col(District.west_km))).all()
     return [
         DistrictOut(
             name=d.name,
             west_km=d.west_km,
             east_km=d.east_km,
-            label=PointOut(x_km=d.label_x_km, y_km=d.label_y_km),
-            boundary=(
-                [PointOut(x_km=x, y_km=y) for x, y in boundary_inland(d.west_km, line, land)]
-                if i > 0
-                else []
-            ),
+            label=PointOut(x_km=d.label[0], y_km=d.label[1]),
+            boundary=[PointOut(x_km=x, y_km=y) for x, y in d.boundary],
         )
-        for i, d in enumerate(districts)
+        for d in territory.district_layers(session)
     ]
 
 

@@ -21,4 +21,4 @@ The plan's section 8 scenario (playbook v3.3) with the CR-02 and CR-03 demo addi
 
 **Alternative path** (also tested): at advisory 3, as **Operations**, *approve* the PS-14 inspection instead of overriding it (and, if you like, mark it **Done** in **Field tasks**). At advisory 5 there is no PS-14 conflict.
 
-Screenshots of these screens are in `docs/screenshots/` and `docs/img/storm_map_adv3.png`.
+Screenshots of these screens are in `docs/screenshots/` and `docs/img/storm_map_adv3.png` (the storm map at advisory 3 in its **Territory** view, which shows the district names; press **Territory** above the map to see it live).

@@ -238,8 +238,8 @@ def load_gold(session: Session, data_dir: Path) -> None:
             name=d.name,
             west_km=d.west_km,
             east_km=d.east_km,
-            label_x_km=d.label_at.x_km,
-            label_y_km=d.label_at.y_km,
+            label_x_km=d.label.x_km,
+            label_y_km=d.label.y_km,
         )
         for d in districts
     )
