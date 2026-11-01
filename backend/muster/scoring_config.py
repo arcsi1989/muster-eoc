@@ -123,6 +123,34 @@ class PlanningConfig(Strict):
     resources: dict[str, PlanningResource]  # field-work state key -> resource
 
 
+CustomerService = Literal["power", "water"]
+
+
+class FieldNeed(Strict):
+    crews: int
+    generators: int
+
+
+class ForecastConfig(Strict):
+    """Customers out and field demand per district (ticket 38): failures drawn per ensemble
+    member, followed through the dependency graph."""
+
+    draws: int
+    seed: int
+    supply_lost_share: float
+    customers: dict[str, CustomerService]  # asset type -> whose customers its outage counts
+    per_failed: dict[str, FieldNeed]  # asset type -> what restoring one failed asset needs
+    per_supply_lost: dict[str, FieldNeed]  # asset type -> what one asset out of supply needs
+
+    @model_validator(mode="after")
+    def every_type_everywhere(self) -> "ForecastConfig":
+        if self.draws < 1 or not 0 < self.supply_lost_share <= 1:
+            raise ValueError("needs at least one draw and a supply_lost_share in (0, 1]")
+        if not set(self.customers) == set(self.per_failed) == set(self.per_supply_lost):
+            raise ValueError("customers, per_failed and per_supply_lost name the same asset types")
+        return self
+
+
 class ScoringConfig(Strict):
     hazard: HazardConfig
     risk: RiskConfig
@@ -130,6 +158,7 @@ class ScoringConfig(Strict):
     copilot: CopilotConfig
     calibration: CalibrationConfig
     planning: PlanningConfig
+    forecast: ForecastConfig
     consequence_weights: dict[str, float]  # from consequence_weights.yaml
 
 

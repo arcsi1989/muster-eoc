@@ -7,6 +7,8 @@ from dataclasses import asdict, dataclass
 from datetime import date
 from typing import Any
 
+import numpy as np
+
 from muster.geo import FloatArray
 from muster.models import FragilityCurve
 from muster.network import Network
@@ -75,19 +77,32 @@ class RuleBasedModel:
     def version(self) -> int:
         return self._version
 
+    def _hazard(self, features: AssetFeatures, name: str) -> tuple[HazardFactor, FloatArray]:
+        """One hazard's curve for the asset and its failure probability per member."""
+        asset = features.asset
+        members = (
+            features.exposure.wind_members_mph
+            if name == "wind"
+            else features.exposure.flood_members_m
+        )
+        c = self._curves[(asset.type, name)]
+        theta_adj = adjusted_theta(c.theta, asset.condition_score, self._step)
+        p = failure_probability(members, theta_adj, c.beta)
+        return HazardFactor(c.theta, theta_adj, c.beta, float(p.mean())), p
+
     def breakdown(self, features: AssetFeatures) -> RuleBreakdown:
-        asset, exposure = features.asset, features.exposure
-        hazard: dict[str, tuple[HazardFactor, FloatArray]] = {}
-        for name, members in (
-            ("wind", exposure.wind_members_mph),
-            ("flood", exposure.flood_members_m),
-        ):
-            c = self._curves[(asset.type, name)]
-            theta_adj = adjusted_theta(c.theta, asset.condition_score, self._step)
-            p = failure_probability(members, theta_adj, c.beta)
-            hazard[name] = (HazardFactor(c.theta, theta_adj, c.beta, float(p.mean())), p)
-        p_fail = float(combine(hazard["wind"][1], hazard["flood"][1]).mean())
-        return RuleBreakdown(hazard["wind"][0], hazard["flood"][0], p_fail)
+        (wind, p_wind), (flood, p_flood) = (
+            self._hazard(features, "wind"),
+            self._hazard(features, "flood"),
+        )
+        return RuleBreakdown(wind, flood, float(combine(p_wind, p_flood).mean()))
+
+    def member_p_fail(self, assets: Sequence[AssetFeatures]) -> FloatArray:
+        """Members x assets: each asset's failure probability under each ensemble member's
+        hazard, before averaging (the outage forecast draws failures from them)."""
+        columns = [combine(self._hazard(f, "wind")[1], self._hazard(f, "flood")[1]) for f in assets]
+        result: FloatArray = np.array(columns).T
+        return result
 
     def predict(self, assets: Sequence[AssetFeatures]) -> list[Prediction]:
         result = []

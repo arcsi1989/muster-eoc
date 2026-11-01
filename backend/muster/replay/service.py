@@ -9,6 +9,7 @@ from muster import advisory_context
 from muster.calibration import versions
 from muster.challenger.model import ChallengerModel
 from muster.errors import ConflictError, DataNotLoaded, NotFound
+from muster.forecast import service as outage_forecast
 from muster.hazard.service import store_exposure
 from muster.ingest.loader import restore_initial_state
 from muster.models import (
@@ -100,6 +101,7 @@ def advance(
         )
         for rank, s in ranked
     )
+    outage_forecast.store(session, advisory, assets, rules, network, config.forecast)
     if challenger is not None and champion.version != challenger.version:
         consequences = {s.asset_id: s.consequence.total for s in scores}
         session.add_all(_shadow_scores(advisory.advisory_no, challenger, assets, consequences))
@@ -169,6 +171,7 @@ def reset(session: Session, data_dir: Path) -> None:
     """Returns the replay to before advisory 1: no advisory, no scores, the initial operational
     state. The modules that own decisions, findings and the audit log clear their own tables."""
     session.exec(delete(Alert))
+    outage_forecast.clear(session)
     session.exec(delete(ShadowScore))
     session.exec(delete(Score))
     session.exec(delete(Exposure))
