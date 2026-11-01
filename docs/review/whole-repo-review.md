@@ -18,7 +18,8 @@ The fixes change structure, names and user-visible wording only. They change no 
   - The handlers also sat in the same module as the domain exceptions, so the 21 domain modules that raise them imported FastAPI.
 - **Fix:**
   - The handlers moved to `api/error_handlers.py`, and `errors.py` now holds only exceptions.
-  - A catch-all handler logs the exception server-side and returns `{"error": {"code": "internal", "message": "internal error"}}`.
+  - A catch-all handler returns `{"error": {"code": "internal", "message": "internal error"}}`. Starlette re-raises after it, so the server logs the traceback, and the handler logs one line naming the request.
+  - This is a visible change: such a 500 used to be plain text. `docs/decisions.md` records it, and CODING_STANDARDS B6 now names `api/error_handlers.py`.
   - It is tested in `tests/test_error_handlers.py`, along with the `http_error` mapping, which had no test before [T4].
 
 ### 2. Tests took the LLM provider from the shell environment [T2]: fixed
@@ -65,6 +66,7 @@ The fixes change structure, names and user-visible wording only. They change no 
   - `replay/service.issued_advisories`: never called.
   - `agent/prompts/copilot_v1.md`: never loaded. The copilot loads v2, and `docs/decisions.md` keeps its history.
   - The frontend's `getFindings` in `api/scenario.ts`: never imported. The `Finding` type stays because it mirrors `GET /findings` [F6].
+  - Five frontend names were exported but used only in their own file: `IDLE_GAP_SHARE`, `BREAK_LABEL_MIN_GAP` (`trace/waterfall.ts`), `LOCAL_TIME_ZONE` (`storm-map/stormTrack.ts`), `ROLE_LABEL` (`lib/roles.ts`) and `DistrictForecastTable`. They are no longer exported.
 
 ### 10. Routers redefined shared dependencies and parameters [G5]: fixed
 - **What was wrong:**
@@ -148,13 +150,23 @@ The fixes change structure, names and user-visible wording only. They change no 
   - `PackageOutOfStep` is tested only at domain level. It is documented as a bug, never a refusal.
 - **Why left:** each needs a fixture that breaks the loaded data. That is low value, so it is noted here.
 
-### 23. Minor: left
+### 23. The audit log's actor badge showed the raw enum: fixed
+- **What was wrong:** `AuditList.tsx` printed `field_supervisor`, `human` and so on, while the filter beside it used labels.
+- **Fix:** the badge now shows a label ("Field supervisor", "Person"), pinned in `AuditPage.test.tsx`.
+
+### 24. Minor: left
 - **`AdvisoryContext.scenario_time`** (`advisory_context.py`) is read only by tests. Deleting it would also delete their assertions [T6], and it names a glossary term the context should answer.
-- **The audit page's actor badge** shows the raw enum (`field_supervisor`), while the filter beside it uses labels. This is cosmetic.
 - **`TerritoryMap.tsx` markers** are mouse-only, whereas `StormMap.tsx` markers have keyboard handling [F7]. The risk list's buttons give keyboard access to the same action.
 - **`AuditList.tsx` parses LLM attempts with its own local type** and ignores `problems`. `TraceSpanOut.attempts` is `list[dict]`, so a shared attempt type is a backend change first.
 
 ## Checked and found clean
+- **`scripts/check.sh`:** it runs every gate the standards name:
+  - ruff format and ruff check, mypy strict and pytest [B8, T6];
+  - prettier, tsc, oxlint and vitest [F5];
+  - the evaluation gate in template mode [L9].
+
+  It installs from the lockfiles, fails when nothing was checked, and treats a change under `config/` or `data/` as a reason to check everything.
+- **`config/*.yaml`:** every key in `scoring.yaml`, `models.yaml`, `llm.yaml`, `evals.yaml` and `consequence_weights.yaml` was checked for a reader. Only `copilot.history_max` has none (finding 14). The `hgb.*` keys reach the model through `model_dump()` in `challenger/train.py`.
 - **Layering and configuration [B1, B2]:**
   - No domain package imports FastAPI (after fix 1).
   - Nothing reads `os.environ` outside `config.py`.
