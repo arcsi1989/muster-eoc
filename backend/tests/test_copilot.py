@@ -1,12 +1,14 @@
 """The copilot: template intents through the read-only tools, citations limited to what tools
 returned, fallback, audit (T2: fakes stand in for the model)."""
 
+import json
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
+from muster.classification import RESTRICTED_KEYS
 from muster.copilot.tools import TOOL_DEFINITIONS
 from muster.llm.anthropic_provider import AnthropicProvider
 from muster.llm.schemas import (
@@ -19,6 +21,7 @@ from muster.llm.schemas import (
     ToolRunner,
 )
 from tests.conftest import ClientFactory
+from tests.test_classification import keys
 
 
 def advance_to(client: TestClient, advisory: int) -> None:
@@ -355,3 +358,131 @@ def test_history_is_bounded(client: TestClient) -> None:
     assert (
         client.post("/copilot/chat", json={"message": "hi", "history": history}).status_code == 422
     )
+
+
+def stream(client: TestClient, message: str) -> list[tuple[str, dict[str, Any]]]:
+    """The server-sent events of one streamed turn, as (event, data) pairs."""
+    response = client.post("/copilot/chat/stream", json={"message": message, "history": []})
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"].startswith("text/event-stream")
+    events = []
+    for block in response.text.strip().split("\n\n"):
+        fields = dict(line.split(": ", 1) for line in block.splitlines() if ": " in line)
+        events.append((fields["event"], json.loads(fields["data"])))
+    return events
+
+
+def test_each_answer_says_how_it_got_there(make_client: ClientFactory) -> None:
+    fake = FakeChat([("get_asset", {"asset_id": "SUB-07"})], "SUB-07 is a substation.")
+    fake.model = "claude-sonnet-5-5"  # priced in config/llm.yaml
+    with make_client(fake) as client:
+        advance_to(client, 2)
+        reply = ask(client, "Tell me about SUB-07")
+
+    work = reply["work"]
+    assert reply["advisory"] == 2
+    assert [(c["name"], c["args"]) for c in work["tool_calls"]] == [
+        ("get_asset", {"asset_id": "SUB-07"})
+    ]
+    assert work["tool_calls"][0]["result"]["id"] == "SUB-07"
+    assert work["attempts"] == [
+        {
+            "provider": "fake",
+            "model": "claude-sonnet-5-5",
+            "prompt_version": "copilot-v2",
+            "latency_ms": 900,
+            "input_tokens": 500,
+            "output_tokens": 80,
+            "problems": [],
+            "error": None,
+        }
+    ]
+    assert (work["retries"], work["validated"], work["fallback"]) == (0, True, False)
+    assert (work["provider"], work["model"], work["prompt_version"]) == (
+        "fake",
+        "claude-sonnet-5-5",
+        "copilot-v2",
+    )
+    assert (work["input_tokens"], work["output_tokens"]) == (500, 80)
+    assert work["cost_usd"] == pytest.approx((500 * 2.00 + 80 * 10.00) / 1_000_000)
+
+
+def test_how_i_got_this_shows_no_restricted_field(make_client: ClientFactory) -> None:
+    calls: list[tuple[str, dict[str, Any]]] = [
+        ("get_asset", {"asset_id": "SUB-07"}),
+        ("get_dependencies", {"asset_id": "SUB-07"}),
+        ("explain_score", {"asset_id": "SUB-07", "advisory": None}),
+    ]
+    with make_client(FakeChat(calls, "SUB-07 is a substation.")) as client:
+        advance_to(client, 2)
+        reply = ask(client, "Tell me about SUB-07")
+
+    shown = reply["work"]["tool_calls"]
+    assert len(shown) == 3
+    assert not keys(shown) & RESTRICTED_KEYS
+
+
+def test_a_fallback_says_why_and_that_the_template_answered(make_client: ClientFactory) -> None:
+    fake = FakeChat([("get_asset", {"asset_id": "SUB-07"})], "SUB-07 serves 12,000 customers.")
+    with make_client(fake) as client:
+        advance_to(client, 1)
+        work = ask(client, "What depends on SUB-07?")["work"]
+
+    assert (work["provider"], work["fallback"], work["validated"]) == (
+        "template (fallback)",
+        True,
+        False,
+    )
+    assert work["attempts"][0]["problems"] == ["it states numbers no tool returned: 12,000"]
+    assert "12,000" in work["fallback_reason"]
+    assert [c["name"] for c in work["tool_calls"]] == ["get_dependencies"], "the template's"
+    assert (work["model"], work["cost_usd"]) == (None, None), "fake-model has no price"
+
+
+def test_the_stream_sends_each_step_then_the_validated_answer(make_client: ClientFactory) -> None:
+    rejected = "SUB-07 serves 12,000 customers."
+    fake = FakeChat([("get_asset", {"asset_id": "SUB-07"})], rejected)
+    with make_client(fake) as client:
+        advance_to(client, 1)
+        events = stream(client, "What depends on SUB-07?")
+        audited = [e for e in client.get("/audit").json() if e["type"] == "copilot_answered"]
+
+    steps = [data for event, data in events if event == "step"]
+    assert [event for event, _ in events] == ["step"] * len(steps) + ["answer"]
+    assert [(s["kind"], s["tool"]) for s in steps] == [
+        ("attempt", None),
+        ("tool_call", "get_asset"),
+        ("validating", None),
+        ("rejected", None),
+        ("fallback", None),
+        ("tool_call", "get_dependencies"),
+    ]
+    assert steps[1]["args"] == {"asset_id": "SUB-07"}
+    final = events[-1][1]
+    assert "HOSP-01" in final["answer"] and final["work"]["fallback"] is True
+    assert all(
+        rejected not in json.dumps(s) and final["answer"] not in json.dumps(s) for s in steps
+    )
+    assert len(audited) == 1, "the streamed turn is audited once, like any other"
+
+
+def test_the_stream_works_offline_with_the_template(client: TestClient) -> None:
+    advance_to(client, 1)
+
+    events = stream(client, "What depends on SUB-07?")
+
+    assert [(e, d.get("kind")) for e, d in events] == [
+        ("step", "attempt"),
+        ("step", "tool_call"),
+        ("step", "validating"),
+        ("step", "validated"),
+        ("answer", None),
+    ]
+    assert events[-1][1]["work"]["provider"] == "template"
+
+
+def test_the_stream_validates_its_request(client: TestClient) -> None:
+    response = client.post("/copilot/chat/stream", json={"message": ""})
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "validation_error"

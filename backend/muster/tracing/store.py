@@ -123,14 +123,6 @@ def _time(nanoseconds: int | None) -> datetime:
 def _row(span: ReadableSpan, run_id: str, current: int | None, config: LLMConfig) -> TraceSpan:
     values: Any = span.attributes or {}  # the attribute values instrument.py set
     attempts: list[dict[str, Any]] = json.loads(values.get(keys.ATTEMPTS, "[]"))
-    costs = [
-        config.cost_usd(
-            t.get("model"),
-            t.get("usage", {}).get("input_tokens", 0),
-            t.get("usage", {}).get("output_tokens", 0),
-        )
-        for t in attempts
-    ]
     status: SpanStatus
     if span.status.status_code is StatusCode.ERROR:
         status = "error"
@@ -153,7 +145,7 @@ def _row(span: ReadableSpan, run_id: str, current: int | None, config: LLMConfig
         model=values.get(keys.MODEL),
         tokens_in=values.get(keys.TOKENS_IN, 0),
         tokens_out=values.get(keys.TOKENS_OUT, 0),
-        cost_usd=None if None in costs else sum(c for c in costs if c is not None),
+        cost_usd=config.attempts_cost_usd(attempts),
         retries=values.get(keys.RETRIES, 0),
         fallback=values.get(keys.FALLBACK, False),
         fallback_reason=values.get(keys.FALLBACK_REASON),

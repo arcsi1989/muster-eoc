@@ -376,12 +376,64 @@ class CitationOut(BaseModel):
     kind: Literal["asset", "clause"]
 
 
+class ToolCallOut(BaseModel):
+    name: str
+    args: dict[str, Any]
+    result: dict[str, Any]  # as the model was shown it: restricted fields already filtered
+
+
+class AttemptOut(BaseModel):
+    """One try of the configured provider, as the audit event records it."""
+
+    provider: str
+    model: str | None
+    prompt_version: str | None
+    latency_ms: int
+    input_tokens: int
+    output_tokens: int
+    problems: list[str]  # what the validator found; empty when it passed
+    error: str | None  # the provider failed; no result was validated
+
+
+class WorkOut(BaseModel):
+    """How the copilot got its answer: the "how I got this" panel."""
+
+    tool_calls: list[ToolCallOut]  # the answering turn's calls
+    attempts: list[AttemptOut]
+    retries: int
+    validated: bool  # the answer passed the validator; False when the template replaced it
+    provider: str
+    model: str | None
+    prompt_version: str | None
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float | None  # None: tokens from a model with no price in config/llm.yaml
+    fallback: bool
+    fallback_reason: str | None
+
+
 class ChatOut(BaseModel):
     answer: str
     citations: list[CitationOut]
     provider: str  # the provider that answered, or "template (fallback)"
     fallback: bool
     tools_used: list[str]
+    advisory: int | None  # the advisory the answer is about: the current one; None before 1
+    work: WorkOut
+
+
+class StepOut(BaseModel):
+    """One step of a copilot turn as it happens (a server-sent `step` event). Never answer text."""
+
+    kind: Literal[
+        "attempt", "validating", "validated", "rejected", "failed", "fallback", "tool_call"
+    ]
+    attempt: int
+    provider: str
+    problems: list[str]
+    reason: str | None
+    tool: str | None
+    args: dict[str, Any]
 
 
 class CurveOut(BaseModel):

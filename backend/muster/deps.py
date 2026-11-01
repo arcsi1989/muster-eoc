@@ -7,6 +7,7 @@ from sqlmodel import Session
 from muster.agent.cycle import AdvisoryCycle
 from muster.challenger.model import ChallengerModel
 from muster.config import Settings
+from muster.llm.config import LLMConfig
 from muster.llm.provider import LLMProvider
 from muster.models_config import ModelsConfig
 from muster.playbook.activation import ActivationLevel
@@ -59,6 +60,15 @@ def get_llm(request: Request) -> LLMProvider:
 
 
 LLMDep = Annotated[LLMProvider, Depends(get_llm)]
+
+
+def get_llm_config(request: Request) -> LLMConfig:
+    """The model prices from config/llm.yaml, for cost estimates."""
+    config: LLMConfig = request.app.state.llm_config
+    return config
+
+
+LLMConfigDep = Annotated[LLMConfig, Depends(get_llm_config)]
 ScoringConfigDep = Annotated[ScoringConfig, Depends(get_scoring_config)]
 
 

@@ -57,6 +57,7 @@ def create_app(settings: Settings | None = None, llm: LLMProvider | None = None)
             session.commit()
         app.state.engine = engine
         llm_config = load_llm_config(settings.llm_config_path)
+        app.state.llm_config = llm_config
         tracing.start(
             engine,
             llm_config,

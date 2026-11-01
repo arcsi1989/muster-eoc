@@ -3,7 +3,8 @@ the answer may cite only IDs and state only numbers the tools returned. A failur
 ID or an ungrounded number serves the template answer (L9). This task owns the copilot prompt."""
 
 import json
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from sqlmodel import Session
@@ -14,7 +15,7 @@ from muster.audit.log import record
 from muster.classification import for_model
 from muster.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from muster.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID, mentioned
-from muster.llm.grounded import generate
+from muster.llm.grounded import GenerationEvent, generate
 from muster.llm.provider import LLMProvider
 from muster.llm.schemas import ChatResult, ChatTurn, Prompt
 from muster.llm.template import TemplateProvider
@@ -51,13 +52,56 @@ class ToolCall:
 
 
 @dataclass(frozen=True)
+class Step:
+    """One step of a turn as it happens, so the UI can show the copilot's progress: a generation
+    step (an attempt starts, is validated or rejected, the provider failed, the template takes
+    over) or a tool call with its arguments. A step never carries answer text: an answer is shown
+    only once it has passed validation (or is the template's)."""
+
+    kind: Literal[
+        "attempt", "validating", "validated", "rejected", "failed", "fallback", "tool_call"
+    ]
+    attempt: int
+    provider: str
+    problems: tuple[str, ...] = ()
+    reason: str | None = None
+    tool: str | None = None
+    args: dict[str, Any] = field(default_factory=dict)
+
+
+StepObserver = Callable[[Step], None]
+
+
+@dataclass(frozen=True)
 class CopilotAnswer:
+    """The answer and how it was reached: what the "how I got this" panel shows."""
+
     text: str
     citations: list[Citation]
     provider: str
     fallback: bool
     tools_used: list[str]
     tool_calls: list[ToolCall]  # what the answering turn called and was shown (the eval reads it)
+    advisory: int | None  # the advisory the tools answered about: the current one
+    model: str | None  # the model of the answering turn; None for the template
+    prompt_version: str | None
+    attempts: list[dict[str, Any]]  # the attempt log, as audited
+    fallback_reason: str | None
+
+    @property
+    def validated(self) -> bool:
+        """Whether the answer shown passed the validator (the fallback template is not checked:
+        it is deterministic and built from the same tools)."""
+        return not self.fallback
+
+    @property
+    def tokens(self) -> tuple[int, int]:
+        """Input and output tokens over every attempt of the turn."""
+        usages = [a.get("usage", {}) for a in self.attempts]
+        return (
+            sum(u.get("input_tokens", 0) for u in usages),
+            sum(u.get("output_tokens", 0) for u in usages),
+        )
 
 
 class _Recorder:
@@ -67,14 +111,16 @@ class _Recorder:
     Every result passes the data classification filter first, so a restricted field never
     reaches the model and an ID only a restricted field held is not citable (CR-03 C1)."""
 
-    def __init__(self, tools: CopilotTools) -> None:
+    def __init__(self, tools: CopilotTools, on_call: Callable[[str, dict[str, Any]], None]) -> None:
         self._tools = tools
+        self._on_call = on_call
         self.asset_ids: set[str] = set()
         self.clause_ids: set[str] = set()
         self.other_ids: set[str] = set()
         self.calls: list[ToolCall] = []
 
     def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        self._on_call(name, args)
         shown = self._run(name, args)
         self.calls.append(ToolCall(name, args, shown))
         return shown
@@ -158,14 +204,26 @@ def answer(
     history: list[ChatTurn],
     scoring: ScoringConfig,
     prompt: Prompt | None = None,
+    on_step: StepObserver | None = None,
 ) -> CopilotAnswer:
-    """`prompt` replaces the copilot prompt (the evaluation tries a candidate prompt with it)."""
+    """`prompt` replaces the copilot prompt (the evaluation tries a candidate prompt with it).
+    `on_step` is told each step of the turn as it happens (the streamed progress)."""
     config = scoring.copilot
     tools = CopilotTools(session, playbook, config)
     recent = history[-config.history_turns :]
+    step = on_step or (lambda _: None)
+    now = GenerationEvent("attempt", 1, provider.name)  # the step a tool call belongs to
+
+    def observe(event: GenerationEvent) -> None:
+        nonlocal now
+        now = event
+        step(Step(event.kind, event.attempt, event.provider, event.problems, event.reason))
+
+    def called(name: str, args: dict[str, Any]) -> None:
+        step(Step("tool_call", now.attempt, now.provider, tool=name, args=dict(args)))
 
     def ask(p: LLMProvider, prompt: Prompt, feedback: list[str]) -> _Answered:
-        recorder = _Recorder(tools)  # each call is checked against the tools it ran
+        recorder = _Recorder(tools, called)  # each call is checked against the tools it ran
         asked = question + (_REJECTED + "\n- ".join(feedback) if feedback else "")
         return _Answered(p.chat(asked, recent, TOOL_DEFINITIONS, recorder, prompt), recorder)
 
@@ -178,6 +236,7 @@ def answer(
         1 + config.retries,
         rejected="the answer was not grounded",
         task="copilot",
+        observe=observe,
     )
     result, recorder = outcome.result.chat, outcome.result.recorder
     citations, _ = _cite(result.text, recorder)
@@ -207,4 +266,9 @@ def answer(
         outcome.fallback,
         result.tools_used,
         recorder.calls,
+        advisory.advisory_no if advisory else None,
+        result.model,
+        outcome.prompt_version,
+        outcome.attempts,
+        outcome.fallback_reason,
     )
