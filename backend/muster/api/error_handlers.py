@@ -39,5 +39,7 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def handle_unexpected(request: Request, exc: Exception) -> JSONResponse:
         # A bug, not a refusal: details go to the server log, never to the client (B6, B7).
-        log.exception("unhandled error on %s %s", request.method, request.url.path, exc_info=exc)
+        # Starlette re-raises after this handler, so the server logs the traceback; this line
+        # names the request it belongs to.
+        log.error("unhandled %s on %s %s", type(exc).__name__, request.method, request.url.path)
         return _error(500, "internal", "internal error")
