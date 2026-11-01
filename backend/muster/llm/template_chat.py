@@ -12,7 +12,9 @@ from muster.llm.schemas import ChatResult, ToolRunner
 DEPENDS = re.compile(r"depend|feeds?\b|supplies|supplied|upstream|downstream", re.IGNORECASE)
 # "How bad, where, and do we have enough?": the outage forecast (ticket 38).
 OUTAGE = re.compile(
-    r"how bad|customers? (?:out|affected)|outages?|\bcrews?\b|generators?|enough", re.IGNORECASE
+    r"how bad|customers? (?:out|affected)|outages?|enough (?:crews|generators)"
+    r"|how many (?:crews|generators)|(?:crews|generators) (?:are )?(?:needed|short)",
+    re.IGNORECASE,
 )
 TOP = re.compile(r"\btop\b|highest|most at risk|riskiest", re.IGNORECASE)
 # A request to change something, which the copilot cannot do (CLAUDE.md hard rules).
@@ -140,12 +142,12 @@ def template_chat(question: str, run_tool: ToolRunner, top_n: int) -> ChatResult
                 f"Nobody can say whether {data['asset_id']} will fail; the ranking gives a "
                 f"probability, not a forecast. {text}"
             )
+    elif TOP.search(question):  # before the forecast: "top risks for generators" is a ranking
+        data = call("list_top_risks", {"advisory": None, "n": top_n})
+        text = data.get("error") or top_risks(data)
     elif OUTAGE.search(question):
         data = call("get_outage_forecast", {"advisory": None})
         text = data.get("error") or outage(data)
-    elif TOP.search(question):
-        data = call("list_top_risks", {"advisory": None, "n": top_n})
-        text = data.get("error") or top_risks(data)
     else:
         text = HELP
     return ChatResult(str(text), used, None, None, 0, {})
