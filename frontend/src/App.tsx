@@ -114,6 +114,7 @@ function OperationsScreen() {
           {territory.state.status === 'ok' && (
             <TerritoryMap
               coastline={territory.state.data.coastline}
+              districts={territory.state.data.districts}
               assets={assets}
               facilities={territory.state.data.facilities}
               stagingAreas={territory.state.data.stagingAreas}

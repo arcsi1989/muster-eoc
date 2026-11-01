@@ -36,6 +36,14 @@ def project_onto_polyline(
     return dist[rows, best], start[best] + t[rows, best] * seg_len[best]
 
 
+def boundary_inland(x_km: float, coastline: Sequence[Point], land: Sequence[Point]) -> list[Point]:
+    """A north-south line at x_km from the coast (west-to-east coastline) to the land's northern
+    edge: where two neighbouring districts meet."""
+    line = np.asarray(coastline, dtype=float)
+    coast_y = float(np.interp(x_km, line[:, 0], line[:, 1]))
+    return [(x_km, coast_y), (x_km, max(y for _, y in land))]
+
+
 def inside_polygon(points: FloatArray, polygon: Sequence[Point]) -> NDArray[np.bool_]:
     """Ray casting: True for each point (N x 2) inside the polygon."""
     poly = np.asarray(polygon, dtype=float)

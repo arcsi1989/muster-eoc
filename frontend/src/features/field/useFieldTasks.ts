@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import type { ApiError } from '../../api/client'
-import { getDistricts, getFieldTasks, postFieldReport } from '../../api/scenario'
+import { getFieldDistrictNames, getFieldTasks, postFieldReport } from '../../api/scenario'
 import { toApiError, useLatestData, useLoad } from '../../lib/useLoad'
 import type { FieldOutcome, FieldTask } from '../../types/scenario'
 
@@ -9,7 +9,7 @@ const STALE_TASKS = new Set(['stop_work', 'already_done', 'package_closed', 'not
 
 /** The districts, the chosen district's field tasks, and a supervisor's reports on them. */
 export function useFieldTasks() {
-  const districts = useLoad(getDistricts)
+  const districts = useLoad(getFieldDistrictNames)
   const [chosen, setChosen] = useState<string | null>(null)
   const district = chosen ?? (districts.state.status === 'ok' ? (districts.state.data[0] ?? null) : null)
 

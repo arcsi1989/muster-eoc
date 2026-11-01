@@ -81,3 +81,7 @@ A hurricane is 72 hours from the coast of Bayport County. Five forecasts (adviso
 ## Alternative path (also tested)
 
 At advisory 3, as **Operations**, *approve* the PS-14 inspection instead of overriding it (optionally mark it **Done** in **Field tasks**, district Bayport East). At advisory 5 there is no PS-14 conflict.
+
+## Screenshots
+
+`docs/screenshots/` and `docs/img/storm_map_adv3.png` (the storm map at advisory 3 in its **Territory** view, which shows the district names; press **Territory** above the map to see it live).

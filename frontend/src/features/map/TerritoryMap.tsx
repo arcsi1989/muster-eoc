@@ -1,8 +1,10 @@
-import { CRS, type LatLngExpression } from 'leaflet'
+import { CRS, divIcon, type LatLngExpression } from 'leaflet'
+import { Fragment } from 'react'
 import 'leaflet/dist/leaflet.css'
-import { CircleMarker, MapContainer, Polygon, Polyline, Tooltip } from 'react-leaflet'
+import { CircleMarker, MapContainer, Marker, Pane, Polygon, Polyline, Tooltip } from 'react-leaflet'
+import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
 import { FULL_RED_AT, pFailColor } from '../../lib/pFailColor'
-import type { Advisory, Asset, Coastline, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
+import type { Advisory, Asset, Coastline, District, Exposure, Facility, Point, StagingArea } from '../../types/scenario'
 
 // Planar km grid with Leaflet's simple CRS: lat = y_km, lng = x_km. No tiles, no real geography.
 const toLatLng = (p: Point): LatLngExpression => [p.y_km, p.x_km]
@@ -13,6 +15,7 @@ const BOUNDS: [[number, number], [number, number]] = [
 
 interface Props {
   coastline: Coastline
+  districts: District[]
   assets: Asset[]
   facilities: Facility[]
   stagingAreas: StagingArea[]
@@ -24,6 +27,13 @@ interface Props {
   onSelect: (assetId: string) => void
 }
 
+/** A district's name as plain text (never parsed as HTML), centred on its label point. */
+function districtLabel(name: string) {
+  const text = document.createElement('span')
+  text.textContent = name
+  return divIcon({ className: 'district-label', html: text, iconSize: [0, 0] })
+}
+
 function exposureText(e: Exposure | undefined): string {
   if (!e) return ''
   const arrival = e.tsforce_arrival_h === null ? 'no TS-force wind' : `TS-force wind in ${e.tsforce_arrival_h} h`
@@ -33,6 +43,7 @@ function exposureText(e: Exposure | undefined): string {
 
 export function TerritoryMap({
   coastline,
+  districts,
   assets,
   facilities,
   stagingAreas,
@@ -45,8 +56,24 @@ export function TerritoryMap({
   return (
     <div className="map-wrap">
       <MapContainer crs={CRS.Simple} bounds={BOUNDS} minZoom={-2} className="territory-map">
-        <Polygon positions={coastline.land.map(toLatLng)} pathOptions={{ className: 'land' }} />
-        <Polyline positions={coastline.coastline.map(toLatLng)} pathOptions={{ className: 'coast' }} />
+        {/* Panes below the overlay pane (400): districts sit under the cone, track and assets. */}
+        <Pane name="territory" style={{ zIndex: 340 }}>
+          <Polygon positions={coastline.land.map(toLatLng)} pathOptions={{ className: 'land' }} />
+          <Polyline positions={coastline.coastline.map(toLatLng)} pathOptions={{ className: 'coast' }} />
+        </Pane>
+        <Pane name="districts" style={{ zIndex: 350, pointerEvents: 'none' }}>
+          {districts.map((d) => (
+            <Fragment key={d.name}>
+              {d.boundary.length > 0 && (
+                <Polyline
+                  positions={d.boundary.map(toLatLng)}
+                  pathOptions={{ className: 'district-boundary', dashArray: DISTRICT_DASH_PX.join(' '), interactive: false }}
+                />
+              )}
+              <Marker position={toLatLng(d.label)} pane="districts" interactive={false} keyboard={false} icon={districtLabel(d.name)} />
+            </Fragment>
+          ))}
+        </Pane>
         {previous && (
           <Polyline positions={previous.track.map(toLatLng)} pathOptions={{ className: 'track-previous' }}>
             <Tooltip sticky>Previous forecast track (advisory {previous.advisory_no})</Tooltip>

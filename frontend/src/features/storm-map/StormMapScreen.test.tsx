@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { makeAsset, makeRiskItem } from '../../test/fixtures'
-import type { Advisory, RiskList, Scenario, TrackPoint } from '../../types/scenario'
+import type { Advisory, District, RiskList, Scenario, TrackPoint } from '../../types/scenario'
 import { StormMapScreen } from './StormMapScreen'
 import { CATEGORY_COLOR, RISK_BAND_COLOR } from './stormTrack'
 
@@ -65,6 +65,21 @@ const ASSETS = [
   makeAsset({ id: 'SUB-01', name: 'Harbour Substation', type: 'substation' }),
 ]
 
+const district = (name: string, west_km: number, east_km: number): District => ({
+  name,
+  west_km,
+  east_km,
+  label: { x_km: (west_km + east_km) / 2, y_km: 165 },
+  boundary: west_km === 0 ? [] : [{ x_km: west_km, y_km: 55 }, { x_km: west_km, y_km: 220 }],
+})
+
+const DISTRICTS = [
+  district('Westshore', 0, 75),
+  district('Bayport West', 75, 135),
+  district('Bayport East', 135, 190),
+  district('Eastern Plains', 190, 260),
+]
+
 function backend(failRiskOnce = false) {
   let current = 1
   let failed = false
@@ -74,6 +89,7 @@ function backend(failRiskOnce = false) {
     if (url === '/api/advisories') return json(scenario(current))
     if (url === '/api/assets') return json(ASSETS)
     if (url === '/api/coastline') return json({ coastline: [], land: [] })
+    if (url === '/api/districts') return json(DISTRICTS)
     if (url === '/api/facilities') return json([{ id: 'HOSP-01', name: 'General Hospital', type: 'hospital', x_km: 1, y_km: 1 }])
     if (url === '/api/staging-areas') return json([])
     if (url.startsWith('/api/risk')) {
@@ -111,6 +127,23 @@ test('the map shows the legend, the cone note and a local-time label on each 12-
   expect(within(map).getByText('23:00 Mon')).toBeInTheDocument()
   expect(within(map).getByText('11:00 Tue')).toBeInTheDocument()
   expect(within(map).queryByText('05:00 Tue')).not.toBeInTheDocument()
+})
+
+test('the map names the four served districts and draws a dashed boundary between each pair of neighbours', async () => {
+  backend()
+  const { container } = render(<StormMapScreen />)
+  const map = await screen.findByRole('img', { name: 'Storm map, advisory 1' })
+
+  // a name wider than its district wraps, one word per line
+  const labels = [...map.querySelectorAll('.district-label')].map((l) => l.textContent)
+  expect(labels).toEqual(['Westshore', 'Bayport West', 'Bayport East', 'Eastern Plains'])
+  const boundaries = container.querySelectorAll<SVGPolylineElement>('.district-boundary')
+  expect([...boundaries].map((b) => b.getAttribute('points'))).toEqual(['75,-55 75,-220', '135,-55 135,-220', '190,-55 190,-220'])
+  expect(boundaries[0].style.strokeDasharray).not.toBe('')
+  // drawn before the cone, the track and the assets, so they lie on top
+  const order = [...container.querySelectorAll('.districts, .cone, .track-forecast, .asset')]
+  expect(order[0].getAttribute('class')).toBe('districts')
+  expect(container.querySelectorAll('.cone, .track-forecast, .asset').length).toBeGreaterThanOrEqual(4)
 })
 
 test('forecast dots are coloured by intensity category', async () => {

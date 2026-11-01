@@ -1,0 +1,38 @@
+[
+  {
+    "east_km": 75.0,
+    "label": {
+      "x_km": 37.5,
+      "y_km": 165.0
+    },
+    "name": "Westshore",
+    "west_km": 0.0
+  },
+  {
+    "east_km": 135.0,
+    "label": {
+      "x_km": 105.0,
+      "y_km": 165.0
+    },
+    "name": "Bayport West",
+    "west_km": 75.0
+  },
+  {
+    "east_km": 190.0,
+    "label": {
+      "x_km": 162.5,
+      "y_km": 165.0
+    },
+    "name": "Bayport East",
+    "west_km": 135.0
+  },
+  {
+    "east_km": 260.0,
+    "label": {
+      "x_km": 225.0,
+      "y_km": 165.0
+    },
+    "name": "Eastern Plains",
+    "west_km": 190.0
+  }
+]

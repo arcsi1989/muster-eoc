@@ -12,7 +12,7 @@ and coordinates stay in the UI (`muster.classification`).
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.config import JsonDict
 
 AssetType = Literal["substation", "pump_station", "treatment_plant"]
@@ -93,6 +93,22 @@ class InitialStateFile(Contract):
 class PointRecord(Contract):
     x_km: float = Field(json_schema_extra=RESTRICTED)
     y_km: float = Field(json_schema_extra=RESTRICTED)
+
+
+class DistrictRecord(Contract):
+    """A fictional district a field supervisor works: the territory from `west_km` to `east_km`,
+    coast to inland edge. Together the districts tile the territory west to east."""
+
+    name: str = Field(min_length=1, json_schema_extra=INTERNAL)
+    west_km: float = Field(json_schema_extra=RESTRICTED)
+    east_km: float = Field(json_schema_extra=RESTRICTED)
+    label: PointRecord = Field(json_schema_extra=INTERNAL)  # where the maps write its name
+
+    @model_validator(mode="after")
+    def _east_of_west(self) -> "DistrictRecord":
+        if self.east_km <= self.west_km:
+            raise ValueError(f"east_km {self.east_km} is not east of west_km {self.west_km}")
+        return self
 
 
 class TrackPointRecord(Contract):

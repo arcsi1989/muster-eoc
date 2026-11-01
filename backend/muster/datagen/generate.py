@@ -26,6 +26,7 @@ from muster.ingest.contracts import (
     AssetRecord,
     CoastlineFile,
     DependencyRecord,
+    DistrictRecord,
     FacilityRecord,
     FragilityCurveRecord,
     HistoricalStormFile,
@@ -145,8 +146,30 @@ DISTRICTS = [
 ]
 
 
+# Where the maps write the districts' names (y_km): in the sparser band above the coastal towns,
+# inside both maps' views.
+DISTRICT_LABEL_Y_KM = 165.0
+
+
 def district_for(x_km: float) -> str:
     return next(name for name, west in reversed(DISTRICTS) if x_km >= west)
+
+
+def build_districts() -> list[dict[str, Any]]:
+    """Each district's span from its western edge to the next one's (the last to the territory's
+    eastern edge), and where its name sits on the maps."""
+    edges = [west for _, west in DISTRICTS[1:]] + [float(TERRITORY_WIDTH_KM)]
+    districts = []
+    for (name, west), east in zip(DISTRICTS, edges, strict=True):
+        districts.append(
+            {
+                "name": name,
+                "west_km": west,
+                "east_km": east,
+                "label": {"x_km": (west + east) / 2, "y_km": DISTRICT_LABEL_Y_KM},
+            }
+        )
+    return districts
 
 
 def place_names(rng: random.Random, count: int, kind: str) -> list[str]:
@@ -550,6 +573,7 @@ def generate(out_dir: Path) -> None:
     write_json(out_dir / "assets.json", assets)
     write_json(out_dir / "assets_rejected_example.json", REJECTED_EXAMPLE)
     write_json(out_dir / "critical_facilities.json", facilities)
+    write_json(out_dir / "districts.json", build_districts())
     write_json(out_dir / "staging_areas.json", staging)
     write_json(out_dir / "dependencies.json", build_dependencies(assets, facilities))
     write_json(out_dir / "fragility_curves.json", FRAGILITY_CURVES)
@@ -572,6 +596,7 @@ def export_schemas(out_dir: Path) -> None:
         "asset": AssetRecord,
         "dependency": DependencyRecord,
         "critical_facility": FacilityRecord,
+        "district": DistrictRecord,
         "staging_area": StagingAreaRecord,
         "fragility_curve": FragilityCurveRecord,
         "initial_state": InitialStateFile,

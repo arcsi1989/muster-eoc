@@ -155,6 +155,10 @@ _Avoid_: Planner, planning lead
 The EOC Director, who holds the decisions the Incident Commander would hold while the EOC is below Full activation.
 _Avoid_: Manager, duty officer
 
+**District**:
+One of the four fictional areas the territory is split into, west to east (Westshore, Bayport West, Bayport East, Eastern Plains). Every asset and staging area lies in one; a field supervisor works one; both maps draw their boundaries. Defined once in the gold data.
+_Avoid_: Zone, region, area (alone)
+
 **Field supervisor**:
 The person who leads field crews in one district. They see that district's field tasks and mark them done or blocked; they do not change priorities, approve actions or see other districts' tasks.
 _Avoid_: Crew lead, foreman

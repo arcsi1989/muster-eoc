@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { DISTRICT_DASH_PX } from '../../lib/districtStyle'
 import { formatPercent } from '../../lib/format'
-import type { Advisory, Asset, AssetType, Coastline, Facility, Point, RiskItem, StagingArea } from '../../types/scenario'
+import type { Advisory, Asset, AssetType, Coastline, District, Facility, Point, RiskItem, StagingArea } from '../../types/scenario'
 import { CATEGORY_COLOR, CATEGORY_LABEL, formatLocalTime, LABEL_EVERY_H, RISK_BAND_COLOR, timeLabels } from './stormTrack'
 
 // Plain SVG on the planar km grid: x = x_km, y = -y_km (north up). No tiles, no real geography.
@@ -16,6 +17,10 @@ const FONT_SIZE = 13
 /** Asset radius: the smallest, plus up to this much more as consequence grows (area tracks it). */
 const ASSET_R_MIN = 2.5
 const ASSET_R_SPAN = 5
+/** District names, relative to the font size. */
+const DISTRICT_FONT = 0.85
+/** A character's average width, in font sizes, for fitting text in a box. */
+const CHAR_WIDTH = 0.56
 /** A time label's box, in font sizes, for the collision check. */
 const LABEL_BOX = { width: 6, height: 1.3 }
 
@@ -34,6 +39,7 @@ interface Hover {
 
 interface Props {
   coastline: Coastline
+  districts: District[]
   assets: Asset[]
   facilities: Facility[]
   stagingAreas: StagingArea[]
@@ -44,7 +50,7 @@ interface Props {
   onSelect: (assetId: string) => void
 }
 
-export function StormMap({ coastline, assets, facilities, stagingAreas, advisory, previous, risk, onSelect }: Props) {
+export function StormMap({ coastline, districts, assets, facilities, stagingAreas, advisory, previous, risk, onSelect }: Props) {
   const [view, setView] = useState<View>('storm')
   const [hover, setHover] = useState<Hover | null>(null)
   const box = VIEWS[view]
@@ -77,6 +83,21 @@ export function StormMap({ coastline, assets, facilities, stagingAreas, advisory
       >
         <polygon className="land" points={path(coastline.land)} />
         <polyline className="coast" points={path(coastline.coastline)} style={{ strokeWidth: 2 * scale }} />
+        {/* Districts sit under the cone, track and assets: context, not data. */}
+        <g className="districts">
+          {districts.map((d) => (
+            <g key={d.name}>
+              {d.boundary.length > 0 && (
+                <polyline
+                  className="district-boundary"
+                  points={path(d.boundary)}
+                  style={{ strokeWidth: scale, strokeDasharray: DISTRICT_DASH_PX.map((px) => px * scale).join(' ') }}
+                />
+              )}
+              <DistrictLabel district={d} font={font * DISTRICT_FONT} />
+            </g>
+          ))}
+        </g>
 
         {advisory && previous && (
           // The outgoing advisory's cone and track fade out while the new ones fade in.
@@ -224,8 +245,25 @@ export function StormMap({ coastline, assets, facilities, stagingAreas, advisory
   )
 }
 
+/** A district's name centred on its label point; one word per line when it is wider than its district. */
+function DistrictLabel({ district, font }: { district: District; font: number }) {
+  const { name, label: at } = district
+  const fits = name.length * font * CHAR_WIDTH < district.east_km - district.west_km
+  const lines = fits ? [name] : name.split(' ')
+  return (
+    <text className="district-label" x={at.x_km} y={-at.y_km} style={{ fontSize: font }}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={at.x_km} dy={i === 0 ? `${0.35 - (lines.length - 1) * 0.55}em` : '1.1em'}>
+          {/* the space keeps the name whole in the text's content */}
+          {i < lines.length - 1 ? `${line} ` : line}
+        </tspan>
+      ))}
+    </text>
+  )
+}
+
 function HoverCard({ hover, scale, font }: { hover: Hover; scale: number; font: number }) {
-  const width = Math.max(...hover.lines.map((l) => l.length)) * font * 0.56 + 12 * scale
+  const width = Math.max(...hover.lines.map((l) => l.length)) * font * CHAR_WIDTH + 12 * scale
   const height = hover.lines.length * font * 1.3 + 8 * scale
   const x = hover.at.x_km + 10 * scale
   const y = -hover.at.y_km - height - 6 * scale

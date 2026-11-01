@@ -3,18 +3,19 @@ from dataclasses import asdict
 from fastapi import APIRouter
 from sqlmodel import col, select
 
+from muster import territory
 from muster.api.schemas import (
     AssetOut,
     CoastlineOut,
+    DistrictOut,
     FacilityOut,
     LineageOut,
     PointOut,
     StagingAreaOut,
 )
 from muster.deps import SessionDep
-from muster.errors import NotFound
 from muster.ingest.lineage import lineage_report
-from muster.models import Asset, Coastline, Facility, StagingArea
+from muster.models import Asset, Facility, StagingArea
 
 router = APIRouter()
 
@@ -39,13 +40,25 @@ def list_staging_areas(session: SessionDep) -> list[StagingAreaOut]:
 
 @router.get("/coastline", response_model=CoastlineOut)
 def get_coastline(session: SessionDep) -> CoastlineOut:
-    row = session.get(Coastline, 1)
-    if row is None:
-        raise NotFound("coastline not loaded")
+    row = territory.coastline(session)
     return CoastlineOut(
         coastline=[PointOut(x_km=x, y_km=y) for x, y in row.coastline],
         land=[PointOut(x_km=x, y_km=y) for x, y in row.land],
     )
+
+
+@router.get("/districts", response_model=list[DistrictOut])
+def list_districts(session: SessionDep) -> list[DistrictOut]:
+    return [
+        DistrictOut(
+            name=d.name,
+            west_km=d.west_km,
+            east_km=d.east_km,
+            label=PointOut(x_km=d.label[0], y_km=d.label[1]),
+            boundary=[PointOut(x_km=x, y_km=y) for x, y in d.boundary],
+        )
+        for d in territory.district_layers(session)
+    ]
 
 
 @router.get("/lineage", response_model=list[LineageOut])

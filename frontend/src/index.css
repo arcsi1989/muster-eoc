@@ -617,6 +617,26 @@ button.link {
   stroke-width: 2;
 }
 
+/* Districts: faint context under the cone, track and assets. */
+.territory-map .district-boundary {
+  fill: none;
+  stroke: var(--muted);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+}
+
+.territory-map .district-label span {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: italic;
+  text-shadow:
+    0 0 2px var(--land),
+    0 0 4px var(--land);
+}
+
 .territory-map .cone {
   fill: var(--track);
   fill-opacity: 0.12;
@@ -788,6 +808,24 @@ button.link {
 .storm-map-canvas .coast {
   fill: none;
   stroke: var(--coast);
+}
+
+.storm-map-canvas .district-boundary {
+  fill: none;
+  stroke: var(--muted);
+  stroke-opacity: 0.55;
+}
+
+.storm-map-canvas .district-label {
+  fill: var(--text);
+  fill-opacity: 0.6;
+  font-style: italic;
+  text-anchor: middle;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--land);
+  stroke-width: 3px;
+  stroke-linejoin: round;
 }
 
 .storm-map-canvas .cone {
