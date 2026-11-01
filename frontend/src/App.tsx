@@ -5,7 +5,7 @@ import { AlertsPanel } from './features/alerts/AlertsPanel'
 import { AuditPage } from './features/audit/AuditPage'
 import { CalibrationPage } from './features/calibration/CalibrationPage'
 import { ChallengerPage } from './features/challenger/ChallengerPage'
-import { CopilotPanel } from './features/copilot/CopilotPanel'
+import { CopilotDock } from './features/copilot/CopilotDock'
 import { DataQualityPage } from './features/data-quality/DataQualityPage'
 import { ExplainDrawer } from './features/explain/ExplainDrawer'
 import { FieldPage } from './features/field/FieldPage'
@@ -28,17 +28,35 @@ import type { Role } from './types/scenario'
 
 export default function App() {
   const route = useHashRoute()
+  const [copilotOpen, setCopilotOpen] = useState(false)
+  // the asset the explain drawer shows; the copilot's citations select it too
+  const [selected, setSelected] = useState<string | null>(null)
+
+  function selectFromCopilot(assetId: string) {
+    setSelected(assetId)
+    window.location.hash = '#/operations'
+  }
+
   return (
-    <div className="app">
+    <div className={copilotOpen ? 'app dock-open' : 'app'}>
       <nav className="app-nav" aria-label="Pages">
         {PAGES.map((page) => (
           <a key={page.route} href={page.hash} aria-current={route === page.route ? 'page' : undefined}>
             {page.label}
           </a>
         ))}
+        <button
+          type="button"
+          className="nav-copilot"
+          aria-expanded={copilotOpen}
+          aria-controls="copilot-dock"
+          onClick={() => setCopilotOpen((open) => !open)}
+        >
+          Copilot
+        </button>
       </nav>
       {route === 'storm-map' && <StormMapScreen />}
-      {route === 'operations' && <OperationsScreen />}
+      {route === 'operations' && <OperationsScreen selected={selected} onSelect={setSelected} />}
       {route === 'field' && <FieldPage />}
       {route === 'planning' && <PlanningPage />}
       {route === 'audit' && <AuditPage />}
@@ -46,12 +64,14 @@ export default function App() {
       {route === 'calibration' && <CalibrationPage />}
       {route === 'challenger' && <ChallengerPage />}
       {route === 'trace' && <RunTracePage />}
+      <CopilotDock open={copilotOpen} onClose={() => setCopilotOpen(false)} onSelectAsset={selectFromCopilot} />
       <DisclaimerFooter />
     </div>
   )
 }
 
-function OperationsScreen() {
+function OperationsScreen({ selected, onSelect }: { selected: string | null; onSelect: (assetId: string | null) => void }) {
+  const setSelected = onSelect
   const scenario = useScenario()
   const territory = useLoad(getTerritory)
 
@@ -63,8 +83,7 @@ function OperationsScreen() {
   const exposure = useLoad(currentNo > 0 ? exposureLoader : null)
   const alertsLoader = useCallback(() => getAlerts(currentNo), [currentNo])
   const alerts = useLoad(currentNo > 0 ? alertsLoader : null)
-  const [selected, setSelected] = useState<string | null>(null)
-  const [tab, setTab] = useState<'risk' | 'package' | 'copilot'>('risk')
+  const [tab, setTab] = useState<'risk' | 'package'>('risk')
   const [role, setRole] = useState<Role>('director')
   const risk = useLoad(currentNo > 0 ? riskLoader : null)
   const changes = useLoad(currentNo > 0 ? changesLoader : null)
@@ -158,11 +177,7 @@ function OperationsScreen() {
             <button type="button" role="tab" aria-selected={tab === 'package'} onClick={() => setTab('package')}>
               Decision package
             </button>
-            <button type="button" role="tab" aria-selected={tab === 'copilot'} onClick={() => setTab('copilot')}>
-              Copilot
-            </button>
           </div>
-          {tab === 'copilot' && <CopilotPanel onSelectAsset={setSelected} />}
           {tab === 'risk' && (
             <>
               {current && <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />}

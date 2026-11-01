@@ -8,6 +8,7 @@ import type {
   ChatReply,
   ChatTurn,
   Clause,
+  CopilotStep,
   Asset,
   Coastline,
   District,
@@ -32,7 +33,7 @@ import type {
   Sitrep,
   StagingArea,
 } from '../types/scenario'
-import { ApiError, api } from './client'
+import { ApiError, api, streamEvents } from './client'
 
 export const getScenario = () => api<Scenario>('/advisories')
 export const nextAdvisory = () => api<Scenario>('/advisories/next', { method: 'POST' })
@@ -90,8 +91,26 @@ export const releasePlanning = (advisoryNo: number, role: Role) =>
   api<Planning>(`/packages/${advisoryNo}/planning/release`, { method: 'POST', body: JSON.stringify({ role }) })
 export const getAudit = (actor?: AuditActor) =>
   api<AuditEvent[]>(actor ? `/audit?actor=${encodeURIComponent(actor)}` : '/audit')
-export const postChat = (message: string, history: ChatTurn[]) =>
-  api<ChatReply>('/copilot/chat', { method: 'POST', body: JSON.stringify({ message, history }) })
+/** Asks the copilot and reports each step as it happens; resolves with the validated answer. */
+export async function streamChat(
+  message: string,
+  history: ChatTurn[],
+  onStep: (step: CopilotStep) => void,
+): Promise<ChatReply> {
+  let reply: ChatReply | null = null
+  let failed: ApiError | null = null
+  await streamEvents('/copilot/chat/stream', { message, history }, ({ event, data }) => {
+    if (event === 'step') onStep(data as CopilotStep)
+    else if (event === 'answer') reply = data as ChatReply
+    else if (event === 'error') {
+      const error = (data as { error?: { code?: string; message?: string } }).error
+      failed = new ApiError(200, error?.code ?? 'unknown', error?.message ?? 'The copilot could not answer')
+    }
+  })
+  if (failed) throw failed
+  if (!reply) throw new ApiError(200, 'stream_failed', 'The answer did not arrive')
+  return reply
+}
 export const runCalibration = () => api<Calibration>('/calibration/run', { method: 'POST' })
 export const getModelVersions = () => api<ModelVersion[]>('/model-versions')
 export const approveModelVersion = (versionId: number, role: Role) =>
