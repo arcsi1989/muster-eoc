@@ -33,6 +33,7 @@ test('lists events with scenario time, actor and expandable details', async () =
   expect(screen.getByText('Advisory 3 · T-48 h')).toBeInTheDocument()
   expect(screen.getByText('12 items closed as not decided')).toBeInTheDocument()
   expect(screen.getByText('Before advisory 1')).toBeInTheDocument()
+  expect(screen.getByText('Person')).toBeInTheDocument() // the actor, labelled, not the raw enum
   await userEvent.click(screen.getAllByText('Details')[0])
   expect(screen.getByText('abc123')).toBeInTheDocument()
   expect(screen.getByText('rules_version: 3.2')).toBeInTheDocument()
