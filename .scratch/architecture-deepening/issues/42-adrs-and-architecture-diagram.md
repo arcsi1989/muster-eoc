@@ -6,11 +6,15 @@ The brief asks for a README with setup and run instructions, a written descripti
 
 **Blocked by:** 37 (the copilot shows its work), 39 (runtime number grounding), 40 (model comparison), 38 (customers-out and crew-demand forecast)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Six ADRs in `docs/adr/`, numbered after 0001, each with context, decision, consequences and rejected alternatives, linked from `docs/architecture.md`
-- [ ] `docs/architecture.md` has a Mermaid module diagram and an advisory-flow diagram that match the code (every module named exists)
-- [ ] README links the ADRs
-- [ ] `docs/architecture.md` and `docs/assumptions_limitations.md` describe the code as it is: no statement contradicted by the code (for example runtime number grounding)
-- [ ] README "Sample data" section lists every committed data file, what it is, that it is synthetic, and how it is regenerated; stale figures fixed
-- [ ] `./scripts/check.sh` passes
+- [x] Six ADRs in `docs/adr/`, numbered after 0001, each with context, decision, consequences and rejected alternatives, linked from `docs/architecture.md`
+- [x] `docs/architecture.md` has a Mermaid module diagram and an advisory-flow diagram that match the code (every module named exists)
+- [x] README links the ADRs
+- [x] `docs/architecture.md` and `docs/assumptions_limitations.md` describe the code as it is: no statement contradicted by the code (for example runtime number grounding)
+- [x] README "Sample data" section lists every committed data file, what it is, that it is synthetic, and how it is regenerated; stale figures fixed
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as 1d0196d after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 6/6 ticked.
