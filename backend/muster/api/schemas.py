@@ -32,6 +32,10 @@ from muster.risk.confidence import Confidence
 from muster.scoring_config import IntensityCategory, RiskBand
 
 
+class HealthOut(BaseModel):
+    status: Literal["ok"]
+
+
 class PointOut(BaseModel):
     x_km: float
     y_km: float
