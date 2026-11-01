@@ -9,10 +9,17 @@ export class ApiError extends Error {
   }
 }
 
-async function failure(res: Response): Promise<ApiError> {
-  const body: unknown = await res.json().catch(() => null)
+/** The status of an error that arrived inside a stream: the response itself was 200 OK. */
+export const STREAMED_ERROR_STATUS = 200
+
+/** The backend's one error body (`{"error": {"code", "message"}}`) as an ApiError. */
+export function errorFrom(body: unknown, status: number, fallbackMessage: string): ApiError {
   const error = (body as { error?: { code?: string; message?: string } } | null)?.error
-  return new ApiError(res.status, error?.code ?? 'unknown', error?.message ?? res.statusText)
+  return new ApiError(status, error?.code ?? 'unknown', error?.message ?? fallbackMessage)
+}
+
+async function failure(res: Response): Promise<ApiError> {
+  return errorFrom(await res.json().catch(() => null), res.status, res.statusText)
 }
 
 /** The only place that calls fetch (CODING_STANDARDS F1). Paths are proxied to the backend. */

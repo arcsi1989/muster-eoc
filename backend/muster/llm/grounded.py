@@ -18,13 +18,16 @@ log = logging.getLogger(__name__)
 FALLBACK_LABEL = "template (fallback)"  # the provider shown when the template replaced a result
 
 
+GenerationKind = Literal["attempt", "validating", "validated", "rejected", "failed", "fallback"]
+
+
 @dataclass(frozen=True)
 class GenerationEvent:
     """One step of a generation as it happens, for a task that shows its progress: an attempt
     starts, its result is being validated, it was validated (no problems) or rejected, the
     provider failed, or the fallback template takes over (`reason` says why)."""
 
-    kind: Literal["attempt", "validating", "validated", "rejected", "failed", "fallback"]
+    kind: GenerationKind
     attempt: int  # 1 for the first try; the fallback carries the number of the last try
     provider: str
     problems: tuple[str, ...] = ()

@@ -3,8 +3,10 @@ the answer may cite only IDs and state only numbers the tools returned. A failur
 ID or an ungrounded number serves the template answer (L9). This task owns the copilot prompt."""
 
 import json
-from collections.abc import Callable
+import threading
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
+from queue import Queue
 from typing import Any, Literal
 
 from sqlmodel import Session
@@ -15,9 +17,9 @@ from muster.audit.log import record
 from muster.classification import for_model
 from muster.copilot.tools import TOOL_DEFINITIONS, CopilotTools, ToolError, ToolOutput
 from muster.ids import ASSET_ID, CLAUSE_ID, ENTITY_ID, mentioned
-from muster.llm.grounded import GenerationEvent, generate
+from muster.llm.grounded import GenerationEvent, GenerationKind, generate
 from muster.llm.provider import LLMProvider
-from muster.llm.schemas import ChatResult, ChatTurn, Prompt
+from muster.llm.schemas import ChatResult, ChatTurn, Prompt, attempt_tokens
 from muster.llm.template import TemplateProvider
 from muster.numbers import ungrounded_numbers
 from muster.playbook.service import Playbook
@@ -51,6 +53,9 @@ class ToolCall:
     result: dict[str, Any]
 
 
+StepKind = GenerationKind | Literal["tool_call"]
+
+
 @dataclass(frozen=True)
 class Step:
     """One step of a turn as it happens, so the UI can show the copilot's progress: a generation
@@ -58,9 +63,7 @@ class Step:
     over) or a tool call with its arguments. A step never carries answer text: an answer is shown
     only once it has passed validation (or is the template's)."""
 
-    kind: Literal[
-        "attempt", "validating", "validated", "rejected", "failed", "fallback", "tool_call"
-    ]
+    kind: StepKind
     attempt: int
     provider: str
     problems: tuple[str, ...] = ()
@@ -97,11 +100,8 @@ class CopilotAnswer:
     @property
     def tokens(self) -> tuple[int, int]:
         """Input and output tokens over every attempt of the turn."""
-        usages = [a.get("usage", {}) for a in self.attempts]
-        return (
-            sum(u.get("input_tokens", 0) for u in usages),
-            sum(u.get("output_tokens", 0) for u in usages),
-        )
+        tokens = [attempt_tokens(a) for a in self.attempts]
+        return sum(t[0] for t in tokens), sum(t[1] for t in tokens)
 
 
 class _Recorder:
@@ -272,3 +272,35 @@ def answer(
         outcome.attempts,
         outcome.fallback_reason,
     )
+
+
+class _Done:
+    """The end of a streamed turn."""
+
+
+def stream_answer(
+    turn: Callable[[StepObserver], CopilotAnswer],
+) -> Iterator[Step | CopilotAnswer]:
+    """Runs a turn (`answer` with its `on_step`) beside the caller and yields each step as it
+    happens, then the answer. The turn calls back synchronously, so it runs in a worker thread
+    and its steps cross over a queue. An exception the turn raises is raised here, after the
+    steps that came before it."""
+    events: Queue[Step | CopilotAnswer | BaseException | _Done] = Queue()
+
+    def run() -> None:
+        try:
+            events.put(turn(events.put))
+        except BaseException as error:  # noqa: BLE001 - re-raised in the caller's thread
+            events.put(error)
+        finally:
+            events.put(_Done())
+
+    worker = threading.Thread(target=run, name="copilot-turn", daemon=True)
+    worker.start()
+    try:
+        while not isinstance(item := events.get(), _Done):
+            if isinstance(item, BaseException):
+                raise item
+            yield item
+    finally:
+        worker.join()

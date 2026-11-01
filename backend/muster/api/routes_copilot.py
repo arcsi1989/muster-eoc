@@ -1,7 +1,6 @@
 import logging
-import threading
 from collections.abc import Iterator
-from queue import Queue
+from typing import Any
 
 from fastapi import APIRouter
 from fastapi.sse import EventSourceResponse, ServerSentEvent
@@ -15,7 +14,7 @@ from muster.api.schemas import (
     ToolCallOut,
     WorkOut,
 )
-from muster.copilot.chat import CopilotAnswer, Step, answer
+from muster.copilot.chat import CopilotAnswer, Step, StepObserver, answer, stream_answer
 from muster.deps import (
     LLMConfigDep,
     LLMDep,
@@ -25,21 +24,20 @@ from muster.deps import (
 )
 from muster.errors import AppError
 from muster.llm.config import LLMConfig
-from muster.llm.schemas import ChatTurn
+from muster.llm.schemas import ChatTurn, attempt_tokens
 
 log = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/copilot")
 
 
-def _attempt(attempt: dict[str, object]) -> AttemptOut:
-    usage = attempt.get("usage")
-    tokens = usage if isinstance(usage, dict) else {}
+def _attempt(attempt: dict[str, Any]) -> AttemptOut:
+    tokens_in, tokens_out = attempt_tokens(attempt)
     return AttemptOut.model_validate(
         attempt
         | {
-            "input_tokens": tokens.get("input_tokens", 0),
-            "output_tokens": tokens.get("output_tokens", 0),
+            "input_tokens": tokens_in,
+            "output_tokens": tokens_out,
             "problems": attempt.get("problems", []),
             "error": attempt.get("error"),
         }
@@ -75,15 +73,11 @@ def _chat_out(result: CopilotAnswer, prices: LLMConfig) -> ChatOut:
 
 
 def _step_out(step: Step) -> StepOut:
-    return StepOut(
-        kind=step.kind,
-        attempt=step.attempt,
-        provider=step.provider,
-        problems=list(step.problems),
-        reason=step.reason,
-        tool=step.tool,
-        args=step.args,
-    )
+    return StepOut.model_validate(step, from_attributes=True)
+
+
+def _error(code: str, message: str) -> ServerSentEvent:
+    return ServerSentEvent(event="error", data={"error": {"code": code, "message": message}})
 
 
 @router.post("/chat", response_model=ChatOut)
@@ -114,32 +108,18 @@ def chat_stream(
     it was reached (a `ChatOut`), or one `error` event. The answer text is sent only in the
     `answer` event, after validation."""
     history = [ChatTurn(t.role, t.content) for t in body.history]
-    events: Queue[Step | ChatOut | AppError] = Queue()
 
-    def turn() -> None:
-        try:
-            result = answer(
-                session, playbook, llm, body.message, history, config, on_step=events.put
-            )
-            events.put(_chat_out(result, prices))
-        except AppError as error:
-            events.put(error)
-        except Exception:  # noqa: BLE001 - never send a stack trace (B6); logged here
-            log.exception("copilot_stream_failed")
-            events.put(AppError("the copilot could not answer"))
+    def turn(on_step: StepObserver) -> CopilotAnswer:
+        return answer(session, playbook, llm, body.message, history, config, on_step=on_step)
 
-    # The turn calls back synchronously, so it runs beside the stream that forwards its steps.
-    worker = threading.Thread(target=turn, name="copilot-turn", daemon=True)
-    worker.start()
-    while True:
-        item = events.get()
-        if isinstance(item, Step):
-            yield ServerSentEvent(event="step", data=_step_out(item))
-        elif isinstance(item, ChatOut):
-            yield ServerSentEvent(event="answer", data=item)
-            break
-        else:
-            error = {"error": {"code": item.code, "message": str(item)}}
-            yield ServerSentEvent(event="error", data=error)
-            break
-    worker.join()
+    try:
+        for item in stream_answer(turn):
+            if isinstance(item, Step):
+                yield ServerSentEvent(event="step", data=_step_out(item))
+            else:
+                yield ServerSentEvent(event="answer", data=_chat_out(item, prices))
+    except AppError as error:
+        yield _error(error.code, str(error))
+    except Exception:  # noqa: BLE001 - never send a stack trace (B6); logged here
+        log.exception("copilot_stream_failed")
+        yield _error(AppError.code, "the copilot could not answer")

@@ -33,7 +33,7 @@ import type {
   Sitrep,
   StagingArea,
 } from '../types/scenario'
-import { ApiError, api, streamEvents } from './client'
+import { ApiError, STREAMED_ERROR_STATUS, api, errorFrom, streamEvents } from './client'
 
 export const getScenario = () => api<Scenario>('/advisories')
 export const nextAdvisory = () => api<Scenario>('/advisories/next', { method: 'POST' })
@@ -102,13 +102,10 @@ export async function streamChat(
   await streamEvents('/copilot/chat/stream', { message, history }, ({ event, data }) => {
     if (event === 'step') onStep(data as CopilotStep)
     else if (event === 'answer') reply = data as ChatReply
-    else if (event === 'error') {
-      const error = (data as { error?: { code?: string; message?: string } }).error
-      failed = new ApiError(200, error?.code ?? 'unknown', error?.message ?? 'The copilot could not answer')
-    }
+    else if (event === 'error') failed = errorFrom(data, STREAMED_ERROR_STATUS, 'The copilot could not answer')
   })
   if (failed) throw failed
-  if (!reply) throw new ApiError(200, 'stream_failed', 'The answer did not arrive')
+  if (!reply) throw new ApiError(STREAMED_ERROR_STATUS, 'stream_failed', 'The answer did not arrive')
   return reply
 }
 export const runCalibration = () => api<Calibration>('/calibration/run', { method: 'POST' })

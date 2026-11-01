@@ -8,8 +8,11 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+from muster.api import routes_copilot
 from muster.classification import RESTRICTED_KEYS
+from muster.copilot.chat import Step
 from muster.copilot.tools import TOOL_DEFINITIONS
+from muster.errors import DataNotLoaded
 from muster.llm.anthropic_provider import AnthropicProvider
 from muster.llm.schemas import (
     ChatResult,
@@ -486,3 +489,38 @@ def test_the_stream_validates_its_request(client: TestClient) -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "validation_error"
+
+
+def failing_turn(error: Exception) -> Any:
+    """Stands in for the copilot turn: one step, then the error."""
+
+    def turn(*args: Any, on_step: Any, **kwargs: Any) -> Any:
+        on_step(Step("attempt", 1, "template"))
+        raise error
+
+    return turn
+
+
+def test_a_domain_error_in_the_stream_is_an_error_event(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(routes_copilot, "answer", failing_turn(DataNotLoaded("scenario missing")))
+
+    events = stream(client, "What are the top risks?")
+
+    assert [e for e, _ in events] == ["step", "error"]
+    assert events[-1][1] == {"error": {"code": "data_not_loaded", "message": "scenario missing"}}
+
+
+def test_an_unexpected_error_in_the_stream_is_a_generic_error_event(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(routes_copilot, "answer", failing_turn(RuntimeError("secret detail")))
+
+    events = stream(client, "What are the top risks?")
+
+    assert [e for e, _ in events] == ["step", "error"]
+    assert events[-1][1] == {
+        "error": {"code": "internal", "message": "the copilot could not answer"}
+    }
+    assert "secret detail" not in json.dumps(events)

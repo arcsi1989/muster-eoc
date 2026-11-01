@@ -4,7 +4,10 @@ retries, the template fallback), no step carries answer text, and the answer kee
 
 from typing import Any
 
-from muster.copilot.chat import CopilotAnswer, Step, answer
+import pytest
+
+from muster.copilot.chat import CopilotAnswer, Step, StepObserver, answer, stream_answer
+from muster.errors import DataNotLoaded
 from muster.llm.grounded import FALLBACK_LABEL
 from muster.llm.schemas import (
     ChatResult,
@@ -155,3 +158,36 @@ def test_the_configured_template_answers_with_the_same_steps_offline(
         (0, 0),
         None,
     )
+
+
+def test_a_streamed_turn_yields_its_steps_as_they_happen_then_the_answer(
+    seeded: SeededScenario,
+) -> None:
+    seeded.issue_until(1)
+    template = TemplateProvider.from_config(seeded.scoring)
+
+    def turn(on_step: StepObserver) -> CopilotAnswer:
+        return answer(
+            seeded.session, seeded.playbook, template, "What depends on SUB-07?", [],
+            seeded.scoring, on_step=on_step,
+        )  # fmt: skip
+
+    items = list(stream_answer(turn))
+
+    assert [i.kind for i in items[:-1] if isinstance(i, Step)] == [
+        "attempt", "tool_call", "validating", "validated",
+    ]  # fmt: skip
+    assert isinstance(items[-1], CopilotAnswer) and "HOSP-01" in items[-1].text
+
+
+def test_a_streamed_turn_raises_its_error_after_the_steps_before_it() -> None:
+    def turn(on_step: StepObserver) -> CopilotAnswer:
+        on_step(Step("attempt", 1, "fake"))
+        raise DataNotLoaded("scenario state missing")
+
+    received: list[Step | CopilotAnswer] = []
+    with pytest.raises(DataNotLoaded):
+        for item in stream_answer(turn):
+            received.append(item)
+
+    assert received == [Step("attempt", 1, "fake")]

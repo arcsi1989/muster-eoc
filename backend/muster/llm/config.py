@@ -5,6 +5,7 @@ from typing import Any
 
 import yaml
 
+from muster.llm.schemas import attempt_tokens
 from muster.scoring_config import Strict
 
 
@@ -29,14 +30,7 @@ class LLMConfig(Strict):
     def attempts_cost_usd(self, attempts: list[dict[str, Any]]) -> float | None:
         """The estimated cost of a generation's attempt log (grounded generation's format):
         None if any attempt has tokens from a model with no price."""
-        costs = [
-            self.cost_usd(
-                a.get("model"),
-                a.get("usage", {}).get("input_tokens", 0),
-                a.get("usage", {}).get("output_tokens", 0),
-            )
-            for a in attempts
-        ]
+        costs = [self.cost_usd(a.get("model"), *attempt_tokens(a)) for a in attempts]
         return None if None in costs else sum(c for c in costs if c is not None)
 
 

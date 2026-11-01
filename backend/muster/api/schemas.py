@@ -9,6 +9,7 @@ from muster.advisory_context import Commander
 from muster.agent.decisions import Action, Role
 from muster.agent.field import TaskStatus
 from muster.audit.log import Actor
+from muster.copilot.chat import StepKind
 from muster.hazard.ensemble import SiteKind
 from muster.ingest.contracts import AssetType, FacilityType
 from muster.llm.schemas import PackageDraft
@@ -425,9 +426,7 @@ class ChatOut(BaseModel):
 class StepOut(BaseModel):
     """One step of a copilot turn as it happens (a server-sent `step` event). Never answer text."""
 
-    kind: Literal[
-        "attempt", "validating", "validated", "rejected", "failed", "fallback", "tool_call"
-    ]
+    kind: StepKind
     attempt: int
     provider: str
     problems: list[str]

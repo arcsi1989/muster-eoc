@@ -71,7 +71,6 @@ export default function App() {
 }
 
 function OperationsScreen({ selected, onSelect }: { selected: string | null; onSelect: (assetId: string | null) => void }) {
-  const setSelected = onSelect
   const scenario = useScenario()
   const territory = useLoad(getTerritory)
 
@@ -141,7 +140,7 @@ function OperationsScreen({ selected, onSelect }: { selected: string | null; onS
               exposure={exposureBySite}
               advisory={current}
               previous={previous}
-              onSelect={setSelected}
+              onSelect={onSelect}
             />
           )}
           {exposure.state.status === 'error' && (
@@ -180,10 +179,10 @@ function OperationsScreen({ selected, onSelect }: { selected: string | null; onS
           </div>
           {tab === 'risk' && (
             <>
-              {current && <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={setSelected} />}
+              {current && <AlertsPanel state={alerts.state} onRetry={alerts.retry} onSelect={onSelect} />}
               <section className="card" aria-label="Risk list">
                 <h2>Risk list</h2>
-                <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={setSelected} />
+                <RiskPanel state={risk.state} assetsById={assetsById} onRetry={risk.retry} onSelect={onSelect} />
               </section>
             </>
           )}
@@ -193,13 +192,13 @@ function OperationsScreen({ selected, onSelect }: { selected: string | null; onS
               role={role}
               hoursToLandfall={current?.hours_to_landfall ?? null}
               assetsById={assetsById}
-              onSelectAsset={setSelected}
+              onSelectAsset={onSelect}
               onDeclared={scenario.refresh}
             />
           )}
         </aside>
         {selected && currentNo > 0 && (
-          <ExplainDrawer assetId={selected} advisoryNo={currentNo} onClose={() => setSelected(null)} />
+          <ExplainDrawer assetId={selected} advisoryNo={currentNo} onClose={() => onSelect(null)} />
         )}
       </main>
     </div>
