@@ -1,5 +1,7 @@
 # Muster: storm preparation decision support
 
+[![check](https://github.com/OWNER/REPO/actions/workflows/check.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/check.yml)
+
 Muster replays a hurricane's forecast advisories for a utility's Emergency Operations Center (EOC) and, for each one, scores asset risk, checks the hurricane playbook with a deterministic rule engine, and assembles a decision package of gaps, conflicts and a draft situation report. People approve or override every item, and the audit trail records each decision; no AI output changes operational state. Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document.
 
 > **Fictional prototype.** The bundled demo scenario, SGW (Southeastern Grid & Water) in Bayport County, and every asset, facility and threshold in it are invented, and the storm is unnamed (its parameters are modelled on a real past landfall); all data is synthetic. Not for real operations.
@@ -49,6 +51,8 @@ Other commands:
 | `make eval` | Run the LLM evaluation's golden set (30 cases: grounding, refusal, data classification, prompt injection, drafting) with the template provider and gate it on `config/evals.yaml`; writes `docs/eval/report.md` and `results.json`. `./scripts/check.sh` runs the same gate. |
 | `make eval-llm` | The same golden set against the configured provider (`LLM_PROVIDER`, needs its key), each case 3 times, pass rate per category. Exits non-zero below a threshold. |
 | `make test` | Every check: ruff, mypy (strict), pytest, the eval gate, oxlint, tsc, vitest (`./scripts/check.sh`). |
+
+**Continuous integration**: [`.github/workflows/check.yml`](.github/workflows/check.yml) runs `./scripts/check.sh` on every push and pull request, in template mode with no secrets, on the pinned toolchain (Python from `backend/.python-version`, Node from `frontend/.nvmrc`, pnpm from `frontend/package.json`, dependencies from the lockfiles, cached). It uploads the template eval report (`eval-report`) and the backend coverage report (`coverage-backend`) as artifacts. The repo has no remote yet, so the workflow runs once it is pushed to GitHub; then replace `OWNER/REPO` in the badge above.
 
 Latest evaluation report: [docs/eval/report.md](docs/eval/report.md). The backend records it in the audit log at startup.
 
