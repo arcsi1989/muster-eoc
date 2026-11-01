@@ -4,10 +4,14 @@
 
 **Blocked by:** 35 (number check accepts percentile names and half-up rounding)
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] One number-grounding function, used by the copilot's runtime validator and by the evaluation's grounding check (no second copy)
-- [ ] Test: an answer with an invented number is rejected at runtime, retried with the problem, and falls back to the template when the retry also invents one; the audit event lists both attempts' problems
-- [ ] Test: correct answers (percentile names, half-up rounding, percentages of probabilities, numbers glued to units) pass at runtime
-- [ ] The template provider's answers pass the new validation for every golden-set question (`make eval` stays green)
-- [ ] `./scripts/check.sh` passes
+- [x] One number-grounding function, used by the copilot's runtime validator and by the evaluation's grounding check (no second copy)
+- [x] Test: an answer with an invented number is rejected at runtime, retried with the problem, and falls back to the template when the retry also invents one; the audit event lists both attempts' problems
+- [x] Test: correct answers (percentile names, half-up rounding, percentages of probabilities, numbers glued to units) pass at runtime
+- [x] The template provider's answers pass the new validation for every golden-set question (`make eval` stays green)
+- [x] `./scripts/check.sh` passes
+
+## Comments
+
+- 2026-11-01: Merged into `main` as c201b29 after `./scripts/check.sh` passed on the combined code. Acceptance criteria: 5/5 ticked.
