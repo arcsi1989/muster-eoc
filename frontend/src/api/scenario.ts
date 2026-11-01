@@ -10,6 +10,7 @@ import type {
   Clause,
   Asset,
   Coastline,
+  District,
   DecisionAction,
   DecisionPackage,
   Declaration,
@@ -38,19 +39,21 @@ export const nextAdvisory = () => api<Scenario>('/advisories/next', { method: 'P
 export const resetScenario = () => api<Scenario>('/advisories/reset', { method: 'POST' })
 export const getAssets = () => api<Asset[]>('/assets')
 export const getCoastline = () => api<Coastline>('/coastline')
+export const getMapDistricts = () => api<District[]>('/districts')
 export const getRisk = (advisoryNo: number) => api<RiskList>(`/risk?advisory=${advisoryNo}`)
 export const getChanges = (advisoryNo: number) => api<AdvisoryChanges>(`/advisories/${advisoryNo}/changes`)
 export const getFacilities = () => api<Facility[]>('/facilities')
 export const getStagingAreas = () => api<StagingArea[]>('/staging-areas')
 /** Everything the maps draw that does not change with the advisory. */
 export const getTerritory = async () => {
-  const [assets, coastline, facilities, stagingAreas] = await Promise.all([
+  const [assets, coastline, districts, facilities, stagingAreas] = await Promise.all([
     getAssets(),
     getCoastline(),
+    getMapDistricts(),
     getFacilities(),
     getStagingAreas(),
   ])
-  return { assets, coastline, facilities, stagingAreas }
+  return { assets, coastline, districts, facilities, stagingAreas }
 }
 export const getLineage = () => api<LineageEntry[]>('/lineage')
 export const getExposure = (advisoryNo: number) => api<Exposure[]>(`/exposure?advisory=${advisoryNo}`)

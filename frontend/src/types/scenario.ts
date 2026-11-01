@@ -138,6 +138,17 @@ export interface Coastline {
   land: Point[]
 }
 
+/** A fictional district a field supervisor works, west to east across the territory. */
+export interface District {
+  name: string
+  west_km: number
+  east_km: number
+  /** where the maps write its name */
+  label: Point
+  /** where it meets its western neighbour; empty for the westernmost */
+  boundary: Point[]
+}
+
 export type Confidence = 'high' | 'medium' | 'low'
 
 /** Storm map colour, from p_fail (config/scoring.yaml) */
