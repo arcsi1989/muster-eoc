@@ -1,4 +1,4 @@
-# Demo script (10 minutes)
+# Demo script (about 11½ minutes)
 
 > **Fictional prototype.** Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document. SGW, Bayport County and all data are synthetic.
 
@@ -16,23 +16,23 @@ The video follows two sites:
 - **PS-09**, a pumping station that feeds the city's water treatment plant. At advisory 3 it needs a backup generator.
 - **PS-14**, the Seawall Pumping Station on the coast. At advisory 3 its inspection is due, but crews are short, so the Incident Commander postpones it. At advisory 5 the still-missing inspection collides with the stop-work rule, and the tool hands the conflict back to a person.
 
-Alongside the story, the AI drafts the situation report, answers questions, and, as a machine-learning challenger, forecasts asset failures in shadow. The video shows how each of these is constrained, checked and tested. It runs about **10 minutes**: 9.6 minutes of narration at about 130 words a minute, plus pauses for the clicks.
+Alongside the story, the AI drafts the situation report, answers questions, and, as a machine-learning challenger, forecasts asset failures in shadow. The video shows how each of these is constrained, checked and tested. It runs about **11.5 minutes**: 11.0 minutes of narration at about 130 words a minute, plus pauses for the clicks.
 
 | Time | Scene | What the viewer learns |
 |---|---|---|
 | 0:00–0:40 | 1. The problem | Who decides what; the one rule |
-| 0:40–2:50 | 2. Forecast 1: what one forecast sets in motion | Advisory, cone, 50 storms, risk, decision package, activation level |
-| 2:50–3:45 | 3. Behind the screen: how the package was prepared | How code prepares the package and the AI writes about it (Run trace) |
-| 3:45–3:54 | 4. Forecast 2: the clock | Undecided items close on the record |
-| 3:54–5:33 | 5. Forecast 3: the storm moves east | Level 1, PS-09's generator, PS-14's override, the AI-drafted report |
-| 5:33–5:51 | 6. Forecast 4: what the decisions changed | State comes only from approvals |
-| 5:51–6:20 | 7. Forecast 5: the conflict | A conflict only the Incident Commander can decide |
-| 6:20–7:03 | 8. The copilot, live | Tool use, validation, refusal, data classification, cost |
-| 7:03–7:45 | 9. The challenger: machine learning in shadow | Machine learning in shadow; features; promotion |
-| 7:45–8:31 | 10. How it is built | ADRs, grounded generation, the playbook as data, AI capabilities |
-| 8:31–9:09 | 11. How the AI is tested | Golden set, gate, model comparison, check.sh |
-| 9:09–9:53 | 12. Limits and next steps | Assumptions, limitations, next steps |
-| 9:53–10:00 | 13. Close |  |
+| 0:40–3:54 | 2. Forecast 1: what one forecast sets in motion | Advisory, cone, 50 storms, risk, decision package, activation level |
+| 3:54–4:49 | 3. Behind the screen: how the package was prepared | How code prepares the package and the AI writes about it (Run trace) |
+| 4:49–4:58 | 4. Forecast 2: the clock | Undecided items close on the record |
+| 4:58–7:02 | 5. Forecast 3: the storm moves east | Level 1, PS-09's generator, PS-14's override, the AI-drafted report |
+| 7:02–7:20 | 6. Forecast 4: what the decisions changed | State comes only from approvals |
+| 7:20–7:49 | 7. Forecast 5: the conflict | A conflict only the Incident Commander can decide |
+| 7:49–8:32 | 8. The copilot, live | Tool use, validation, refusal, data classification, cost |
+| 8:32–9:15 | 9. The challenger: machine learning in shadow | Machine learning in shadow; features; promotion |
+| 9:15–10:01 | 10. How it is built | ADRs, grounded generation, the playbook as data, AI capabilities |
+| 10:01–10:39 | 11. How the AI is tested | Golden set, gate, model comparison, check.sh |
+| 10:39–11:23 | 12. Limits and next steps | Assumptions, limitations, next steps |
+| 11:23–11:30 | 13. Close |  |
 
 ## Before you record
 
@@ -70,7 +70,7 @@ Each scene is a list of **beats**. A beat is one action on screen and the words 
 
 Caption 1.4: "Muster: decision support for a utility's emergency operations centre (EOC)".
 
-### 2. Forecast 1: what one forecast sets in motion (0:40–2:50) · T-72
+### 2. Forecast 1: what one forecast sets in motion (0:40–3:54) · T-72
 
 | # | Do | Say |
 |---|---|---|
@@ -79,14 +79,17 @@ Caption 1.4: "Muster: decision support for a utility's emergency operations cent
 | 2.3 | **Cut away from the app** to the still `docs/img/ensemble_adv1.png`, added in the edit; the app has no view of the 50 storms. Point at the black line, then the faint blue copies, then the bell curve, then PS-09's row of dots. | "Muster turns that uncertainty into fifty possible storms. The black line is the forecast; each blue line is a copy moved left or right by a random distance, mostly small, a few large, as wide as the cone. For every copy it works out the wind and flood at every site: here, PS-09 gets fifty wind speeds, and we keep the typical one and the bad one." |
 | 2.4 | Open **Operations**, **Risk list** tab. | "Each site gets two numbers: how likely it is to fail in that wind and flood, from engineering failure curves, and how many customers lose service if it does. Multiplied, that is its risk: the customers expected to lose service. This list ranks by it." |
 | 2.5 | Click the **Decision package** tab. Scroll slowly from top to bottom. | "This is the decision package: the to-do list for the people in the room, rebuilt for every forecast. Code, not AI, checks each rule of the utility's hurricane playbook against the forecast and lists what is not yet done." |
-| 2.6 | Point at the **P-4.3** item: *Fuel 2 more portable generators (8 needed, 6 fuelled)*, owner Logistics. | "Rule P-4.3, for example: eight generators must be fuelled, six are. Proposed: fuel two more. Owner: Logistics." |
-| 2.7 | Scroll back up to the **Activation proposal** card. | "At the top, the activation level: how fully the centre is staffed. Level 3, Monitor. Level 2, Prepare, partly staffed. Level 1, Full activation, with an Incident Commander in charge." |
-| 2.8 | Point at the card's text: *The storm is 72 h to landfall: the playbook's time threshold for Level 2 · Prepare is reached.* | "The playbook sets it by time: Prepare from seventy-two hours before landfall, Full from forty-eight. So the tool proposes Level 2, but never switches it on itself. A person declares it." |
-| 2.9 | Point at the hint *Only the Director declares Level 2 (P-2.5)*. Set **Deciding as** to **Director**. Press **Declare Level 2**. Point at the header badge *Declared: Level 2 · Prepare*. | "For Level 2, the Director, who runs the centre. As the Director, I declare it, and it is recorded with who and when." |
+| 2.6 | Point at the **P-4.3** item: *Fuel 2 more portable generators (8 needed, 6 fuelled)*, owner Logistics. | "Take one item. Pumping stations move the city's water, and they run on grid power. If the storm cuts their power, the pumps stop, and the water treatment plant's eighty-five thousand customers lose water." |
+| 2.7 | Point at the **P-4.3** chip on the item. Caption: the clause text, *"Logistics fuels all portable generators and confirms that the number fuelled and available is at least the number of pumping stations in the top 25 of the risk list that serve the water treatment plant."* | "So rule P-4.3 says: three days out, have a fuelled portable generator ready for every pumping station that feeds the water plant and is among the twenty-five riskiest sites." |
+| 2.8 | Switch to the **Risk list** tab. Point at the pumping stations in the top 25: PS-19, PS-53, PS-34, PS-60, PS-21, PS-54, PS-48, PS-42 (ranks 13 to 22). Switch back to **Decision package**. | "Today that is eight stations. Only six generators are fuelled. Fuel has to be delivered while roads are open, so the package proposes fuelling two more." |
+| 2.9 | Set **Deciding as** to **Logistics**. Press **Approve** on the P-4.3 item; it shows *Approved · decided by Logistics*. | "Generators and fuel belong to Logistics, so Logistics owns the item. As Logistics, I approve. In this prototype, approving records the action as done: eight generators are now fuelled." |
+| 2.10 | Scroll back up to the **Activation proposal** card. | "At the top, the activation level: how fully the centre is staffed. Level 3, Monitor. Level 2, Prepare, partly staffed. Level 1, Full activation, with an Incident Commander in charge." |
+| 2.11 | Point at the card's text: *The storm is 72 h to landfall: the playbook's time threshold for Level 2 · Prepare is reached.* | "The playbook sets it by time: Prepare from seventy-two hours before landfall, Full from forty-eight. So the tool proposes Level 2, but never switches it on itself. A person declares it." |
+| 2.12 | Point at the hint *Only the Director declares Level 2 (P-2.5)*. Set **Deciding as** to **Director**. Press **Declare Level 2**. Point at the header badge *Declared: Level 2 · Prepare*. | "For Level 2, the Director, who runs the centre. As the Director, I declare it, and it is recorded with who and when." |
 
-Captions: 2.3 "50 possible storms: the path moved sideways, spread = the cone's width" · 2.4 "Risk = chance of failure × customers affected" · 2.5 "Decision package: what people must decide, built by code" · 2.7 "Level 3 Monitor · Level 2 Prepare · Level 1 Full activation" · 2.8 "Playbook P-2.5: the tool proposes a level; a person declares it".
+Captions: 2.3 "50 possible storms: the path moved sideways, spread = the cone's width" · 2.4 "Risk = chance of failure × customers affected" · 2.5 "Decision package: what people must decide, built by code" · 2.7 "P-4.3: a fuelled generator for each top-25 pumping station feeding the water plant" · 2.10 "Level 3 Monitor · Level 2 Prepare · Level 1 Full activation" · 2.11 "Playbook P-2.5: the tool proposes a level; a person declares it".
 
-### 3. Behind the screen: how the package was prepared (2:50–3:45) · Run trace, advisory 1
+### 3. Behind the screen: how the package was prepared (3:54–4:49) · Run trace, advisory 1
 
 The **Run trace** page lists every step the server ran for one forecast, top to bottom in time order. Each row has a bar showing when the step started and how long it took, and its model, tokens and cost if it called the AI. The numbers below are from a live run with Claude; yours will be close.
 
@@ -100,13 +103,13 @@ The **Run trace** page lists every step the server ran for one forecast, top to 
 
 Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to write the report about them" · 3.4 "Paused for people; only a recorded decision changes state".
 
-### 4. Forecast 2: the clock (3:45–3:54) · T-60
+### 4. Forecast 2: the clock (4:49–4:58) · T-60
 
 | # | Do | Say |
 |---|---|---|
 | 4.1 | Press **Issue advisory 2 ▶**. Open **Audit**; point at the advisory 1 items marked *not decided*. | "Twelve hours later, a new package replaces it. Anything nobody decided closes as not decided, on the record." |
 
-### 5. Forecast 3: the storm moves east (3:54–5:33) · T-48
+### 5. Forecast 3: the storm moves east (4:58–7:02) · T-48
 
 | # | Do | Say |
 |---|---|---|
@@ -115,8 +118,8 @@ Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to
 | 5.3 | Set **Deciding as** to **Incident Commander**. Press **Declare Level 1**. Point at the new **P-7.2** item: *Notify the state utility commission*, owner Regulatory Liaison. | "Declaring it adds a task: notify the regulator within twelve hours, owned by the Regulatory Liaison." |
 | 5.4 | Open the **Risk list** tab. Scroll to rank 20, *PS-09 Saltmeadow East Pumping Station*. Click the row; the explanation drawer opens. | "PS-09, a pumping station feeding the water plant's eighty-five thousand customers, jumped from rank forty to twenty. Why?" |
 | 5.5 | In the drawer, point at **Failure probability** (29 %), the wind (P50 77 mph) and the condition (5). Optional: cut to `docs/img/ensemble_adv3.png`, the same card at advisory 3, where PS-09's fifty winds have moved up. | "Its chance of failure rose from seventeen to twenty-nine percent: stronger wind, and very poor condition, which makes it fail at lower wind." |
-| 5.6 | Close the drawer. **Decision package**, **Gaps**: expand the group **P-4.5 … · 10**. Point at *Assign a portable generator to PS-09 … (feeds WTP-01)*. | "That crosses rule P-4.5: a pumping station feeding the water plant, at twenty percent or more, gets a backup generator." |
-| 5.7 | Set **Deciding as** to **Logistics**. Press **Approve** on the PS-09 item. | "Generators belong to Logistics, so Logistics approves it." |
+| 5.6 | Close the drawer. **Decision package**, **Gaps**: expand the group **P-4.5 … · 10**. Point at *Assign a portable generator to PS-09 … (feeds WTP-01)*. | "That crosses rule P-4.5: a pumping station feeding the water plant, at twenty percent or more, gets one of the generators P-4.3 made ready, assigned and staged nearby." |
+| 5.7 | Set **Deciding as** to **Logistics**. Press **Approve** on the PS-09 item. Then point at the **P-4.3** item, back again: *Fuel 2 more portable generators (10 needed, 8 fuelled)*. | "Logistics approves it. And P-4.3 is back: the storm moved, ten stations now qualify, and eight are fuelled. The package recounts at every forecast." |
 | 5.8 | Open the group **P-4.2**. Point at *Pre-inspect PS-14 Seawall Pumping Station*. | "Rule P-4.2: inspect coastal pumping stations that could flood, before crews withdraw. Like PS-14, the Seawall station." |
 | 5.9 | **Storm map**, panel **How bad, where** (right of the map): point at the Bayport East row, then its **Crews / have** cell, *6–29 / 4*, and the *short* badge. | "This panel forecasts the damage per district, from the same fifty storms: customers out, and the repair crews needed, typical to bad case, against the crews at hand. Bayport East has four crews where up to twenty-nine are needed." |
 | 5.10 | **Operations**, **Decision package**. As **Operations**, **Override…** on PS-14, paste the reason, press **Override**. Point at the refusal. | "Operations wants to skip it. That is a deviation from the playbook, and the server refuses." |
@@ -126,14 +129,14 @@ Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to
 
 Captions: 5.3 "Level 1 declared → P-7.2: notify the regulator within 12 h" · 5.6 "P-4.5: a generator for water-plant pumping stations at ≥ 20 % failure risk" · 5.10 "P-8.1: any deviation needs the Incident Commander and a reason" · 5.12 "AI: drafted from retrieved rules; every citation checked by code".
 
-### 6. Forecast 4: what the decisions changed (5:33–5:51) · T-36
+### 6. Forecast 4: what the decisions changed (7:02–7:20) · T-36
 
 | # | Do | Say |
 |---|---|---|
 | 6.1 | Press **Issue advisory 4 ▶**. **Decision package**: expand **P-4.5** (PS-09 is gone), then **P-4.2** (PS-14 is back). | "Forecast four is built from what people did: PS-09 has its generator, so that rule is met. PS-14's inspection is back: postponing it didn't do it." |
 | 6.2 | Point at the new **P-4.6** item: *Move crews and equipment out of STG-02*. | "And the coastal staging yard will flood, so crews must move inland." |
 
-### 7. Forecast 5: the conflict (5:51–6:20) · T-24
+### 7. Forecast 5: the conflict (7:20–7:49) · T-24
 
 | # | Do | Say |
 |---|---|---|
@@ -143,7 +146,7 @@ Captions: 5.3 "Level 1 declared → P-7.2: notify the regulator within 12 h" · 
 
 Captions: 7.1 "P-4.7: no field work where 39 mph wind arrives within 12 h" · 7.2 "P-8.2: personnel safety prevails; the IC decides".
 
-### 8. The copilot, live (6:20–7:03) · advisory 5
+### 8. The copilot, live (7:49–8:32) · advisory 5
 
 | # | Do | Say |
 |---|---|---|
@@ -154,7 +157,7 @@ Captions: 7.1 "P-4.7: no field work where 39 mph wind arrives within 12 h" · 7.
 
 Captions: 8.1 "AI agent: 8 read-only tools; every ID and number checked before display" · 8.4 "Restricted fields never reach the model".
 
-### 9. The challenger: machine learning in shadow (7:03–7:45) · Risk list, Champion and challenger
+### 9. The challenger: machine learning in shadow (8:32–9:15) · Risk list, Champion and challenger
 
 | # | Do | Say |
 |---|---|---|
@@ -165,7 +168,7 @@ Captions: 8.1 "AI agent: 8 read-only tools; every ID and number checked before d
 
 Captions: 9.2 "AI: gradient-boosted trees · 20 storms × 196 sites · 10 features" · 9.4 "Shadow: changes nothing until a person promotes it".
 
-### 10. How it is built (7:45–8:31) · the editor
+### 10. How it is built (9:15–10:01) · the editor
 
 | # | Do | Say |
 |---|---|---|
@@ -176,7 +179,7 @@ Captions: 9.2 "AI: gradient-boosted trees · 20 storms × 196 sites · 10 featur
 
 Captions: 10.1 "ADR 0002: the LLM narrates, code decides" · 10.2 "ADR 0003: one grounded-generation module" · "FastAPI · LangGraph · SQLite · React + TypeScript · Claude Sonnet 5.5".
 
-### 11. How the AI is tested (8:31–9:09) · the editor and the terminal
+### 11. How the AI is tested (10:01–10:39) · the editor and the terminal
 
 | # | Do | Say |
 |---|---|---|
@@ -187,7 +190,7 @@ Captions: 10.1 "ADR 0002: the LLM narrates, code decides" · 10.2 "ADR 0003: one
 
 Captions: 11.1 "30 golden cases · 5 categories · rule-checked, no AI judge" · 11.3 "Sonnet 5.5: cheapest model that passes, $0.016 per answer".
 
-### 12. Limits and next steps (9:09–9:53) · `docs/assumptions_limitations.md`
+### 12. Limits and next steps (10:39–11:23) · `docs/assumptions_limitations.md`
 
 | # | Do | Say |
 |---|---|---|
@@ -198,7 +201,7 @@ Captions: 11.1 "30 golden cases · 5 categories · rule-checked, no AI judge" ·
 
 Captions 12.4: "Next: real advisory feeds · real outage history · SSO and Postgres · number checks on the draft · a larger golden set from production traces".
 
-### 13. Close (9:53–10:00) · Storm map at advisory 5
+### 13. Close (11:23–11:30) · Storm map at advisory 5
 
 | # | Do | Say |
 |---|---|---|
@@ -406,6 +409,7 @@ Checked against the running app on 2026-11-02: the template provider after `make
 | Claim | Value | Source |
 |---|---|---|
 | Advisory 1 package | 11 items; P-4.3 *8 needed, 6 fuelled*; seven P-4.4 substations | `GET /packages/1` |
+| P-4.3 over time | advisory 1: 8 needed (PS-19, PS-53, PS-34, PS-60, PS-21, PS-54, PS-48, PS-42, ranks 13–22), 6 fuelled; approved → satisfied at advisory 2; advisory 3: *10 needed, 8 fuelled* | `/risk?advisory=1`, a run on an isolated backend |
 | Level proposals | Level 2 (Director) at advisory 1; Level 1 (Incident Commander) at advisory 3 | package `proposed_activation_level`, P-2.5 |
 | Landfall shift at advisory 3 | 41.3 km east; top 10 gains SUB-07 and WTP-01 | `changes` of package 3 |
 | PS-09 | rank 40 → 20; failure probability 17 % → 29 %; wind P50 77.2 mph; condition 5; 1,010 customers; feeds WTP-01; challenger rank 12, 68 % (wind, age 46, condition) | `/risk`, `/assets/PS-09/explain?advisory=3` |
