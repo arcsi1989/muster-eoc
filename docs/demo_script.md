@@ -100,6 +100,7 @@ The **Run trace** page lists every step the server ran for one forecast, top to 
 | 3.3 | Point at the `draft` row and the `sitrep_draft` row nested under it: claude-sonnet-5-5, about 4,000 tokens in and 830 out, about $0.016, about 6 s. | "Only then does the AI run, once: Claude reads the finished package and the rules that apply, and writes the situation report. Six seconds, about four thousand tokens in, under two cents." |
 | 3.4 | Point at the `await_approval` row, badge *Paused for decisions*, then the `apply_decision` row below it. | "Then it pauses for people. Each decision wakes it for one step that records it, the only step that changes anything." |
 | 3.5 | Point at the **Notes** column: no *Retries*, no *Template fallback*. | "Had the draft cited something not in the package, this would show a retry, or a fallback to a template." |
+| 3.6 | **Cut away from the app** to the still `docs/img/workflow_card.png`, added in the edit. Point at the four bands top to bottom. | "The whole flow in one picture. Scoring first, in plain code. Then the workflow: code builds the decision package, and the AI writes the report, checked before anyone sees it. Then it waits, and only a person's decision moves it on." |
 
 Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to write the report about them" · 3.4 "Paused for people; only a recorded decision changes state".
 
@@ -394,6 +395,8 @@ The panel on the **Storm map** page, right of the map, is an **outage forecast**
 **Its limit** (`docs/assumptions_limitations.md`): it is a screening estimate, and on the synthetic storm history it forecasts too few outages.
 
 ## Behind the curtain: what happens on each advisory
+
+Viewers see this flow on the still `docs/img/workflow_card.png` (beat 3.6), drawn from `docs/architecture.md` with the step timings of a live run.
 
 The detail behind scene 3, where the **Run trace** page shows these steps with their timings.
 

@@ -141,6 +141,8 @@ flowchart TD
   wait -.->|while open| planningdraft["planning draft for the next operational period:<br/>ICS-215 from approved field work, IAP objectives (template, model may reword)"]
 ```
 
+The same flow as a one-page picture, with step timings from a live run with Claude: [img/workflow_card.png](img/workflow_card.png).
+
 In words, `POST /advisories/next` (`lifecycle.issue_next_advisory`):
 
 1. **Expire** the current advisory's thread: undecided items close as *not decided*, the package closes.
