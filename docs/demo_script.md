@@ -122,7 +122,7 @@ Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to
 | 5.6 | Close the drawer. **Decision package**, **Gaps**: expand the group **P-4.5 … · 10**. Point at *Assign a portable generator to PS-09 … (feeds WTP-01)*. | "That crosses rule P-4.5: a pumping station feeding the water plant, at twenty percent or more, gets one of the generators P-4.3 made ready, assigned and staged nearby." |
 | 5.7 | Set **Deciding as** to **Logistics**. Press **Approve** on the PS-09 item. Then point at the **P-4.3** item, back again: *Fuel 2 more portable generators (10 needed, 8 fuelled)*. | "Logistics approves it. And P-4.3 is back: the storm moved, ten stations now qualify, and eight are fuelled. The package recounts at every forecast." |
 | 5.8 | Open the group **P-4.2**. Point at *Pre-inspect PS-14 Seawall Pumping Station*. | "Rule P-4.2: inspect coastal pumping stations that could flood, before crews withdraw. Like PS-14, the Seawall station." |
-| 5.9 | **Storm map**, panel **How bad, where** (right of the map): point at the Bayport East row, then its **Crews / have** cell, *6–29 / 4*, and the *short* badge. | "This panel forecasts the damage per district, from the same fifty storms: customers out, and the repair crews needed, typical to bad case, against the crews at hand. Bayport East has four crews where up to twenty-nine are needed." |
+| 5.9 | **Storm map**, panel **How bad, where** (right of the map): point at the Bayport East row, then its **Crews / have** cell, *7–30 / 4*, and the *26 short* badge. | "This panel forecasts the damage per district, from the same fifty storms: customers out, and the repair crews needed, typical to bad case, against the crews at hand. Bayport East has four crews where up to thirty are needed." |
 | 5.10 | **Operations**, **Decision package**. As **Operations**, **Override…** on PS-14, paste the reason, press **Override**. Point at the refusal. | "Operations wants to skip it. That is a deviation from the playbook, and the server refuses." |
 | 5.11 | As **Incident Commander**, **Override…** with the same reason. Point at *decided by Incident Commander* and the reason. | "Only the Incident Commander may deviate, with a reason, recorded." |
 | 5.12 | Scroll to the **Situation report** draft. Click a clause chip (the clause opens), then an asset chip (the drawer opens). | "At the bottom, the AI's situation report, the summary for this shift. Each paragraph lists the rules and sites it relies on, and code checked every one." |
@@ -373,26 +373,59 @@ To replace the champion it must pass the **promotion rule** on Storm Delta: a be
 
 ## How to read "How bad, where"
 
-The panel on the **Storm map** page, right of the map, is an **outage forecast**: for each district, what the storm could knock out and what fixing it would take. It is computed from the same 50 storms as the risk list, and it is a forecast, not a decision.
+The panel on the **Storm map** page, right of the map, is an **outage forecast**: for each district, how many customers the storm could cut off, and how many crews and generators the repairs and the open playbook work would need, against what is there. It is computed from the same 50 storms as the risk list. It is a forecast, not a decision: it never creates a gap, a task or a state change.
 
-**How it is computed** (`backend/muster/forecast/`, settings under `forecast:` in `config/scoring.yaml`):
-1. For each of the 50 storms, it draws 20 random outcomes: each asset fails or not, with its failure chance in that storm. That makes 1,000 possible outcomes.
-2. Each outcome follows the supply network. A failed substation cuts its power customers. A failed pumping station or treatment plant cuts water. An intact asset counts as out once half or more of the assets feeding it are out.
-3. It adds up, per district: customers out, the crews needed to repair what failed (2 per substation, 1 per pumping station, 4 for the treatment plant), the crews for the playbook actions still open there, and the generators needed to run intact pumping stations that lost their power.
-4. Over the 1,000 outcomes it reports the median and the P90.
+### How it is computed
 
-**The columns:**
+Settings are under `forecast:` and `planning.resources` in `config/scoring.yaml`; the code is in `backend/muster/forecast/`.
 
-| Column | Reads as | Advisory 3, Bayport East |
-|---|---|---|
-| **District** | One row per district, west to east | Bayport East |
-| **Customers out** | `power` and `water`: customers without service, median–P90 | power 12k–69k · water 7k–26k |
-| **Crews / have** | Crews needed (median–P90) / crews at the district's staging areas now. The red **N short** badge is the P90 need minus those available. | 6–29 / 4 · 25 short |
-| **Generators** | Portable generators needed, median–P90. The note under the table says how many fuelled generators serve the whole territory (6). | — |
+1. **1,000 possible outcomes.** For each of the 50 storms it draws 20 random outcomes: in each, every asset fails or not, with its failure chance in that storm.
+2. **Follow the supply network.** A failed substation cuts its power customers; a failed pumping station or the treatment plant cuts water. An intact asset also counts as out once half or more of the assets feeding it are out, so a pumping station goes down with its substation, and the plant with its pumping stations.
+3. **Count per district, in each outcome:**
+   - **customers out**, power and water;
+   - **repair crews**: 2 per failed substation, 1 per failed pumping station, 4 for the treatment plant;
+   - **generators**: 1 per intact pumping station that lost its power, 2 for the plant.
+4. **Add the open playbook work**, the same in every outcome. Each open action with field work adds its crews or generators: an inspection, a flood barrier or a relocation needs 1 crew; a P-4.5 generator assignment needs 1 generator. An overridden action needs nothing.
+5. **Summarise:** the median (P50) and the P90 over the 1,000 outcomes.
 
-**How to say it:** "In a typical outcome Bayport East loses power to about twelve thousand customers; in a bad one, nearly seventy thousand. Repairs would need six to twenty-nine crews, and four are there."
+### What is available
 
-**Its limit** (`docs/assumptions_limitations.md`): it is a screening estimate, and on the synthetic storm history it forecasts too few outages.
+- **Crews:** each staging area holds 4 crews (2 inspection, 1 flood-barrier, 1 relocation; `per_staging_area` in `planning.resources`). A district's crews are 4 × its usable staging areas: Westshore 4, Bayport West 8 (two depots), Bayport East 4, Eastern Plains 4. A staging area the playbook says to leave (P-4.6) no longer counts, so from advisory 4 Bayport East has **0**, because STG-02 will flood.
+- **Generators:** one pool for the whole territory, the operational state's fuelled count. It starts at **6** and becomes **8** once Logistics approves P-4.3 at advisory 1. It is not split by district.
+
+### The caption under the table, sentence by sentence
+
+| Caption | Meaning |
+|---|---|
+| *Customers out and crews and generators needed, median–P90 over 1,000 ensemble samples* | Each cell is "typical–bad case": the median and the P90 of the 1,000 outcomes (50 storms × 20 draws). |
+| *the open playbook actions included* | The crews and generators the package's open actions need are added on top of the repair demand. |
+| *Short: crews the P90 needs beyond those at the district's staging areas* | The red badge is the bad-case crew need minus the crews the district has. |
+| *6 fuelled generators serve the whole territory* | The generator pool is territory-wide; compare it with each district's need. It reads the live state, so it says 8 after P-4.3 is approved. |
+| *A forecast from the risk model, not a decision* | It informs people; it changes nothing. |
+
+### The columns
+
+| Column | Reads as |
+|---|---|
+| **District** | One row per district, west to east |
+| **Customers out** | `power` and `water`: customers without service, median–P90 |
+| **Crews / have** | Crews needed, median–P90 / crews at the district's usable staging areas; **N short** = P90 need − crews there |
+| **Generators** | Generators needed, median–P90, against the territory pool in the caption |
+
+### How it moves through the demo (template run, the script's decisions)
+
+| Moment | Bayport East | Bayport West | Generator pool |
+|---|---|---|---|
+| Advisory 1 | power 0–47k; crews 0–21 / 4, 17 short | power 0–90k; crews 4–40 / 8 | 6 → 8 after P-4.3 |
+| Advisory 3, beat 5.9 | power 12k–69k, water 7k–26k; crews **7–30 / 4, 26 short** | power 27k–113k, water 6k–115k; crews 14–47 / 8, 39 short; generators **10–17** | 8 |
+| After the PS-14 override | crews 6–29 / 4, 25 short (the inspection's crew is no longer needed) | unchanged | 8 |
+| Advisory 4 | crews 16–36 / **0**: STG-02 must be left | crews 18–56 / 8 | 8 |
+
+A median of 0 at advisory 1 means most of the 50 storms miss that district; the P90 shows what the bad ones do.
+
+**How to say it at beat 5.9:** "In a typical outcome Bayport East loses power to about twelve thousand customers; in a bad one, nearly seventy thousand. Repairs and open work would need seven to thirty crews, and four are there." Bayport West makes a second point: it alone could need ten to seventeen generators, against eight for the whole territory.
+
+**Its limits** (`docs/assumptions_limitations.md`): it is a screening estimate, and on the synthetic storm history it forecasts too few outages. Resources are counted, not scheduled: pre-storm work and post-storm repairs are added together, with no timing.
 
 ## Behind the curtain: what happens on each advisory
 
@@ -423,7 +456,7 @@ Checked against the running app on 2026-11-02: the template provider after `make
 | Landfall shift at advisory 3 | 41.3 km east; top 10 gains SUB-07 and WTP-01 | `changes` of package 3 |
 | PS-09 | rank 40 → 20; failure probability 17 % → 29 %; wind P50 77.2 mph; condition 5; 1,010 customers; feeds WTP-01; challenger rank 12, 68 % (wind, age 46, condition) | `/risk`, `/assets/PS-09/explain?advisory=3` |
 | PS-14 at advisory 3 | 1.96 km from the coast; flood P90 0.85 m | `/assets/PS-14/explain?advisory=3` |
-| Bayport East outage forecast, advisory 3 | power 11,943–68,878; water 6,603–26,336; crews 6–29 needed, 4 available | `/forecast?advisory=3` |
+| Bayport East outage forecast, advisory 3 | power 11,943–68,878; water 6,603–26,336; crews 7–30 needed before the PS-14 override (6–29 after), 4 available; Bayport West generators 10–17; pool 8 after P-4.3 | `/forecast?advisory=3`, a run on an isolated backend with the script's decisions |
 | Ensemble cards | advisory 1: spread 185 km, shifts −384 to +354 km, PS-09 P50 57.6 / P90 120.5 mph; advisory 3: 124 km, −231 to +230 km, 77.2 / 127.1 mph | `docs/img/ensemble_adv1.png`, `ensemble_adv3.png` |
 | Operations override refused | 403, "only the incident commander approves it (P-8.1)" | `POST /packages/3/items/…/decision` |
 | Advisory 4 | P-4.5 at PS-09 gone; P-4.2 at PS-14 back; P-4.6 at STG-02 new | `GET /packages/4` |
