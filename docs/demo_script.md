@@ -77,7 +77,7 @@ Caption 1.4: "Muster: decision support for a utility's emergency operations cent
 | 2.1 | Press **Issue advisory 1 ▶** in the header. The track and cone appear. | "The first forecast, called an advisory: the line is the storm's predicted path, the cone how far it could stray. It is heading for the city, Bayport West." |
 | 2.2 | Point at **Max wind** and **Peak surge** on the advisory card: 130 mph, 2.5 m. | "Category four: a hundred and thirty mile-an-hour winds, and a storm surge pushing the sea two and a half metres up." |
 | 2.3 | **Cut away from the app** to the still `docs/img/ensemble_adv1.png`, added in the edit; the app has no view of the 50 storms. Point at the black line, then the faint blue copies, then the bell curve, then PS-09's row of dots. | "Muster turns that uncertainty into fifty possible storms. The black line is the forecast; each blue line is a copy moved left or right by a random distance, mostly small, a few large, as wide as the cone. For every copy it works out the wind and flood at every site: here, PS-09 gets fifty wind speeds, and we keep the typical one and the bad one." |
-| 2.4 | Open **Operations**, **Risk list** tab. | "Each site gets two numbers: how likely it is to fail in that wind and flood, from engineering failure curves, and how many customers lose service if it does. Multiplied, that is its risk: the customers expected to lose service. This list ranks by it." |
+| 2.4 | Open **Operations**, **Risk list** tab. | "Each site gets two numbers. First, how likely it is to fail, read from a failure curve: for each wind speed, the share of stations like it that fail. Second, how many customers lose service if it does. Multiplied, that is its risk: the customers expected to lose service. This list ranks by it." |
 | 2.5 | Click the **Decision package** tab. Scroll slowly from top to bottom. | "This is the decision package: the to-do list for the people in the room, rebuilt for every forecast. Code, not AI, checks each rule of the utility's hurricane playbook against the forecast and lists what is not yet done." |
 | 2.6 | Point at the **P-4.3** item: *Fuel 2 more portable generators (8 needed, 6 fuelled)*, owner Logistics. | "Take one item. Pumping stations move the city's water, and they run on grid power. If the storm cuts their power, the pumps stop, and the water treatment plant's eighty-five thousand customers lose water." |
 | 2.7 | Point at the **P-4.3** chip on the item. Caption: the clause text, *"Logistics fuels all portable generators and confirms that the number fuelled and available is at least the number of pumping stations in the top 25 of the risk list that serve the water treatment plant."* | "So rule P-4.3 says: three days out, have a fuelled portable generator ready for every pumping station that feeds the water plant and is among the twenty-five riskiest sites." |
@@ -161,8 +161,8 @@ Captions: 8.1 "AI agent: 8 read-only tools; every ID and number checked before d
 
 | # | Do | Say |
 |---|---|---|
-| 9.1 | **Risk list**, click **PS-09**. Point at **Challenger: rank … · …%** beside the champion's numbers. | "Those failure chances come from engineering curves, the champion. Beside them runs a machine-learning challenger." |
-| 9.2 | Show the feature card (the ten features, see *How the challenger works*). | "It learned from twenty past storms: for every site, ten facts known before landfall, such as the forecast wind and flood, condition, age and type, and whether the site failed." |
+| 9.1 | **Risk list**, click **PS-09**. Point at **Challenger: rank … · …%** beside the champion's numbers. | "Those failure chances come from the failure curves, the champion. Beside them runs a machine-learning challenger." |
+| 9.2 | **Cut away from the app** to the still `docs/img/challenger_card.png`, added in the edit; the app shows only each asset's top three features, not the full list. Point at column 1 (the ten features), column 2 (the trees), then the PS-09 strip. | "It learned from twenty past storms: for every site, ten facts known before landfall, such as the forecast wind and flood, condition, age and type, and whether the site failed. It is built from many small yes-or-no decision trees, so it can learn combinations: old, in poor condition, and in strong wind." |
 | 9.3 | Open **Champion and challenger**. Point at the Storm Delta comparison. | "On a storm it never saw, it predicts better. It found that old, poor-condition sites fail far more in strong wind: at PS-09 it says sixty-eight percent, not twenty-nine." |
 | 9.4 | Point at the **Promotion rule** and the status *shadow*. | "It passes the promotion rule, but stays in shadow until a person promotes it." |
 
@@ -327,6 +327,8 @@ PS-14 shows the opposite at advisory 5: failure probability 45 %, but it feeds n
 
 ## How the challenger works
 
+This section is background for the presenter; viewers see its content on the still `docs/img/challenger_card.png` (beat 9.2), computed from the trained model in `data/models/challenger.pkl`.
+
 **The question it answers:** the same as the champion's: how likely is this asset to fail in this storm?
 
 **What it learned from (the training data):** 20 fictional past storms (S01–S20, `data/history/synthetic_storms.json`). For each storm, Muster re-creates what the forecast would have looked like 36 hours before landfall, with the same 50-version ensemble around the storm's real track. It records, for each of the 196 assets, ten facts known before the storm (the **features**), and what actually happened (the **outcome**). That makes 20 × 196 = 3,920 examples.
@@ -420,6 +422,7 @@ Checked against the running app on 2026-11-02: the template provider after `make
 | Advisory 4 | P-4.5 at PS-09 gone; P-4.2 at PS-14 back; P-4.6 at STG-02 new | `GET /packages/4` |
 | Advisory 5 | 12 conflicts (3 × P-4.2, 9 × P-4.5); PS-14 wind arrives in 8 h; rank 87; failure probability 45 %; 2,733 customers; feeds nothing | `GET /packages/5`, `/assets/PS-14/explain?advisory=5` |
 | Challenger on Storm Delta | Brier 0.150 vs 0.172; ROC AUC 0.85 vs 0.81; promotion rule passed; status shadow | `GET /challenger` |
+| Challenger card | Storm Delta: Brier 0.172 → 0.150, ROC AUC 0.81 → 0.85, top-10 % capture 27 % → 29 %; PS-09 contributions wind +42, age +23, condition +21 points | `data/models/challenger.pkl`, `/assets/PS-09/explain?advisory=3` |
 | Disagreement | SUB-101 challenger rank 8, champion rank 25 | `/challenger/disagreements?advisory=5` |
 | Run trace, advisory 1 (live, Claude) | `load_context` 6 ms, `diff` 10 ms, `evaluate_rules` 50 ms; `sitrep_draft` claude-sonnet-5-5, 5.9 s, 4,005 tokens in, 834 out, $0.016, validation passed | `GET /advisories/1/trace` |
 | Copilot | 8 read-only tools; restricted fields include `coordinates` and `elevation_m` | `copilot/tools.py`, `classification.py` |
