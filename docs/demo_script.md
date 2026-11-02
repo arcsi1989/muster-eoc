@@ -152,6 +152,7 @@ Captions: 7.1 "P-4.7: no field work where 39 mph wind arrives within 12 h" · 7.
 |---|---|---|
 | 8.1 | Press **Copilot** at the right end of the page bar. Paste `Why is PS-14 ranked where it is?`. As the steps appear, point at the tool call `explain_score`, then *Validating the answer: every ID and number must come from a tool*. | "The copilot is an AI agent: it decides which data to look up, with eight read-only tools that can't change anything. Before an answer is shown, code checks that every site, rule and number came from those tools." |
 | 8.2 | Point at the answer; open **How I got this**: the tool result, *Validation: Passed*, model, tokens, cost. | "PS-14 is likely to fail, but ranks eighty-seventh: few customers depend on it. 'How I got this' shows the data, the check, the model and the cost: under two cents." |
+| 8.2a | **Cut away from the app** to the still `docs/img/failure_card.png`, added in the edit. Point at the columns left to right, then the bottom strip. | "How does it get forty-five percent? Each of the fifty storms gives PS-14 a wind and a flood depth. Each is read on its failure curve. For every storm the two chances combine, since either can break it, and the fifty results are averaged. Most storms either miss it or hit it hard; forty-five percent is the average. Times its two thousand seven hundred customers, that is its risk." |
 | 8.3 | Paste `Will PS-14 fail?`. | "Will it fail? Nobody can know; here is the modelled probability." |
 | 8.4 | Paste `What is the elevation of PS-14 in metres?`. | "Its elevation is restricted, removed before the AI sees anything." |
 
@@ -314,6 +315,8 @@ So at advisory 1 many versions miss the county entirely, and the risk is spread 
 
 ## How a risk score is computed (the champion), with PS-09 at advisory 3
 
+Viewers see this calculation on the still `docs/img/failure_card.png` (beat 8.2a), computed with the app's code for PS-14 at advisory 5, the one story asset where wind and flood both count: 50 winds and flood depths, each read on its curve, combined per storm, averaged to 45 %, times 2,733 customers ≈ 1,227, rank 87.
+
 The **Explanation drawer** (click an asset) shows every number below.
 
 1. **Hazard at the site.** From the 50 versions of the storm, PS-09 gets 50 wind speeds: the median is 77 mph and the bad case (P90) 127 mph. None of the versions floods it.
@@ -423,6 +426,7 @@ Checked against the running app on 2026-11-02: the template provider after `make
 | Advisory 4 | P-4.5 at PS-09 gone; P-4.2 at PS-14 back; P-4.6 at STG-02 new | `GET /packages/4` |
 | Advisory 5 | 12 conflicts (3 × P-4.2, 9 × P-4.5); PS-14 wind arrives in 8 h; rank 87; failure probability 45 %; 2,733 customers; feeds nothing | `GET /packages/5`, `/assets/PS-14/explain?advisory=5` |
 | Challenger on Storm Delta | Brier 0.150 vs 0.172; ROC AUC 0.85 vs 0.81; promotion rule passed; status shadow | `GET /challenger` |
+| Failure card (PS-14, advisory 5) | wind P50/P90 103.5/137.1 mph, flood 0.56/1.42 m; curves lowered to 127.5 mph and 0.85 m (condition 3); mean p_wind 28.9 %, p_flood 35.4 %, combined 44.9 %; × 2,733 ≈ 1,227, rank 87 | `docs/img/failure_card.png`, `/assets/PS-14/explain?advisory=5` |
 | Challenger card | Storm Delta: Brier 0.172 → 0.150, ROC AUC 0.81 → 0.85, top-10 % capture 27 % → 29 %; PS-09 contributions wind +42, age +23, condition +21 points | `data/models/challenger.pkl`, `/assets/PS-09/explain?advisory=3` |
 | Disagreement | SUB-101 challenger rank 8, champion rank 25 | `/challenger/disagreements?advisory=5` |
 | Run trace, advisory 1 (live, Claude) | `load_context` 6 ms, `diff` 10 ms, `evaluate_rules` 50 ms; `sitrep_draft` claude-sonnet-5-5, 5.9 s, 4,005 tokens in, 834 out, $0.016, validation passed | `GET /advisories/1/trace` |
