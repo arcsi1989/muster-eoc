@@ -123,6 +123,7 @@ Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to
 | 5.7 | Set **Deciding as** to **Logistics**. Press **Approve** on the PS-09 item. Then point at the **P-4.3** item, back again: *Fuel 2 more portable generators (10 needed, 8 fuelled)*. | "Logistics approves it. And P-4.3 is back: the storm moved, ten stations now qualify, and eight are fuelled. The package recounts at every forecast." |
 | 5.8 | Open the group **P-4.2**. Point at *Pre-inspect PS-14 Seawall Pumping Station*. | "Rule P-4.2: inspect coastal pumping stations that could flood, before crews withdraw. Like PS-14, the Seawall station." |
 | 5.9 | **Storm map**, panel **How bad, where** (right of the map): point at the Bayport East row, then its **Crews / have** cell, *7–30 / 4*, and the *26 short* badge. | "This panel forecasts the damage per district, from the same fifty storms: customers out, and the repair crews needed, typical to bad case, against the crews at hand. Bayport East has four crews where up to thirty are needed." |
+| 5.9a | **Cut away from the app** to the still `docs/img/outage_card.png`, added in the edit. Point at panels 1 to 3, then the annotated row. | "Where do these numbers come from? Fifty storms, twenty random draws each: a thousand possible outcomes. In each, failures spread through the supply network, and the outages and repair crews are counted. The panel shows the typical and the bad case. Seven to thirty crews needed, four on hand: twenty-six short." |
 | 5.10 | **Operations**, **Decision package**. As **Operations**, **Override…** on PS-14, paste the reason, press **Override**. Point at the refusal. | "Operations wants to skip it. That is a deviation from the playbook, and the server refuses." |
 | 5.11 | As **Incident Commander**, **Override…** with the same reason. Point at *decided by Incident Commander* and the reason. | "Only the Incident Commander may deviate, with a reason, recorded." |
 | 5.12 | Scroll to the **Situation report** draft. Click a clause chip (the clause opens), then an asset chip (the drawer opens). | "At the bottom, the AI's situation report, the summary for this shift. Each paragraph lists the rules and sites it relies on, and code checked every one." |
@@ -372,6 +373,8 @@ To replace the champion it must pass the **promotion rule** on Storm Delta: a be
 **Its limit:** it can only learn what its training storms contain. Here they are synthetic, with one planted effect; with real data it would learn from the utility's own outage history.
 
 ## How to read "How bad, where"
+
+Viewers see this on the still `docs/img/outage_card.png` (beat 5.9a): the 1,000 outcomes for Bayport East at advisory 3, the supply network, the distribution with P50 and P90, and the panel's row annotated. Its samples are reproduced with the app's own forecast code and match the panel exactly.
 
 The panel on the **Storm map** page, right of the map, is an **outage forecast**: for each district, how many customers the storm could cut off, and how many crews and generators the repairs and the open playbook work would need, against what is there. It is computed from the same 50 storms as the risk list. It is a forecast, not a decision: it never creates a gap, a task or a state change.
 
