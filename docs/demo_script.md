@@ -21,9 +21,9 @@ Alongside the story, the AI drafts the situation report, answers questions, and,
 | Time | Scene | Story | Technical thread |
 |---|---|---|---|
 | 0:00–0:30 | 1. The problem and the cast | Who decides what | The one rule: the AI never decides |
-| 0:30–1:30 | 2. Advisory 1 | What one forecast sets in motion | Ensemble simulation, the rule engine, the agent cycle |
-| 1:30–1:40 | 3. Advisory 2 | The clock | Undecided items close on the record |
-| 1:40–3:00 | 4. Advisory 3 | The storm moves east; PS-09 and PS-14 | Role enforcement on the server; the grounded draft |
+| 0:30–1:35 | 2. Advisory 1 | What one forecast sets in motion | Ensemble simulation, the rule engine, the agent cycle |
+| 1:35–1:45 | 3. Advisory 2 | The clock | Undecided items close on the record |
+| 1:45–3:00 | 4. Advisory 3 | The storm moves east; PS-09 and PS-14 | Role enforcement on the server; the grounded draft |
 | 3:00–3:15 | 5. Advisory 4 | What the decisions changed | State comes only from approvals |
 | 3:15–3:55 | 6. Advisory 5 | The conflict | Tools may point out a conflict, never resolve it |
 | 3:55–4:55 | 7. The copilot | Questions about PS-14 | Tool use, runtime validation, refusal, data classification, cost |
@@ -55,7 +55,7 @@ Show these as captions when they first appear. They are also the voice-over's vo
 |---|---|
 | **Advisory** | One official forecast: the storm's expected path (the **track**), its strength and how uncertain it is. Five arrive, at T-72, T-60, T-48, T-36 and T-24 (hours before landfall). |
 | **Cone** | The band the storm's centre will probably stay within. It narrows as landfall nears. |
-| **Ensemble (the 50 versions)** | Muster turns one advisory into 50 possible storms by shifting the forecast track sideways by a random amount. The spread matches the cone's width at landfall. Each version gives every site a wind speed and a flood depth. The median (P50) and the bad case (P90) across the 50 are what the playbook plans against (P-1.3). |
+| **Ensemble (the 50 versions)** | 50 possible storms made from one advisory, by moving the whole forecast track sideways by 50 different distances. Most moves are small and a few are large, and their spread equals the cone's width at landfall. Each version gives every site a wind speed and a flood depth; the median (P50) and the bad case (P90) across the 50 are what the playbook plans against (P-1.3). See *How the 50 versions are made*. |
 | **Failure probability** | The chance an asset fails, read from published wind and flood fragility curves and worsened by poor condition. |
 | **Consequence** | Who depends on the asset: its own customers plus a share of what it feeds. A pumping station that feeds the water treatment plant carries part of the plant's 85,000 customers. |
 | **Risk** | Failure probability × consequence. The **risk list** ranks all 196 assets by it. |
@@ -87,11 +87,44 @@ Show this as one card in scene 9, and use it as the **AI** caption text when eac
 | **Evaluation and model selection** | 30 golden cases, rule-checked, gated in CI; a cost and quality comparison of three models | 10 | Rules, not an LLM judge; thresholds in config |
 | **Observability and cost** | A trace of every step, tokens and estimated cost per call; the audit log | 2, 7 | Every model call recorded with its prompt version |
 
+## How the 50 versions are made
+
+A forecast says where the storm will most likely go. The cone says how far it could stray. Muster turns that uncertainty into 50 concrete storms and runs every one against every site. This is a Monte Carlo ensemble (`backend/muster/hazard/ensemble.py`).
+
+1. **Take the official track.** The advisory gives the storm's centre, strength and size hour by hour until landfall.
+2. **Draw 50 sideways distances.** The distances are random but follow a bell curve centred on zero, which is the official track itself. Its spread (the standard deviation) is the cone's radius at landfall, set in `config/scoring.yaml` as `sigma_cone_factor: 1.0`. About two thirds of the distances fall within one cone radius of the forecast, and a few fall up to twice as far.
+3. **Move the whole track by each distance.** Every hourly point moves by the same amount, at right angles to the storm's direction of travel: left of the track is one way, right the other. Strength, size, speed and timing stay as forecast; only the position changes. The landfall point moves with it.
+4. **Work out the hazard for each version at every site:**
+   - **wind:** a standard hurricane wind profile (a Rankine vortex) around the moved centre, hour by hour. It is weaker once the centre is far inland. A site keeps its strongest wind, and the first hour it reaches 39 mph.
+   - **flood:** the storm surge peaks where the moved storm lands and falls off along the coast and inland. Flood depth is the surge minus the site's ground elevation.
+5. **Summarise the 50 results per site:**
+   - **P50** (the median) is the middle value: half the versions are worse.
+   - **P90** is the bad case: only 5 of the 50 are worse.
+   - **Failure probability** is the average, over all 50 versions, of the fragility curve's probability for that version's wind and flood. It is not the probability at the median.
+   - **Wind arrival** is the median hour across the versions.
+6. **Fixed seed.** The random draws use seed 42 plus the advisory number, so every run, every take and every test gets the same 50 storms.
+
+The ensemble narrows as landfall nears, because the cone does. On a territory 260 km wide:
+
+| Advisory | Hours to landfall | Spread (cone radius at landfall) | The 50 shifts range from |
+|---|---|---|---|
+| 1 | 72 | 185 km | −384 to +354 km |
+| 2 | 60 | 156 km | −265 to +333 km |
+| 3 | 48 | 124 km | −231 to +230 km |
+| 4 | 36 | 96 km | −198 to +185 km |
+| 5 | 24 | 72 km | −155 to +132 km |
+
+So at advisory 1 many versions miss the county entirely, and the risk is spread thinly over the coast. By advisory 5 the versions bunch around Bayport East, and the risk concentrates there.
+
+**What it does not do** (listed in `docs/assumptions_limitations.md`): it does not vary the storm's strength, size, speed or timing, and it is not the weather service's own ensemble or probability products. It is a screening approximation that uses the cone as the measure of uncertainty.
+
+**Caption card for scene 2** (a simple diagram drawn in the edit): the official track as a solid line, a handful of the shifted tracks as faint parallel lines on either side, a bell curve under them labelled "sideways shift, spread = cone radius", and one site with its 50 wind values reduced to "P50 · P90".
+
 ## Behind the curtain: what happens on each advisory
 
 Use this for scene 2's voice-over, with the **Run trace** page on screen. It shows the same steps with their timings.
 
-1. **Hazard.** The advisory's track is shifted sideways 50 times (seed 42 plus the advisory number, so every run is identical). Each version gives every asset, hospital, shelter and staging area a wind speed, a storm-surge flood depth, and the hour tropical-storm-force wind (39 mph) arrives.
+1. **Hazard.** The 50 versions of the storm are made (see below), and each gives every asset, hospital, shelter and staging area its strongest wind, its flood depth, and the hour tropical-storm-force wind (39 mph) arrives.
 2. **Scoring.** Each asset gets its failure probability from the fragility curves, its consequence from the supply network, its risk and its rank.
 3. **The champion and the challenger** both score every asset. Only the champion's numbers drive decisions.
 4. **The advisory cycle**, a LangGraph run, traced step by step:
@@ -133,7 +166,7 @@ Use this for scene 2's voice-over, with the **Run trace** page on screen. It sho
 
 **Voice-over:** "Bayport County is a fictional coast, and SGW keeps its power and water running. A hurricane is three days out. In the emergency operations centre, authority is split by role, and the utility's playbook says who decides what. Muster turns each forecast into the decisions those people must make. One rule shapes the whole architecture: the AI drafts and answers, but it never decides."
 
-### 2. Advisory 1: what one forecast sets in motion (0:30–1:30) · T-72
+### 2. Advisory 1: what one forecast sets in motion (0:30–1:35) · T-72
 
 **Do:**
 1. Press **Issue advisory ▶** in the header. On the map, point at the forecast track (dots coloured by hurricane category, with time labels), the cone, and the landfall in Bayport West.
@@ -147,17 +180,17 @@ Use this for scene 2's voice-over, with the **Run trace** page on screen. It sho
    - the draft situation report at the bottom.
 5. Set **Deciding as** to **Director** and declare **Level 2** on the proposal card.
 
-**Captions:** "Advisory: one official forecast, every 12 hours" · "AI: Monte Carlo ensemble, 50 versions of the storm" · "Risk = failure probability × who depends on it" · "AI: agent cycle (LangGraph), every step traced" · "Decision package: built by a deterministic rule engine" · "P-2.5: the tool proposes a level; the Director declares it".
+**Captions:** "Advisory: one official forecast, every 12 hours" · "AI: Monte Carlo ensemble: the track moved sideways 50 times, spread = cone radius" · "P50: the median of the 50 · P90: only 5 of 50 are worse" · "Risk = failure probability × who depends on it" · "AI: agent cycle (LangGraph), every step traced" · "Decision package: built by a deterministic rule engine" · "P-2.5: the tool proposes a level; the Director declares it".
 
-**Voice-over:** "An advisory is one official forecast: the track, the strength and the uncertainty, shown as the cone. Muster shifts the track sideways fifty times to make fifty possible storms, and works out the wind and flood at every site. That gives every asset a failure probability, and times who depends on it, a risk. An agent cycle then runs, traced step by step. A deterministic rule engine, not the AI, checks the playbook and builds the decision package: gaps, each with a proposed action and an owner. At seventy-two hours out, the tool proposes Level 2, Prepare. Only the Director can declare it."
+**Voice-over:** "An advisory is one official forecast: the track, the strength and the uncertainty, shown as the cone. Muster turns that uncertainty into fifty possible storms: it moves the whole forecast track sideways by fifty random distances, mostly small and a few large, as wide as the cone. For each one it works out the wind and flood at every site, then takes the typical case and the bad case. That gives every asset a failure probability, and times who depends on it, a risk. An agent cycle then runs, traced step by step. A deterministic rule engine, not the AI, checks the playbook and builds the decision package: gaps, each with a proposed action and an owner. At seventy-two hours out, the tool proposes Level 2, Prepare. Only the Director can declare it."
 
-### 3. Advisory 2: the clock (1:30–1:40) · T-60
+### 3. Advisory 2: the clock (1:35–1:45) · T-60
 
 **Do:** issue advisory 2. Open **Audit** and point at the items from advisory 1 closed as *not decided*.
 
 **Voice-over:** "Twelve hours later, a new package replaces the old one. Whatever nobody decided closes as not decided, on the record."
 
-### 4. Advisory 3: the storm moves east (1:40–3:00) · T-48
+### 4. Advisory 3: the storm moves east (1:45–3:00) · T-48
 
 **Do:**
 1. Issue advisory 3. On the map, point at the landfall, now 41 km further east, and the dotted previous track. On the **Decision package**, point at **What changed**: *landfall 41 km east*, and the new top-10 entries (SUB-07, the Medical District substation, and WTP-01, the water treatment plant).
