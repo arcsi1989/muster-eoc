@@ -76,7 +76,7 @@ Caption 1.4: "Muster: decision support for a utility's emergency operations cent
 |---|---|---|
 | 2.1 | Press **Issue advisory 1 ▶** in the header. The track and cone appear. | "The first forecast, called an advisory: the line is the storm's predicted path, the cone how far it could stray. It is heading for the city, Bayport West." |
 | 2.2 | Point at **Max wind** and **Peak surge** on the advisory card: 130 mph, 2.5 m. | "Category four: a hundred and thirty mile-an-hour winds, and a storm surge pushing the sea two and a half metres up." |
-| 2.3 | Cut to the ensemble caption card: the official path, faint copies shifted to either side, a bell curve below. | "Muster turns that uncertainty into fifty possible storms, moving the whole path left or right by random distances as wide as the cone, and works out the wind and flood at every site in each." |
+| 2.3 | **Cut away from the app** to the still `docs/img/ensemble_adv1.png`, added in the edit; the app has no view of the 50 storms. Point at the black line, then the faint blue copies, then the bell curve, then PS-09's row of dots. | "Muster turns that uncertainty into fifty possible storms. The black line is the forecast; each blue line is a copy moved left or right by a random distance, mostly small, a few large, as wide as the cone. For every copy it works out the wind and flood at every site: here, PS-09 gets fifty wind speeds, and we keep the typical one and the bad one." |
 | 2.4 | Open **Operations**, **Risk list** tab. | "Each site gets two numbers: how likely it is to fail in that wind and flood, from engineering failure curves, and how many customers lose service if it does. Multiplied, that is its risk: the customers expected to lose service. This list ranks by it." |
 | 2.5 | Click the **Decision package** tab. Scroll slowly from top to bottom. | "This is the decision package: the to-do list for the people in the room, rebuilt for every forecast. Code, not AI, checks each rule of the utility's hurricane playbook against the forecast and lists what is not yet done." |
 | 2.6 | Point at the **P-4.3** item: *Fuel 2 more portable generators (8 needed, 6 fuelled)*, owner Logistics. | "Rule P-4.3, for example: eight generators must be fuelled, six are. Proposed: fuel two more. Owner: Logistics." |
@@ -114,11 +114,11 @@ Captions: 3.2 "Decisions prepared by code: 50 ms, no AI" · 3.3 "AI: one call to
 | 5.2 | **Operations**, **Decision package**. Point at *Activation proposal: Level 1 · Full activation*. | "At forty-eight hours the tool proposes full activation, declared by the Incident Commander, who now takes charge." |
 | 5.3 | Set **Deciding as** to **Incident Commander**. Press **Declare Level 1**. Point at the new **P-7.2** item: *Notify the state utility commission*, owner Regulatory Liaison. | "Declaring it adds a task: notify the regulator within twelve hours, owned by the Regulatory Liaison." |
 | 5.4 | Open the **Risk list** tab. Scroll to rank 20, *PS-09 Saltmeadow East Pumping Station*. Click the row; the explanation drawer opens. | "PS-09, a pumping station feeding the water plant's eighty-five thousand customers, jumped from rank forty to twenty. Why?" |
-| 5.5 | In the drawer, point at **Failure probability** (29 %), the wind (P50 77 mph) and the condition (5). | "Its chance of failure rose from seventeen to twenty-nine percent: stronger wind, and very poor condition, which makes it fail at lower wind." |
+| 5.5 | In the drawer, point at **Failure probability** (29 %), the wind (P50 77 mph) and the condition (5). Optional: cut to `docs/img/ensemble_adv3.png`, the same card at advisory 3, where PS-09's fifty winds have moved up. | "Its chance of failure rose from seventeen to twenty-nine percent: stronger wind, and very poor condition, which makes it fail at lower wind." |
 | 5.6 | Close the drawer. **Decision package**, **Gaps**: expand the group **P-4.5 … · 10**. Point at *Assign a portable generator to PS-09 … (feeds WTP-01)*. | "That crosses rule P-4.5: a pumping station feeding the water plant, at twenty percent or more, gets a backup generator." |
 | 5.7 | Set **Deciding as** to **Logistics**. Press **Approve** on the PS-09 item. | "Generators belong to Logistics, so Logistics approves it." |
 | 5.8 | Open the group **P-4.2**. Point at *Pre-inspect PS-14 Seawall Pumping Station*. | "Rule P-4.2: inspect coastal pumping stations that could flood, before crews withdraw. Like PS-14, the Seawall station." |
-| 5.9 | **Storm map**, panel **How bad, where**: point at the Bayport East row's crews. | "But Bayport East has four crews where up to twenty-nine are needed." |
+| 5.9 | **Storm map**, panel **How bad, where** (right of the map): point at the Bayport East row, then its **Crews / have** cell, *6–29 / 4*, and the *short* badge. | "This panel forecasts the damage per district, from the same fifty storms: customers out, and the repair crews needed, typical to bad case, against the crews at hand. Bayport East has four crews where up to twenty-nine are needed." |
 | 5.10 | **Operations**, **Decision package**. As **Operations**, **Override…** on PS-14, paste the reason, press **Override**. Point at the refusal. | "Operations wants to skip it. That is a deviation from the playbook, and the server refuses." |
 | 5.11 | As **Incident Commander**, **Override…** with the same reason. Point at *decided by Incident Commander* and the reason. | "Only the Incident Commander may deviate, with a reason, recorded." |
 | 5.12 | Scroll to the **Situation report** draft. Click a clause chip (the clause opens), then an asset chip (the drawer opens). | "At the bottom, the AI's situation report, the summary for this shift. Each paragraph lists the rules and sites it relies on, and code checked every one." |
@@ -302,7 +302,12 @@ So at advisory 1 many versions miss the county entirely, and the risk is spread 
 
 **What it does not do** (listed in `docs/assumptions_limitations.md`): it does not vary the storm's strength, size, speed or timing, and it is not the weather service's own ensemble or probability products. It is a screening approximation that uses the cone as the measure of uncertainty.
 
-**Caption card for beat 2.3** (a simple diagram drawn in the edit): the official track as a solid line, a handful of the shifted tracks as faint parallel lines on either side, a bell curve under them labelled "sideways shift, spread = cone radius", and one site with its 50 wind values reduced to "P50 · P90".
+**The caption card for beat 2.3** is a still image, not part of the app: `docs/img/ensemble_adv1.png`, with `docs/img/ensemble_adv3.png` for advisory 3. It is computed by the app's own hazard code, so it shows the exact 50 storms the app scores. How to read it:
+
+- **Left, the map.** The black line is the official forecast track; the dark dot is its landfall. Each faint blue line is one of the 50 copies, moved sideways. The blue dots along the coast are where each copy makes landfall. The red dot is PS-09.
+- **Right, panel 1, "How far each copy moves".** The bell curve is the rule for drawing the 50 distances: centred on 0 (the forecast itself), with a spread equal to the cone radius at landfall (185 km at advisory 1, 124 km at advisory 3). The ticks under it are the 50 distances actually drawn. Most are near the middle and a few are far out.
+- **Right, panel 2, "What each copy does to one site".** Each dot is PS-09's strongest wind in one of the 50 storms, sorted left to right. The red lines mark P50, the middle value (half the storms are worse), and P90, the bad case (only 5 of 50 are worse). The failure chance reads the failure curve at all 50 winds and averages them.
+- **Advisory 1 against advisory 3:** the spread shrinks from 185 to 124 km, and PS-09's winds move up (P50 58 → 77 mph). That is why its failure chance rises from 17 % to 29 %.
 
 ## How a risk score is computed (the champion), with PS-09 at advisory 3
 
@@ -356,6 +361,29 @@ To replace the champion it must pass the **promotion rule** on Storm Delta: a be
 
 **Its limit:** it can only learn what its training storms contain. Here they are synthetic, with one planted effect; with real data it would learn from the utility's own outage history.
 
+## How to read "How bad, where"
+
+The panel on the **Storm map** page, right of the map, is an **outage forecast**: for each district, what the storm could knock out and what fixing it would take. It is computed from the same 50 storms as the risk list, and it is a forecast, not a decision.
+
+**How it is computed** (`backend/muster/forecast/`, settings under `forecast:` in `config/scoring.yaml`):
+1. For each of the 50 storms, it draws 20 random outcomes: each asset fails or not, with its failure chance in that storm. That makes 1,000 possible outcomes.
+2. Each outcome follows the supply network. A failed substation cuts its power customers. A failed pumping station or treatment plant cuts water. An intact asset counts as out once half or more of the assets feeding it are out.
+3. It adds up, per district: customers out, the crews needed to repair what failed (2 per substation, 1 per pumping station, 4 for the treatment plant), the crews for the playbook actions still open there, and the generators needed to run intact pumping stations that lost their power.
+4. Over the 1,000 outcomes it reports the median and the P90.
+
+**The columns:**
+
+| Column | Reads as | Advisory 3, Bayport East |
+|---|---|---|
+| **District** | One row per district, west to east | Bayport East |
+| **Customers out** | `power` and `water`: customers without service, median–P90 | power 12k–69k · water 7k–26k |
+| **Crews / have** | Crews needed (median–P90) / crews at the district's staging areas now. The red **N short** badge is the P90 need minus those available. | 6–29 / 4 · 25 short |
+| **Generators** | Portable generators needed, median–P90. The note under the table says how many fuelled generators serve the whole territory (6). | — |
+
+**How to say it:** "In a typical outcome Bayport East loses power to about twelve thousand customers; in a bad one, nearly seventy thousand. Repairs would need six to twenty-nine crews, and four are there."
+
+**Its limit** (`docs/assumptions_limitations.md`): it is a screening estimate, and on the synthetic storm history it forecasts too few outages.
+
 ## Behind the curtain: what happens on each advisory
 
 The detail behind scene 3, where the **Run trace** page shows these steps with their timings.
@@ -382,7 +410,8 @@ Checked against the running app on 2026-11-02: the template provider after `make
 | Landfall shift at advisory 3 | 41.3 km east; top 10 gains SUB-07 and WTP-01 | `changes` of package 3 |
 | PS-09 | rank 40 → 20; failure probability 17 % → 29 %; wind P50 77.2 mph; condition 5; 1,010 customers; feeds WTP-01; challenger rank 12, 68 % (wind, age 46, condition) | `/risk`, `/assets/PS-09/explain?advisory=3` |
 | PS-14 at advisory 3 | 1.96 km from the coast; flood P90 0.85 m | `/assets/PS-14/explain?advisory=3` |
-| Bayport East crews, advisory 3 | 4 available; 6 (P50) to 29 (P90) needed | `/forecast?advisory=3` |
+| Bayport East outage forecast, advisory 3 | power 11,943–68,878; water 6,603–26,336; crews 6–29 needed, 4 available | `/forecast?advisory=3` |
+| Ensemble cards | advisory 1: spread 185 km, shifts −384 to +354 km, PS-09 P50 57.6 / P90 120.5 mph; advisory 3: 124 km, −231 to +230 km, 77.2 / 127.1 mph | `docs/img/ensemble_adv1.png`, `ensemble_adv3.png` |
 | Operations override refused | 403, "only the incident commander approves it (P-8.1)" | `POST /packages/3/items/…/decision` |
 | Advisory 4 | P-4.5 at PS-09 gone; P-4.2 at PS-14 back; P-4.6 at STG-02 new | `GET /packages/4` |
 | Advisory 5 | 12 conflicts (3 × P-4.2, 9 × P-4.5); PS-14 wind arrives in 8 h; rank 87; failure probability 45 %; 2,733 customers; feeds nothing | `GET /packages/5`, `/assets/PS-14/explain?advisory=5` |
