@@ -1,6 +1,6 @@
 # Muster: storm preparation decision support
 
-[![check](https://github.com/OWNER/REPO/actions/workflows/check.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/check.yml)
+[![check](https://github.com/arcsi1989/muster-eoc/actions/workflows/check.yml/badge.svg)](https://github.com/arcsi1989/muster-eoc/actions/workflows/check.yml)
 
 Muster replays a hurricane's forecast advisories for a utility's Emergency Operations Center (EOC) and, for each one, scores asset risk, checks the hurricane playbook with a deterministic rule engine, and assembles a decision package of gaps, conflicts and a draft situation report. People approve or override every item, and the audit log records each decision; no AI output changes operational state. Take-home challenge for the role of AI Solution Engineer (Zug). Not an official AECOM document.
 
@@ -53,7 +53,7 @@ Other commands:
 | `make eval-compare` | Which model is good enough, at what cost: the same golden set (each case 3 times) against every model of the configured provider listed under `compare` in `config/evals.yaml` (default Claude Haiku, Sonnet and Opus 5.5). Writes [docs/eval/comparison.md](docs/eval/comparison.md): per model, pass rate per category, the gate, latency P50/P90 per answer, tokens, and cost per answer and per run at the prices in `config/llm.yaml`, ranked cheapest passing model first. Needs `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`; refuses to run with the template. **It costs API money**: 90 answers per model; the run of 2026-11-01 cost $4.68 for the three defaults ($0.09 Haiku, $1.48 Sonnet, $3.11 Opus, measured, retries included). |
 | `make test` | Every check: ruff, mypy (strict), pytest, the eval gate, oxlint, tsc, vitest (`./scripts/check.sh`). |
 
-**Continuous integration**: [`.github/workflows/check.yml`](.github/workflows/check.yml) runs `./scripts/check.sh` on every push and pull request, in template mode with no secrets, on the pinned toolchain (Python from `backend/.python-version`, Node from `frontend/.nvmrc`, pnpm from `frontend/package.json`, dependencies from the lockfiles, cached). It uploads the template eval report (`eval-report`) and the backend coverage report (`coverage-backend`) as artifacts. The repo has no remote yet, so the workflow runs once it is pushed to GitHub; then replace `OWNER/REPO` in the badge above.
+**Continuous integration**: [`.github/workflows/check.yml`](.github/workflows/check.yml) runs `./scripts/check.sh` on every push and pull request, in template mode with no secrets, on the pinned toolchain (Python from `backend/.python-version`, Node from `frontend/.nvmrc`, pnpm from `frontend/package.json`, dependencies from the lockfiles, cached). It uploads the template eval report (`eval-report`) and the backend coverage report (`coverage-backend`) as artifacts. Runs are listed under the repo's [Actions](https://github.com/arcsi1989/muster-eoc/actions/workflows/check.yml) tab; the badge above shows the latest.
 
 Latest evaluation report: [docs/eval/report.md](docs/eval/report.md); model comparison: [docs/eval/comparison.md](docs/eval/comparison.md). The backend records it in the audit log at startup.
 
